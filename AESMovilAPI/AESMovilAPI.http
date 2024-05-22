@@ -1,0 +1,6 @@
+@AESMovilAPI_HostAddress = http://localhost:5276
+
+GET {{AESMovilAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
