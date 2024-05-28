@@ -1,10 +1,12 @@
 ﻿using AESMovilAPI.DTOs;
 using AESMovilAPI.Responses;
 using ivraes;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AESMovilAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/v1/[controller]")]
     [RequireHttps]
@@ -18,6 +20,7 @@ namespace AESMovilAPI.Controllers
         }
 
         // GET: api/v1/technicalclaims/verifier
+        [AllowAnonymous]
         [HttpGet]
         [Route("[action]")]
         public IActionResult Verifier()

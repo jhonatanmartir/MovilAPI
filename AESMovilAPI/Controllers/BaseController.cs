@@ -24,8 +24,11 @@ namespace AESMovilAPI.Controllers
                     return StatusCode(StatusCodes.Status503ServiceUnavailable, response);
                 case StatusCodes.Status422UnprocessableEntity:
                     return UnprocessableEntity(response);
+                case StatusCodes.Status401Unauthorized:
+                    return Unauthorized(response);
                 default:
                     response.Success = true;
+                    response.Message = response.Message.Equals("Failed") ? "Successfully" : response.Message;
                     return Ok(response);
             }
         }
