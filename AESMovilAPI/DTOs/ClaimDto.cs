@@ -13,12 +13,11 @@ namespace AESMovilAPI.DTOs
         public string ComentarioReclamo { get; set; }
         [Required]
         public string ComentarioDireccion { get; set; }
-        [Required]
         public string Peligro { get; set; } = "SE001";
         public bool VecinosAfectados { get; set; } = false;
         public string? Empresa { get; set; } = "";
         public string? Departamento { get; set; } = "";
-        public string? Municipoio { get; set; } = "";
+        public string? Municipio { get; set; } = "";
         [Required]
         public string Usuario { get; set; }
         [Required]
