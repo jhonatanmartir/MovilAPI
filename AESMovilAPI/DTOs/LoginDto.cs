@@ -5,6 +5,6 @@ namespace AESMovilAPI.DTOs
     public class LoginDto
     {
         [Required]
-        public string Key { get; set; }
+        public string Auth { get; set; }
     }
 }

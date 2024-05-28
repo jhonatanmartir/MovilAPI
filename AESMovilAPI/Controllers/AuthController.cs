@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -28,28 +29,31 @@ namespace AESMovilAPI.Controllers
             int statusCode = StatusCodes.Status401Unauthorized;
             Response<string> response = new Response<string>();
 
-            if (auth != null)
+            if (auth != null && ModelState.IsValid)
             {
-                var credentialBytes = Convert.FromBase64String(auth.Key);
-                var credentials = Encoding.UTF8.GetString(credentialBytes).Split(new[] { ':' }, 2);
-                var username = credentials[0];
-                var password = credentials[1];
-
-                //password = Util.GetSHA1(password);
-                if (IsAuthorized(username, password))
+                var authKey = AuthenticationHeaderValue.Parse(auth.Auth);
+                if (authKey.Scheme == "Basic")
                 {
-                    string token = "";
-                    try
-                    {
-                        token = GenerateJwtToken(username);
-                        statusCode = StatusCodes.Status201Created;
-                    }
-                    catch (Exception ex)
-                    {
-                        statusCode = StatusCodes.Status422UnprocessableEntity;
-                    }
+                    var credentials = Encoding.UTF8.GetString(Convert.FromBase64String(authKey.Parameter)).Split(':');
+                    var username = credentials[0];
+                    var password = credentials[1];
 
-                    response.Data = "Bearer " + token;
+                    //password = Util.GetSHA1(password);
+                    if (IsAuthorized(username, password))
+                    {
+                        string token = "";
+                        try
+                        {
+                            token = GenerateJwtToken(username);
+                            statusCode = StatusCodes.Status201Created;
+                        }
+                        catch (Exception ex)
+                        {
+                            statusCode = StatusCodes.Status422UnprocessableEntity;
+                        }
+
+                        response.Data = token;
+                    }
                 }
             }
 
@@ -58,10 +62,22 @@ namespace AESMovilAPI.Controllers
 
         private bool IsAuthorized(string user, string pwd)
         {
-            var users = _config.GetSection("Authorized").Get<List<KeyValuePair<string, string>>>();
-            var result = users?.Contains(new KeyValuePair<string, string>(user, pwd));
+            bool exist = false;
+            try
+            {
+                var users = _config.GetSection("Authorized").Get<Dictionary<string, string>>();
 
-            return result != null ? true : false;
+                if (users != null && users[user] == pwd)
+                {
+                    exist = true;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return exist;
         }
 
         private string GenerateJwtToken(string user)
