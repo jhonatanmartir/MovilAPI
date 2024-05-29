@@ -20,12 +20,16 @@ namespace AESMovilAPI.Controllers
         {
             switch (code)
             {
-                case StatusCodes.Status503ServiceUnavailable:
-                    return StatusCode(StatusCodes.Status503ServiceUnavailable, response);
-                case StatusCodes.Status422UnprocessableEntity:
-                    return UnprocessableEntity(response);
+                case StatusCodes.Status201Created:
+                    return StatusCode(StatusCodes.Status201Created, response);
                 case StatusCodes.Status401Unauthorized:
                     return Unauthorized(response);
+                case StatusCodes.Status403Forbidden:
+                    return StatusCode(StatusCodes.Status403Forbidden, response);
+                case StatusCodes.Status422UnprocessableEntity:
+                    return UnprocessableEntity(response);
+                case StatusCodes.Status503ServiceUnavailable:
+                    return StatusCode(StatusCodes.Status503ServiceUnavailable, response);
                 default:
                     response.Success = true;
                     response.Message = response.Message.Equals("Failed") ? "Successfully" : response.Message;

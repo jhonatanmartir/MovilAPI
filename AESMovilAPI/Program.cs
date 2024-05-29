@@ -39,7 +39,25 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+        {
+            Title = "AESMovil API",
+            Version = "v1",
+            Description = "Documentación para realizar integraciones con los Canales Digitales de AES El Salvador. Contactar para obtener APIKey",
+            Contact = new Microsoft.OpenApi.Models.OpenApiContact
+            {
+                Name = "Jhonatan Mártir",
+                Email = "creativa.jmartir.c@aes.com"
+            }
+        });
+
+        // Opcional: agregar comentarios XML
+        var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
+        c.IncludeXmlComments(xmlPath);
+    });
 
 // Registrar el servicio con una vida útil específica (Singleton, Scoped, Transient)
 builder.Services.AddSingleton<VRAESELSALVADORSoapClient>(provider =>

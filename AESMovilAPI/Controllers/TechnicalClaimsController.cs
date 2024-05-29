@@ -19,10 +19,20 @@ namespace AESMovilAPI.Controllers
             _ivrClient = ivr;
         }
 
+        /// <summary>
+        /// Verifica que el servicio se encuentre funcionando.
+        /// </summary>
+        /// <returns>Texto</returns>
+        /// <response code="200">El servicio esta funcionando.</response>
+        /// <response code="202">El servicio esta en pruebas.</response>
+        /// <response code="500">Incidente en el servicio.</response>
         // GET: api/v1/technicalclaims/verifier
         [AllowAnonymous]
         [HttpGet]
         [Route("[action]")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Verifier()
         {
             string result = "Keep calm We good over here!";
