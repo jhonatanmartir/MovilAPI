@@ -51,7 +51,8 @@ builder.Services.AddSingleton<VRAESELSALVADORSoapClient>(provider =>
 
 // Make sure the configuration from appsettings.json is added.
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-
+// Register the HttpClientFactory
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
