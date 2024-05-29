@@ -1,10 +1,16 @@
+using AESMovilAPI.Models;
 using ivraes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.ServiceModel;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configurar el pool de DbContext
+builder.Services.AddDbContextPool<SAPSGCDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Load ConnectedService.json
 var connectedServiceConfig = new ConfigurationBuilder()
