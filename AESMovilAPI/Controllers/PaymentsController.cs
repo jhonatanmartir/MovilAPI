@@ -1,14 +1,10 @@
 ﻿using AESMovilAPI.DTOs;
 using AESMovilAPI.Responses;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AESMovilAPI.Controllers
 {
-    [Authorize]
-    [ApiController]
     [Route("api/v1/[controller]")]
-    [RequireHttps]
     public class PaymentsController : BaseController
     {
         private readonly HttpClient _httpClient;

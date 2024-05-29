@@ -11,9 +11,7 @@ using System.Text;
 
 namespace AESMovilAPI.Controllers
 {
-    [ApiController]
     [Route("api/v1/[controller]")]
-    [RequireHttps]
     public class AuthController : BaseController
     {
         public AuthController(IConfiguration config) : base(config)

@@ -6,10 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AESMovilAPI.Controllers
 {
-    [Authorize]
-    [ApiController]
     [Route("api/v1/[controller]")]
-    [RequireHttps]
     public class TechnicalClaimsController : BaseController
     {
         private readonly VRAESELSALVADORSoapClient _ivrClient;

@@ -4,9 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AESMovilAPI.Controllers
 {
-    [ApiController]
     [Route("api/v1/[controller]")]
-    [RequireHttps]
     public class SAPSGCController : BaseController
     {
         private readonly SAPSGCDbContext _db;
@@ -24,6 +22,7 @@ namespace AESMovilAPI.Controllers
         /// <response code="400">El dato a consultar no es correcto.</response>
         /// <response code="401">Error por token de autorización.</response>
         /// <response code="404">No existe información de Cuenta contrato o NIC.</response>
+        /// <response code="500">Incidente en el servicio.</response>
         /// <response code="503">Error interno en el proceso de consulta.</response>
         // GET: api/SAPSGC/5
         [HttpGet("{id:long}")]
@@ -46,7 +45,7 @@ namespace AESMovilAPI.Controllers
                         value = _db.Associations.Where(a => a.CuentaContrato == id).ToList();
                     }
 
-                    if (value != null)
+                    if (value != null && value.Count > 0)
                     {
                         _statusCode = StatusCodes.Status200OK;
 
