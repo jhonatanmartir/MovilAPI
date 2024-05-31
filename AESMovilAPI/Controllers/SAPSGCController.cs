@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AESMovilAPI.Controllers
 {
-    [ApiExplorerSettings(IgnoreApi = true)]
     [Route("api/v1/[controller]")]
     public class SAPSGCController : BaseController
     {
@@ -43,7 +42,7 @@ namespace AESMovilAPI.Controllers
                 {
                     if (value == null || value.Count == 0)
                     {
-                        value = _db.Associations.Where(a => a.CuentaContrato == id).ToList();
+                        value = _db.Associations.Where(a => a.Partner == id).ToList();
                     }
 
                     if (value != null && value.Count > 0)
@@ -54,7 +53,23 @@ namespace AESMovilAPI.Controllers
 
                         foreach (var a in value)
                         {
-                            list.Add(new SAPSGCResponse { Nic = a.Nic, CuentaContrato = a.CuentaContrato });
+                            list.Add(new SAPSGCResponse
+                            {
+                                Nic = a.Nic,
+                                NisRad = a.NisRad,
+                                Partner = a.Partner,
+                                Nombre = a.NameFirst,
+                                Apellido = a.NameLast,
+                                Vkont = a.Vkont,
+                                Vertrag = a.Vertrag,
+                                Tariftyp = a.Tariftyp,
+                                Ableinh = a.Ableinh,
+                                Portion = a.Portion,
+                                Sernr = a.Sernr,
+                                Vstelle = a.Vstelle,
+                                Haus = a.Haus,
+                                Opbuk = a.Opbuk
+                            });
                         }
 
                         response.Data = list;
