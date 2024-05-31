@@ -1,8 +1,10 @@
+using AESMovilAPI.Filters;
 using AESMovilAPI.Models;
 using ivraes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.ServiceModel;
 using System.Text;
 
@@ -51,18 +53,50 @@ builder.Services.AddSwaggerGen(c =>
         {
             Title = "AESMovil API",
             Version = "v1",
-            Description = "Documentación para realizar integraciones con los Canales Digitales de AES El Salvador. Contactar para obtener APIKey",
+            Description = @"Documentación para realizar integraciones con los <strong>Canales Digitales</strong> de AES El Salvador.<br/><br/>
+                            Contactar a TI AES El Salvador para obtener Key de autenticación.<br/>
+                            Con el Key proporcionada utilice en endpoint de <code>Auth</code> para generar el token de autorización.<br/><br/>
+                            <em>Los endpoints que aparecen en este documento estan disponibles para pruebas y no seran modificados a excepción en caso de hacer correciones o mejoras.<br/>
+                            A medida que se desarrolla el servicio se iran habilitando mas endpoints.<br/>
+                            El texto de este documento puede ir cambiando para dar mas claridad en las especificaciones del API.</em>",
             Contact = new Microsoft.OpenApi.Models.OpenApiContact
             {
                 Name = "Jhonatan Mártir",
                 Email = "creativa.jmartir.c@aes.com"
             }
         });
-
+        // Remover status code 200 by default
+        c.OperationFilter<RemoveDefaultResponsesOperationFilter>();
         // Opcional: agregar comentarios XML
         var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
         var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
         c.IncludeXmlComments(xmlPath);
+
+        // Define the OAuth2.0 scheme that's in use (i.e. Implicit Flow)
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            In = ParameterLocation.Header,
+            Description = "Digite 'Bearer' espacio y el token.",
+            Name = "Authorization",
+            Type = SecuritySchemeType.ApiKey,
+            BearerFormat = "JWT",
+            Scheme = "Bearer"
+        });
+
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
     });
 
 // Registrar el servicio con una vida útil específica (Singleton, Scoped, Transient)
@@ -81,11 +115,23 @@ builder.Services.AddHttpClient();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+//if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(
+        c =>
+        {
+            //c.SwaggerEndpoint("/swagger/v1/swagger.json", "AESMovil API V1");
+
+            // Custom UI settings
+            //c.InjectStylesheet("/swagger-ui/custom.css");
+            //c.InjectJavascript("/swagger-ui/custom.js");
+            c.DocumentTitle = "AESMovil API Doc";
+            //c.RoutePrefix = string.Empty; // Serve Swagger UI at application root
+        });
 }
+
+app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 

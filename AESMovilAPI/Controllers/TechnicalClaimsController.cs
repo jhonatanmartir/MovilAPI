@@ -30,6 +30,7 @@ namespace AESMovilAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [NonAction]
         public IActionResult Verifier()
         {
             string result = "Keep calm We good over here!";
@@ -44,17 +45,27 @@ namespace AESMovilAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Creación de reclamos técnicos.
+        /// </summary>
+        /// <param name="claim">Datos del reaclamo representado por el objeto <see cref="ClaimDto">ClaimDto</see>. Reclamo por falta de suministro.</param>
+        /// <returns>Número de reclamo</returns>
+        /// <response code="201">Se creó el reclamo.</response>
+        /// <response code="400">Error en datos para crear reclamo.</response>
+        /// <response code="401">Error por token de autorización.</response>
+        /// <response code="500">Incidente en el servicio.</response>
+        /// <response code="503">Error interno en el proceso de creación del reclamo.</response>
         // POST: api/v1/technicalclaims
         [HttpPost]
         public async Task<IActionResult> Create(ClaimDto claim)
         {
             Response<ClaimResponse> response = new Response<ClaimResponse>();
-            int statusCode = StatusCodes.Status200OK;
 
             if (claim != null && ModelState.IsValid)
             {
                 try
                 {
+                    _statusCode = CREATED_201;
                     CrearReclamoResponse ivResponse = await _ivrClient.CrearReclamoAsync(
                     claim.NC.ToString(),
                     claim.OrigenReclamo,
@@ -79,16 +90,17 @@ namespace AESMovilAPI.Controllers
 
                     if (string.IsNullOrEmpty(ivResponse.Body.CrearReclamoResult.NUMERO_RECLAMO))
                     {
-                        statusCode = StatusCodes.Status503ServiceUnavailable;
+                        _statusCode = SERVICE_UNAVAILABLE_503;
                     }
                 }
                 catch (Exception ex)
                 {
-                    statusCode = StatusCodes.Status422UnprocessableEntity;
+                    _statusCode = BAD_REQUEST_400;
+                    response.Message = ex.Message;
                 }
             }
 
-            return GetResponse(response, statusCode);
+            return GetResponse(response);
         }
     }
 }

@@ -18,18 +18,30 @@ namespace AESMovilAPI.Controllers
         {
         }
 
+        /// <summary>
+        /// Obtener token de autorización para consumir endpoints.
+        /// </summary>
+        /// <param name="auth">Key proporcionada por TI AES El Salvador.</param>
+        /// <returns>Token</returns>
+        /// <response code="201">Correcto</response>
+        /// <response code="400">Incorrecto</response>
+        /// <response code="401">Error por key de autenticación</response>
+        /// <response code="500">Incidente en el servicio.</response>
+        /// <response code="503">Error interno en el proceso.</response>
         // POST: api/v1/auth/login
         [AllowAnonymous]
         [HttpPost]
         [Route("[action]")]
         public IActionResult Login(LoginDto auth)
         {
-            int statusCode = StatusCodes.Status401Unauthorized;
             Response<string> response = new Response<string>();
 
             if (auth != null && ModelState.IsValid)
             {
+                _statusCode = UNAUTHORIZED_401;
+
                 var authKey = AuthenticationHeaderValue.Parse(auth.Auth);
+
                 if (authKey.Scheme == "Basic")
                 {
                     var credentials = Encoding.UTF8.GetString(Convert.FromBase64String(authKey.Parameter)).Split(':');
@@ -43,11 +55,12 @@ namespace AESMovilAPI.Controllers
                         try
                         {
                             token = GenerateJwtToken(username);
-                            statusCode = StatusCodes.Status201Created;
+                            _statusCode = CREATED_201;
                         }
                         catch (Exception ex)
                         {
-                            statusCode = StatusCodes.Status422UnprocessableEntity;
+                            _statusCode = SERVICE_UNAVAILABLE_503;
+                            response.Message = ex.Message;
                         }
 
                         response.Data = token;
@@ -55,7 +68,7 @@ namespace AESMovilAPI.Controllers
                 }
             }
 
-            return GetResponse<string>(response, statusCode);
+            return GetResponse(response);
         }
 
         private bool IsAuthorized(string user, string pwd)

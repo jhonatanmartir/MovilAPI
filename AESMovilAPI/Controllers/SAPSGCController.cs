@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AESMovilAPI.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     [Route("api/v1/[controller]")]
     public class SAPSGCController : BaseController
     {
@@ -16,7 +17,7 @@ namespace AESMovilAPI.Controllers
         /// <summary>
         /// Consulta información de Cuenta contrato o NIC.
         /// </summary>
-        /// <param name="id">Número de Cuenta contrato o NIC.</param>
+        /// <param name="id">Número de Cuenta o NIC.</param>
         /// <returns>información de contrato o NIC</returns>
         /// <response code="200">Correcto</response>
         /// <response code="400">El dato a consultar no es correcto.</response>
@@ -34,7 +35,7 @@ namespace AESMovilAPI.Controllers
                 id > 0 && id.ToString().Length == 7 ||
                 id > 0 && id.ToString().Length == 12)
             {
-                _statusCode = StatusCodes.Status404NotFound;
+                _statusCode = NOT_FOUND_404;
 
                 var value = _db.Associations.Where(a => a.Nic == id).ToList();
 
@@ -47,7 +48,7 @@ namespace AESMovilAPI.Controllers
 
                     if (value != null && value.Count > 0)
                     {
-                        _statusCode = StatusCodes.Status200OK;
+                        _statusCode = OK_200;
 
                         List<SAPSGCResponse> list = new List<SAPSGCResponse>();
 
@@ -61,7 +62,7 @@ namespace AESMovilAPI.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _statusCode = StatusCodes.Status503ServiceUnavailable;
+                    _statusCode = SERVICE_UNAVAILABLE_503;
                     response.Message = ex.Message;
                 }
             }
