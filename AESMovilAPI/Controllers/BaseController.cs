@@ -29,26 +29,30 @@ namespace AESMovilAPI.Controllers
             _statusCode = BAD_REQUEST_400;
         }
 
+        /// <summary>
+        /// Crear respuesta según el <c>_statusCode</c>
+        /// </summary>
+        /// <typeparam name="T">Objeto data de la respuesta </typeparam>
+        /// <param name="response">Informacion de respuesta</param>
+        /// <returns></returns>
         protected ObjectResult GetResponse<T>(Response<T> response)
         {
             switch (_statusCode)
             {
-                case StatusCodes.Status201Created:      //POST
+                case CREATED_201:      //POST
                     response.Success = true;
                     response.Message = response.Message.Equals("Failed") ? "Successfully" : response.Message;
-                    return StatusCode(StatusCodes.Status201Created, response);
-                case StatusCodes.Status400BadRequest:   //POST, GET, Default
+                    return StatusCode(_statusCode, response);
+                case BAD_REQUEST_400:   //POST, GET, Default
                     return BadRequest(response);
-                case StatusCodes.Status401Unauthorized:
+                case UNAUTHORIZED_401:
                     return Unauthorized(response);
-                case StatusCodes.Status403Forbidden:    //POST, GET
-                    return StatusCode(StatusCodes.Status403Forbidden, response);
-                case StatusCodes.Status404NotFound:     //GET
+                case FORBIDDEN_403:    //POST, GET
+                    return StatusCode(_statusCode, response);
+                case NOT_FOUND_404:     //GET
                     return NotFound(response);
-                //case StatusCodes.Status422UnprocessableEntity:
-                //    return UnprocessableEntity(response);
-                case StatusCodes.Status503ServiceUnavailable:
-                    return StatusCode(StatusCodes.Status503ServiceUnavailable, response);
+                case SERVICE_UNAVAILABLE_503:
+                    return StatusCode(_statusCode, response);
                 default:
                     response.Success = true;
                     response.Message = response.Message.Equals("Failed") ? "Successfully" : response.Message;
