@@ -1,3 +1,4 @@
+using AESMovilAPI;
 using AESMovilAPI.Filters;
 using AESMovilAPI.Models;
 using ivraes;
@@ -97,6 +98,9 @@ builder.Services.AddSwaggerGen(c =>
                 Array.Empty<string>()
             }
         });
+        // Add custom CSS and JS
+        //c.InjectStylesheet("/swagger-ui/custom.css");
+        //c.InjectJavascript("/swagger-ui/custom.js");
     });
 
 // Registrar el servicio con una vida útil específica (Singleton, Scoped, Transient)
@@ -124,13 +128,14 @@ var app = builder.Build();
             //c.SwaggerEndpoint("/swagger/v1/swagger.json", "AESMovil API V1");
 
             // Custom UI settings
-            //c.InjectStylesheet("/swagger-ui/custom.css");
-            //c.InjectJavascript("/swagger-ui/custom.js");
+            c.InjectStylesheet("/swagger-ui/custom/custom.css");
+            c.InjectJavascript("/swagger-ui/custom/custom.js");
             c.DocumentTitle = "AESMovil API Doc";
             //c.RoutePrefix = string.Empty; // Serve Swagger UI at application root
         });
 }
 
+app.UseMiddleware<CustomMiddleware>();
 app.UseStaticFiles();
 
 app.UseHttpsRedirection();

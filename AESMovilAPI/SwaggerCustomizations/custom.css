@@ -1,0 +1,7 @@
+﻿body {
+}
+/* Adjust the logo size if needed */
+.swagger-ui .topbar .topbar-wrapper .link img {
+    width: auto; /* Adjust the width as needed */
+    height: 40px; /* Adjust the height as needed */
+}
