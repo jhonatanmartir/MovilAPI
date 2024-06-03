@@ -15,5 +15,12 @@ namespace AESMovilAPI.Utilities
         {
             return Regex.Replace(source, @"\s", string.Empty);
         }
+
+        public static string Base64Encode(string source)
+        {
+            // Encoding
+            byte[] bytesToEncode = System.Text.Encoding.UTF8.GetBytes(source);
+            return Convert.ToBase64String(bytesToEncode);
+        }
     }
 }

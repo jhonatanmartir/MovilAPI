@@ -41,14 +41,14 @@ namespace AESMovilAPI.Controllers
                 switch (data.Collector.ToUpper())
                 {
                     case "PAGADITO":
-                        //response.Data = await GetPaywayLink(data.NC.ToString());
+                        response.Data = await GetPagaditoLink(data.NC.ToString());
                         break;
                     case "PAYWAY":
                         response.Data = await GetPaywayLink(data.NC.ToString());
                         break;
                     default: break;
                 }
-                _statusCode = response.Data == null ? NOT_FOUND_404 : CREATED_201;
+                _statusCode = string.IsNullOrEmpty(response.Data) ? NOT_FOUND_404 : CREATED_201;
             }
 
             return GetResponse(response);
@@ -62,8 +62,8 @@ namespace AESMovilAPI.Controllers
 
             if (bill != null)
             {
-                string usuarioOperacion = GetUsuarioOperacion(bill.Company);
-                string colectorId = GetcolectorId(bill.Company);
+                string usuarioOperacion = GetUsuarioOperacionPayway(bill.Company);
+                string colectorId = GetcolectorIdPayway(bill.Company);
                 var postData = new
                 {
                     token = token,                                                          // Req. Const
@@ -110,10 +110,65 @@ namespace AESMovilAPI.Controllers
             return result;
         }
 
-        private string GetPagaditoLink(string nc)
+        private async Task<string> GetPagaditoLink(string nc)
         {
+            string result = string.Empty;
+            BillDto? bill = await GetInvoiceData(nc);
 
-            return nc;
+            if (bill != null)
+            {
+                var user = "e45e8561e4a694e369bd78267bd5a828";
+                var pwd = "ca557e96b6ef72d973ed99a09b68a797";
+                var postData = new
+                {
+                    ern = bill.DocumentNumberId,        // TODO confirm value
+                    amount = bill.Amount,
+                    currency = "USD",
+                    extended_expiration = false,
+                    details = new List<object>
+                    {
+                        new
+                        {
+                            quantity = 1,
+                            description = "Pago de factura " + bill.IssueDate.ToString("MMMM/yyyy"),
+                            price = bill.Amount
+                        }
+                    }
+                };
+
+                var jsonContent = JsonConvert.SerializeObject(postData);
+                using var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                try
+                {
+                    // Create the authentication header value
+                    var byteArray = Encoding.ASCII.GetBytes($"{user}:{pwd}");
+                    var authHeader = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+                    // Set the authorization header
+                    _client.DefaultRequestHeaders.Authorization = authHeader;
+
+                    // Send the POST request
+                    var response = await _client.PostAsync("https://sandbox-connect.pagadito.com/api/v2/exec-trans", httpContent);
+
+                    // Ensure the request was successful
+                    response.EnsureSuccessStatusCode();
+
+                    // Read the response content as a string
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    dynamic responseObject = JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
+
+                    if (responseObject.Code == "00")
+                    {
+                        result = responseObject.Data.url;
+                    }
+                }
+                catch (HttpRequestException e)
+                {
+
+                }
+            }
+
+            return result;
         }
 
         private async Task<BillDto?> GetInvoiceData(string nc)
@@ -170,7 +225,8 @@ namespace AESMovilAPI.Controllers
                         IssueDate = Helper.ParseDate(responseObject.d.DataSet.results[0].F_emision, "yyyyMMdd"),
                         MayoralPayment = Decimal.Parse(responseObject.d.DataSet.results[0].Alcaldia) > 0 ? true : false,
                         ReconnectionPayment = Decimal.Parse(responseObject.d.DataSet.results[0].Reconexion) > 0 ? true : false,
-                        Company = responseObject.d.DataSet.results[0].Empresa
+                        Company = responseObject.d.DataSet.results[0].Empresa,
+                        DocumentNumberId = responseObject.d.DataSet.results[0].IdCobro
                     };
                 }
             }
@@ -182,7 +238,7 @@ namespace AESMovilAPI.Controllers
             return result;
         }
 
-        private string GetUsuarioOperacion(string company)
+        private string GetUsuarioOperacionPayway(string company)
         {
             string value = string.Empty;
             switch (company)
@@ -202,7 +258,7 @@ namespace AESMovilAPI.Controllers
             }
             return value;
         }
-        private string GetcolectorId(string company)
+        private string GetcolectorIdPayway(string company)
         {
             string value = string.Empty;
             switch (company)

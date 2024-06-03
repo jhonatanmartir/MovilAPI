@@ -26,7 +26,8 @@ namespace AESMovilAPI.Controllers
         /// <response code="201">Correcto</response>
         /// <response code="400">Incorrecto</response>
         /// <response code="401">Error por key de autenticación</response>
-        /// <response code="500">Incidente en el servicio.</response>
+        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
+        /// <response code="502">Incidente en el servicio.</response>
         /// <response code="503">Error interno en el proceso.</response>
         // POST: api/v1/auth/login
         [AllowAnonymous]
