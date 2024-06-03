@@ -1,6 +1,8 @@
 ﻿using AESMovilAPI.Models;
 using AESMovilAPI.Responses;
+using AESMovilAPI.Utilities;
 using Microsoft.AspNetCore.Mvc;
+using System.Numerics;
 
 namespace AESMovilAPI.Controllers
 {
@@ -24,25 +26,40 @@ namespace AESMovilAPI.Controllers
         /// <response code="404">No existe información de Cuenta contrato o NIC.</response>
         /// <response code="500">Incidente en el servicio.</response>
         /// <response code="503">Error interno en el proceso de consulta.</response>
-        // GET: api/SAPSGC/5
-        [HttpGet("{id:long}")]
-        public IActionResult GetById(long id)
+        // GET: api/SAPSGC/2222222
+        [HttpGet("{id}")]
+        public IActionResult GetById(string id)
         {
             Response<List<SAPSGCResponse>> response = new Response<List<SAPSGCResponse>>();
+            BigInteger number;
 
-            if (id > 0 && id.ToString().Length == 6 ||
-                id > 0 && id.ToString().Length == 7 ||
-                id > 0 && id.ToString().Length == 12)
+            id = Helper.RemoveWhitespaces(id);
+
+            if (id != null && id.Length == 6 && BigInteger.TryParse(id, out number) ||
+                id != null && id.Length == 7 && BigInteger.TryParse(id, out number) ||
+                id != null && id.Length == 12 && BigInteger.TryParse(id, out number) ||
+                id != null && id.Length == 24 && BigInteger.TryParse(id, out number))
             {
                 _statusCode = NOT_FOUND_404;
 
-                var value = _db.Associations.Where(a => a.Nic == id).ToList();
+                List<Associations> value = new List<Associations>();
 
                 try
                 {
-                    if (value == null || value.Count == 0)
+                    if (id.Length == 24)
                     {
-                        value = _db.Associations.Where(a => a.Partner == id).ToList();
+                        id = id.Substring(12, 7);
+                    }
+
+                    if (id.Length == 6 || id.Length == 7)
+                    {
+                        // NIC
+                        value = _db.Associations.Where(a => a.Nic == int.Parse(id)).ToList();
+                    }
+                    else
+                    {
+                        // NC
+                        value = _db.Associations.Where(a => a.Vkont == long.Parse(id)).ToList();
                     }
 
                     if (value != null && value.Count > 0)

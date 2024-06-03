@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace AESMovilAPI.Utilities
 {
@@ -8,6 +9,11 @@ namespace AESMovilAPI.Utilities
         {
             CultureInfo provider = CultureInfo.InvariantCulture;
             return DateTime.ParseExact(date, format, provider);
+        }
+
+        public static string RemoveWhitespaces(string source)
+        {
+            return Regex.Replace(source, @"\s", string.Empty);
         }
     }
 }
