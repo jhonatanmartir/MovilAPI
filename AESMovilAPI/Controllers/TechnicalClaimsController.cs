@@ -22,7 +22,8 @@ namespace AESMovilAPI.Controllers
         /// <returns>Texto</returns>
         /// <response code="200">El servicio esta funcionando.</response>
         /// <response code="202">El servicio esta en pruebas.</response>
-        /// <response code="500">Incidente en el servicio.</response>
+        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
+        /// <response code="502">Incidente en el servicio.</response>
         // GET: api/v1/technicalclaims/verifier
         [AllowAnonymous]
         [HttpGet]
@@ -53,7 +54,8 @@ namespace AESMovilAPI.Controllers
         /// <response code="201">Se creó el reclamo.</response>
         /// <response code="400">Error en datos para crear reclamo.</response>
         /// <response code="401">Error por token de autorización.</response>
-        /// <response code="500">Incidente en el servicio.</response>
+        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
+        /// <response code="502">Incidente en el servicio.</response>
         /// <response code="503">Error interno en el proceso de creación del reclamo.</response>
         // POST: api/v1/technicalclaims
         [HttpPost]

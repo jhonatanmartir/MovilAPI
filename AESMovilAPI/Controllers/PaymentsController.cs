@@ -28,7 +28,8 @@ namespace AESMovilAPI.Controllers
         /// <response code="400">Datos incompletos.</response>
         /// <response code="401">Error por token de autorización.</response>
         /// <response code="404">No se genero el link.</response>
-        /// <response code="500">Incidente en el servicio.</response>
+        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
+        /// <response code="502">Incidente en el servicio.</response>
         [HttpPost]
         public async Task<IActionResult> Create(PaymentDto data)
         {

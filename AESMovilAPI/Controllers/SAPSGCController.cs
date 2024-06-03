@@ -24,7 +24,8 @@ namespace AESMovilAPI.Controllers
         /// <response code="400">El dato a consultar no es correcto.</response>
         /// <response code="401">Error por token de autorización.</response>
         /// <response code="404">No existe información de Cuenta contrato o NIC.</response>
-        /// <response code="500">Incidente en el servicio.</response>
+        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
+        /// <response code="502">Incidente en el servicio.</response>
         /// <response code="503">Error interno en el proceso de consulta.</response>
         // GET: api/SAPSGC/2222222
         [HttpGet("{id}")]
