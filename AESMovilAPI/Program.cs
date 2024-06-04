@@ -13,7 +13,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Configurar el pool de DbContext
 builder.Services.AddDbContextPool<SAPSGCDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+    sqlOptions => sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 4,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null
+        )));
 
 // Load ConnectedService.json
 var connectedServiceConfig = new ConfigurationBuilder()
