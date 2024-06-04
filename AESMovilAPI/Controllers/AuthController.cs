@@ -1,8 +1,10 @@
 ﻿using AESMovilAPI.DTOs;
+using AESMovilAPI.Examples;
 using AESMovilAPI.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Swashbuckle.AspNetCore.Filters;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -33,6 +35,8 @@ namespace AESMovilAPI.Controllers
         [AllowAnonymous]
         [HttpPost]
         [Route("[action]")]
+        [SwaggerRequestExample(typeof(LoginDto), typeof(LoginExample))]
+        [SwaggerResponseExample(201, typeof(LoginResponseExample))]
         public IActionResult Login(LoginDto auth)
         {
             Response<string> response = new Response<string>();

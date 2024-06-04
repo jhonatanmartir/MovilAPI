@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
 using System.ServiceModel;
 using System.Text;
 
@@ -106,6 +107,7 @@ builder.Services.AddSwaggerGen(c =>
         // Add custom CSS and JS
         //c.InjectStylesheet("/swagger-ui/custom.css");
         //c.InjectJavascript("/swagger-ui/custom.js");
+        c.ExampleFilters(); // Habilitar filtros de ejemplos
     });
 
 // Registrar el servicio con una vida útil específica (Singleton, Scoped, Transient)
@@ -120,6 +122,8 @@ builder.Services.AddSingleton<VRAESELSALVADORSoapClient>(provider =>
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 // Register the HttpClientFactory
 builder.Services.AddHttpClient();
+// Registrar los filtros de ejemplos
+builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
 
 var app = builder.Build();
 

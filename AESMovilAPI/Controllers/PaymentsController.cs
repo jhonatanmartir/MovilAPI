@@ -77,7 +77,8 @@ namespace AESMovilAPI.Controllers
                         datoAuxiliar1 = nc,                                                 // NC
                         datoAuxiliar2 = bill.ExpirationDate.ToString("yyyyMMdd"),           // Vencimiento YYYYMMDD
                         datoAuxiliar3 = bill.MayoralPayment ? "1" : "0",                    // Paga alcaldia = 1, else 0
-                        datoAuxiliar4 = bill.ReconnectionPayment ? "1" : "0"                // Paga recon = 1, else 0
+                        datoAuxiliar4 = bill.ReconnectionPayment ? "1" : "0",                // Paga recon = 1, else 0
+                        datoAuxiliar5 = ""                // Paga recon = 1, else 0
                     },
                 };
 
