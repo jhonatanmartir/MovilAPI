@@ -11,10 +11,10 @@ using System.Text;
 namespace AESMovilAPI.Controllers
 {
     [Route("api/v1/[controller]")]
-    public class PaymentsController : BaseController
+    public class PaymentController : BaseController
     {
         private readonly HttpClient _client;
-        public PaymentsController(IConfiguration config, HttpClient httpClient) : base(config)
+        public PaymentController(IConfiguration config, HttpClient httpClient) : base(config)
         {
             _client = httpClient;
         }

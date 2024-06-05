@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace AESMovilAPI.Controllers
 {
     [Route("api/v1/[controller]")]
-    public class TechnicalClaimsController : BaseController
+    public class TechnicalClaimController : BaseController
     {
         private readonly VRAESELSALVADORSoapClient _ivrClient;
 
-        public TechnicalClaimsController(IConfiguration config, VRAESELSALVADORSoapClient ivr) : base(config)
+        public TechnicalClaimController(IConfiguration config, VRAESELSALVADORSoapClient ivr) : base(config)
         {
             _ivrClient = ivr;
         }
