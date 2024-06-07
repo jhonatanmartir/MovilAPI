@@ -12,6 +12,21 @@ namespace AESMovilAPI.Filters
             {
                 operation.Responses.Remove("200");
             }
+
+            // Para parametros opcionales
+            if (operation.Parameters == null)
+            {
+                return;
+            }
+
+            foreach (var parameter in operation.Parameters)
+            {
+                if (context.ApiDescription.ParameterDescriptions.Any(p => p.Name == parameter.Name && p.RouteInfo != null && p.RouteInfo.IsOptional))
+                {
+                    parameter.Description += " (Opcional)";
+                    parameter.Required = false;
+                }
+            }
         }
     }
 }

@@ -22,7 +22,7 @@ namespace AESMovilAPI.Controllers
 
         protected int _statusCode;
 
-        protected BaseController(IConfiguration config)
+        public BaseController(IConfiguration config)
         {
             _config = config;
             _token = string.Empty;

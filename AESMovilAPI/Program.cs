@@ -16,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContextPool<SAPSGCDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
     sqlOptions => sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 4,
+            maxRetryCount: 2,
             maxRetryDelay: TimeSpan.FromSeconds(10),
             errorNumbersToAdd: null
         )));
@@ -64,7 +64,8 @@ builder.Services.AddSwaggerGen(c =>
                             Contactar a TI AES El Salvador para obtener Key de autenticación.<br/>
                             Con el Key proporcionada utilice en endpoint de <code>Auth</code> para generar el token de autorización.<br/><br/>
                             <em>Los endpoints que aparecen en este documento estan disponibles para pruebas y no seran modificados a excepción en caso de hacer correciones o mejoras.<br/>
-                            A medida que se desarrolla el servicio se iran habilitando mas endpoints.<br/>
+                            A medida que se desarrolla el servicio se iran habilitando mas endpoints.<br/><br/>
+                            En ambiente desarrollo los token de autorizacion tienen validez por 48 horas.<br/><br/>
                             El texto de este documento puede ir cambiando para dar mas claridad en las especificaciones del API.</em>",
             Contact = new Microsoft.OpenApi.Models.OpenApiContact
             {
