@@ -1,11 +1,13 @@
 ﻿using AESMovilAPI.Utilities;
+using iText.IO.Image;
 using iText.Kernel.Colors;
+using iText.Kernel.Font;
 using iText.Kernel.Pdf;
-using iText.Kernel.Pdf.Canvas.Draw;
 using iText.Layout;
 using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
@@ -19,9 +21,26 @@ namespace AESMovilAPI.Controllers
     public class FileController : BaseController
     {
         private readonly HttpClient _client;
-        public FileController(IConfiguration config, HttpClient client) : base(config)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly PdfFont _fontRegular;
+        private readonly PdfFont _fontMedium;
+        private readonly PdfFont _fontSemiBold;
+        private readonly PdfFont _fontBold;
+
+        public FileController(IConfiguration config, HttpClient client, IWebHostEnvironment webHostEnvironment) : base(config)
         {
             _client = client;
+            _webHostEnvironment = webHostEnvironment;
+
+            string fontPathRegular = Path.Combine(_webHostEnvironment.ContentRootPath, "Sources", "Fonts", "PublicSans-Regular.otf"); // Path to the custom font file
+            string fontPathMedium = Path.Combine(_webHostEnvironment.ContentRootPath, "Sources", "Fonts", "PublicSans-Medium.otf"); // Path to the custom font file
+            string fontPathSemiBold = Path.Combine(_webHostEnvironment.ContentRootPath, "Sources", "Fonts", "PublicSans-SemiBold.otf"); // Path to the custom font file
+            string fontPathBold = Path.Combine(_webHostEnvironment.ContentRootPath, "Sources", "Fonts", "PublicSans-Bold.otf"); // Path to the custom font file
+
+            _fontRegular = PdfFontFactory.CreateFont(fontPathRegular, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
+            _fontMedium = PdfFontFactory.CreateFont(fontPathMedium, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
+            _fontSemiBold = PdfFontFactory.CreateFont(fontPathSemiBold, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
+            _fontBold = PdfFontFactory.CreateFont(fontPathBold, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
         }
 
         [NonAction]
@@ -51,6 +70,7 @@ namespace AESMovilAPI.Controllers
         /// <response code="404">No se encontró historico de facturación.</response>
         /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
         /// <response code="502">Incidente en el servicio.</response>
+        [AllowAnonymous]
         [HttpGet("BillingHistory/{id}/{fromDate=}/{toDate=}")]
         public async Task<IActionResult> GetBillingHistory(string id, string? fromDate = null, string? toDate = null)
         {
@@ -65,7 +85,7 @@ namespace AESMovilAPI.Controllers
             }
             dynamic? data = await GetBillingHistoryData(id, fromDate, toDate);
             byte[] fileBytes = BuildBillingHistoryFile(id, fromDate, toDate, data);
-            return File(fileBytes, "application/pdf", "BillingHistory-" + id + ".pdf");
+            return File(fileBytes, "application/pdf", id + "hf.pdf");
         }
 
         /// <summary>
@@ -81,6 +101,7 @@ namespace AESMovilAPI.Controllers
         /// <response code="404">No se encontró historico de alcaldía.</response>
         /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
         /// <response code="502">Incidente en el servicio.</response>
+        [AllowAnonymous]
         [HttpGet("MayoralHistory/{id}/{fromDate=}/{toDate=}")]
         public async Task<IActionResult> GetMayoralHistory(string id, string? fromDate = null, string? toDate = null)
         {
@@ -96,7 +117,7 @@ namespace AESMovilAPI.Controllers
 
             dynamic? data = await GetMayoralHistoryData(id, fromDate, toDate);
             byte[] fileBytes = BuildMayoralHistoryFile(id, fromDate, toDate, data);
-            return File(fileBytes, "application/pdf", "MayoralHistory-" + id + ".pdf");
+            return File(fileBytes, "application/pdf", id + "ha.pdf");
         }
 
         #region "MayoralHistory"
@@ -147,7 +168,14 @@ namespace AESMovilAPI.Controllers
 
                 if (string.IsNullOrEmpty(responseObject.d.Errorcode) || responseObject.d.Errorcode == "0")
                 {
-                    result = responseObject.d.DataSet;
+                    return new
+                    {
+                        values = responseObject.d.DataSet.results,
+                        name = responseObject.d.DataSet.results[0].Cliente,
+                        address = responseObject.d.DataSet.results[0].Domicilio,
+                        fee = responseObject.d.DataSet.results[0].Tarifa,
+                        company = responseObject.d.DataSet.results[0].Sociedad
+                    };
                 }
             }
             catch (HttpRequestException e)
@@ -155,7 +183,7 @@ namespace AESMovilAPI.Controllers
 
             }
 
-            return result;
+            return null;
         }
 
         private byte[]? BuildMayoralHistoryFile(string nc, string fromDate, string toDate, dynamic data)
@@ -170,118 +198,248 @@ namespace AESMovilAPI.Controllers
                         {
                             Document document = new Document(pdf);
 
-                            // Header
-                            Paragraph header = new Paragraph("HISTORICO DE ALCALDÍA")
+                            // Title
+                            Paragraph header = new Paragraph("HISTORICO DE CARGOS DE ALCALDÍA")
+                                .SetFont(_fontBold)
                                 .SetTextAlignment(TextAlignment.CENTER)
-                                .SetFontSize(14)
-                                .SetBold();
+                                .SetFontSize(10);
                             // New line
                             Paragraph newline = new Paragraph(new Text("\n"));
+                            Paragraph dateTitle = new Paragraph("DESDE " + Helper.ParseStrDateMonth(fromDate).ToUpper() + " HASTA " + Helper.ParseStrDateMonth(toDate).ToUpper())
+                                .SetFont(_fontSemiBold)
+                                .SetFontSize(7)
+                                .SetTextAlignment(TextAlignment.CENTER);
 
                             document.Add(header);
+                            document.Add(dateTitle);
                             document.Add(newline);
 
-                            // Add sub-header
-                            Paragraph subheader1 = new Paragraph("NC: " + nc)
-                               .SetTextAlignment(TextAlignment.CENTER)
-                               .SetFontSize(12);
-                            Paragraph subheader = new Paragraph("Desde " + Helper.ParseStrDateMonth(fromDate) + " hasta " + Helper.ParseStrDateMonth(toDate))
-                               .SetTextAlignment(TextAlignment.CENTER)
-                               .SetFontSize(12);
-                            document.Add(subheader1);
-                            document.Add(subheader);
+                            // Add an image (logo) to the document
+                            ImageData imageData = ImageDataFactory.Create(Path.Combine(_webHostEnvironment.ContentRootPath, "Sources", "Images", Helper.GetCompanyName(data.company) + "-logo.png"));
+                            Image img = new Image(imageData);
+                            img.ScaleToFit(100, 100);
+                            img.SetFixedPosition(456, 784);
 
+                            document.Add(img);
+
+                            // Header
+                            Color headerColor = new DeviceRgb(229, 229, 229);
+                            Color lineColor = new DeviceRgb(245, 245, 245);
+                            Color lightColor = new DeviceRgb(245, 245, 245);
+                            Table tableHeader = new Table(12, true);
+                            Cell cellH11 = new Cell(1, 2)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph("NOMBRE:").SetFont(_fontSemiBold).SetFontSize(7));
+                            Cell cellH12 = new Cell(1, 7)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph(data.name).SetFont(_fontMedium).SetFontSize(7));
+                            //Cell cellH13 = new Cell(1, 1)
+                            //    .SetBorder(Border.NO_BORDER)
+                            //    .SetTextAlignment(TextAlignment.LEFT)
+                            //    .Add(new Paragraph("NC:").SetFont(_fontSemiBold).SetFontSize(7));
+                            //Cell cellH14 = new Cell(1, 2)
+                            //    .SetBorder(Border.NO_BORDER)
+                            //    .SetTextAlignment(TextAlignment.LEFT)
+                            //    .Add(new Paragraph(nc).SetFont(_fontMedium).SetFontSize(7));
+                            Cell cellH15 = new Cell(1, 1)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetBackgroundColor(lightColor)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph("FECHA:").SetFont(_fontSemiBold).SetFontSize(7));
+                            Cell cellH16 = new Cell(1, 2)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetBackgroundColor(lightColor)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")).SetFont(_fontMedium).SetFontSize(7));
+
+                            Cell cellH21 = new Cell(1, 2)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph("DIRECCIÓN:").SetFont(_fontSemiBold).SetFontSize(7));
+                            Cell cellH22 = new Cell(1, 7)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph(data.address).SetFont(_fontMedium).SetFontSize(7));
+                            //Cell cellH23 = new Cell(1, 2)
+                            //    .SetBorder(Border.NO_BORDER)
+                            //    .SetTextAlignment(TextAlignment.LEFT)
+                            //    .Add(new Paragraph("SERVICIOS:").SetFont(_fontSemiBold).SetFontSize(7));
+                            //Cell cellH24 = new Cell(1, 1)
+                            //    .SetBorder(Border.NO_BORDER)
+                            //    .SetTextAlignment(TextAlignment.LEFT)
+                            //    .Add(new Paragraph("Todos.").SetFont(_fontMedium).SetFontSize(7));
+                            Cell cellH25 = new Cell(1, 1)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph("TARIFA:").SetFont(_fontSemiBold).SetFontSize(7));
+                            Cell cellH26 = new Cell(1, 2)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph(data.fee).SetFont(_fontMedium).SetFontSize(7));
+
+                            Cell cellH31 = new Cell(1, 2)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph("CUENTA CONTRATO:").SetFont(_fontSemiBold).SetFontSize(7));
+                            Cell cellH32 = new Cell(1, 7)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph(nc).SetFont(_fontMedium).SetFontSize(7));
+                            Cell cellH35 = new Cell(1, 1)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph("SERVICIO:").SetFont(_fontSemiBold).SetFontSize(7));
+                            Cell cellH36 = new Cell(1, 2)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph("Todos").SetFont(_fontMedium).SetFontSize(7));
+
+                            tableHeader.AddCell(cellH11);
+                            tableHeader.AddCell(cellH12);
+                            //tableHeader.AddCell(cellH13);
+                            //tableHeader.AddCell(cellH14);
+                            tableHeader.AddCell(cellH15);
+                            tableHeader.AddCell(cellH16);
+                            tableHeader.AddCell(cellH21);
+                            tableHeader.AddCell(cellH22);
+                            //tableHeader.AddCell(cellH23);
+                            //tableHeader.AddCell(cellH24);
+                            tableHeader.AddCell(cellH25);
+                            tableHeader.AddCell(cellH26);
+                            tableHeader.AddCell(cellH31);
+                            tableHeader.AddCell(cellH32);
+                            tableHeader.AddCell(cellH35);
+                            tableHeader.AddCell(cellH36);
+
+                            document.Add(tableHeader);
+                            document.Add(newline);
                             // Line separator
-                            LineSeparator ls = new LineSeparator(new SolidLine());
-                            document.Add(ls);
+                            //LineSeparator ls = new LineSeparator(new SolidLine()).SetBackgroundColor(lineColor);
+                            //document.Add(ls);
 
                             // Table
-                            Table table = new Table(7, false);
+                            Table table = new Table(7, true);
                             Cell cell11 = new Cell(1, 1)
                                 .SetBorder(Border.NO_BORDER)
-                                //.SetBackgroundColor(ColorConstants.LIGHT_GRAY)
+                                //.SetBorderBottom(new SolidBorder(lineColor, 1))
+                                .SetBackgroundColor(headerColor)
                                 .SetTextAlignment(TextAlignment.CENTER)
-                                .Add(new Paragraph("CARGO").SetBold().SetFontSize(9));
+                                .Add(new Paragraph("CARGO")
+                                .SetFont(_fontBold)
+                                .SetFontSize(7));
                             Cell cell12 = new Cell(1, 1)
                                 .SetBorder(Border.NO_BORDER)
-                               //.SetBackgroundColor(ColorConstants.LIGHT_GRAY)
-                               .SetTextAlignment(TextAlignment.CENTER)
-                               .Add(new Paragraph("ESTADO").SetBold().SetFontSize(9));
+                                //.SetBorderBottom(new SolidBorder(lineColor, 1))
+                                .SetBackgroundColor(headerColor)
+                                .SetTextAlignment(TextAlignment.CENTER)
+                                .Add(new Paragraph("FECHA DE FACTURACIÓN")
+                                .SetFont(_fontBold)
+                                .SetFontSize(7));
                             Cell cell13 = new Cell(1, 1)
                                 .SetBorder(Border.NO_BORDER)
-                               //.SetBackgroundColor(ColorConstants.LIGHT_GRAY)
+                               //.SetBorderBottom(new SolidBorder(lineColor, 1))
+                               .SetBackgroundColor(headerColor)
                                .SetTextAlignment(TextAlignment.CENTER)
-                               .Add(new Paragraph("FECHA FACTURADO").SetBold().SetFontSize(9));
-                            Cell cell14 = new Cell(1, 1)
-                                .SetBorder(Border.NO_BORDER)
-                               //.SetBackgroundColor(ColorConstants.LIGHT_GRAY)
-                               .SetTextAlignment(TextAlignment.CENTER)
-                               .Add(new Paragraph("FECHA COBRO").SetBold().SetFontSize(9));
+                               .Add(new Paragraph("MONTO FACTURADO")
+                               .SetFont(_fontBold)
+                               .SetFontSize(7));
+                            //Cell cell14 = new Cell(1, 1)
+                            //    .SetBorder(Border.NO_BORDER)
+                            //    .SetBorderBottom(new SolidBorder(ColorConstants.GRAY, 1))
+                            //   //.SetBackgroundColor(ColorConstants.LIGHT_GRAY)
+                            //   .SetTextAlignment(TextAlignment.CENTER)
+                            //   .Add(new Paragraph("FECHA DE VENCIMIENTO").SetBold().SetFontSize(8));
                             Cell cell15 = new Cell(1, 1)
                                 .SetBorder(Border.NO_BORDER)
-                               //.SetBackgroundColor(ColorConstants.LIGHT_GRAY)
+                               //.SetBorderBottom(new SolidBorder(lineColor, 1))
+                               .SetBackgroundColor(headerColor)
                                .SetTextAlignment(TextAlignment.CENTER)
-                               .Add(new Paragraph("IMPORTE").SetBold().SetFontSize(9));
+                               .Add(new Paragraph("FECHA DE PAGO")
+                               .SetFont(_fontBold)
+                               .SetFontSize(7));
                             Cell cell16 = new Cell(1, 1)
                                 .SetBorder(Border.NO_BORDER)
-                               //.SetBackgroundColor(ColorConstants.LIGHT_GRAY)
+                               //.SetBorderBottom(new SolidBorder(lineColor, 1))
+                               .SetBackgroundColor(headerColor)
                                .SetTextAlignment(TextAlignment.CENTER)
-                               .Add(new Paragraph("ALCALDÍA").SetBold().SetFontSize(9));
+                               .Add(new Paragraph("ESTADO")
+                               .SetFont(_fontBold)
+                               .SetFontSize(7));
                             Cell cell17 = new Cell(1, 1)
                                 .SetBorder(Border.NO_BORDER)
-                               //.SetBackgroundColor(ColorConstants.LIGHT_GRAY)
-                               .SetTextAlignment(TextAlignment.CENTER)
-                               .Add(new Paragraph("CUENTA").SetBold().SetFontSize(9));
+                               //.SetBorderBottom(new SolidBorder(lineColor, 1))
+                               .SetBackgroundColor(headerColor)
+                               .SetTextAlignment(TextAlignment.LEFT)
+                               .Add(new Paragraph("ALCLADÍA")
+                               .SetFont(_fontBold)
+                               .SetFontSize(7));
+                            Cell cell18 = new Cell(1, 1)
+                                .SetBorder(Border.NO_BORDER)
+                               //.SetBorderBottom(new SolidBorder(lineColor, 1))
+                               .SetBackgroundColor(headerColor)
+                               .SetTextAlignment(TextAlignment.LEFT)
+                               .Add(new Paragraph("CUENTA")
+                               .SetFont(_fontBold)
+                               .SetFontSize(7));
+
 
                             table.AddCell(cell11);
                             table.AddCell(cell12);
                             table.AddCell(cell13);
-                            table.AddCell(cell14);
+                            //table.AddCell(cell14);
                             table.AddCell(cell15);
                             table.AddCell(cell16);
                             table.AddCell(cell17);
+                            table.AddCell(cell18);
 
-                            foreach (var item in data.results)
+                            foreach (var item in data.values)
                             {
                                 Cell cell1 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.LEFT)
-                                    .Add(new Paragraph(item.CargoVario).SetFontSize(9));
+                                    .Add(new Paragraph(item.CargoVario).SetFont(_fontRegular).SetFontSize(7));
                                 Cell cell2 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
-                                    .SetTextAlignment(TextAlignment.LEFT)
-                                    .Add(new Paragraph(item.Estado).SetFontSize(9));
+                                    .SetTextAlignment(TextAlignment.CENTER)
+                                    .Add(new Paragraph(Helper.ParseStrDate(item.FechaFacturado)).SetFont(_fontRegular).SetFontSize(7));
                                 Cell cell3 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
-                                    .SetTextAlignment(TextAlignment.LEFT)
-                                    .Add(new Paragraph(Helper.ParseStrDate(item.FechaFacturado)).SetFontSize(9));
-                                Cell cell4 = new Cell(1, 1)
-                                    .SetBorder(Border.NO_BORDER)
-                                    .SetTextAlignment(TextAlignment.LEFT)
-                                    .Add(new Paragraph(Helper.ParseStrDate(item.FechaCobro)).SetFontSize(9));
+                                    .SetTextAlignment(TextAlignment.RIGHT)
+                                    .Add(new Paragraph("$ " + item.Monto.Trim()).SetFont(_fontRegular).SetFontSize(7));
+                                //Cell cell4 = new Cell(1, 1)
+                                //    .SetBorder(Border.NO_BORDER)
+                                //    .SetTextAlignment(TextAlignment.LEFT)
+                                //    .Add(new Paragraph(Helper.ParseStrDate(item.FechaCobro)).SetFontSize(8));
                                 Cell cell5 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
-                                    .SetTextAlignment(TextAlignment.LEFT)
-                                    .Add(new Paragraph("$" + item.Monto.Trim()).SetFontSize(9));
+                                    .SetTextAlignment(TextAlignment.CENTER)
+                                    .Add(new Paragraph(Helper.ParseStrDate(item.FechaCobro)).SetFont(_fontRegular).SetFontSize(7));
                                 Cell cell6 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
-                                    .SetTextAlignment(TextAlignment.LEFT)
-                                    .Add(new Paragraph(item.Alcaldia).SetFontSize(9));
+                                    .SetTextAlignment(TextAlignment.CENTER)
+                                    .Add(new Paragraph(item.Estado).SetFont(_fontRegular).SetFontSize(7));
                                 Cell cell7 = new Cell(1, 1)
+                                .SetBorder(Border.NO_BORDER)
+                                    .SetTextAlignment(TextAlignment.LEFT)
+                                    .Add(new Paragraph(item.Alcaldia).SetFont(_fontRegular).SetFontSize(7));
+                                Cell cell8 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.LEFT)
-                                    .Add(new Paragraph(item.Cuenta).SetFontSize(9));
+                                    .Add(new Paragraph(item.Cuenta).SetFont(_fontRegular).SetFontSize(7));
 
                                 table.AddCell(cell1);
                                 table.AddCell(cell2);
                                 table.AddCell(cell3);
-                                table.AddCell(cell4);
+                                //table.AddCell(cell4);
                                 table.AddCell(cell5);
                                 table.AddCell(cell6);
                                 table.AddCell(cell7);
+                                table.AddCell(cell8);
                             }
 
-                            document.Add(newline);
+                            //document.Add(newline);
                             document.Add(table);
 
                             document.Close();
@@ -345,7 +503,8 @@ namespace AESMovilAPI.Controllers
                         values = responseObject.d.DataSet.results,
                         name = responseObject.d.DataSet.results[0].Cliente,
                         address = responseObject.d.DataSet.results[0].DireccionCliente,
-                        fee = responseObject.d.DataSet.results[0].TipoTarifa
+                        fee = responseObject.d.DataSet.results[0].TipoTarifa,
+                        company = responseObject.d.DataSet.results[0].Sociedad
                     };
                 }
             }
@@ -369,51 +528,153 @@ namespace AESMovilAPI.Controllers
                         {
                             Document document = new Document(pdf);
 
-                            // Header
+                            // Title
                             Paragraph header = new Paragraph("HISTORICO DE FACTURACIÓN")
+                                .SetFont(_fontBold)
                                 .SetTextAlignment(TextAlignment.CENTER)
-                                .SetFontSize(14)
-                                .SetBold();
+                                .SetFontSize(10);
                             // New line
                             Paragraph newline = new Paragraph(new Text("\n"));
+                            Paragraph dateTitle = new Paragraph("DESDE " + Helper.ParseStrDateMonth(fromDate).ToUpper() + " HASTA " + Helper.ParseStrDateMonth(toDate).ToUpper())
+                                .SetFont(_fontSemiBold)
+                                .SetFontSize(7)
+                                .SetTextAlignment(TextAlignment.CENTER);
 
                             document.Add(header);
+                            document.Add(dateTitle);
                             document.Add(newline);
 
-                            // Add sub-header
-                            Paragraph subheader1 = new Paragraph("NC:       " + nc)
-                               .SetTextAlignment(TextAlignment.CENTER)
-                               .SetFontSize(12);
-                            Paragraph subheader = new Paragraph("Desde " + Helper.ParseStrDateMonth(fromDate) + " hasta " + Helper.ParseStrDateMonth(toDate))
-                               .SetTextAlignment(TextAlignment.CENTER)
-                               .SetFontSize(12);
-                            document.Add(subheader1);
-                            document.Add(subheader);
+                            // Add an image (logo) to the document
+                            ImageData imageData = ImageDataFactory.Create(Path.Combine(_webHostEnvironment.ContentRootPath, "Sources", "Images", Helper.GetCompanyName(data.company) + "-logo.png"));
+                            Image img = new Image(imageData);
+                            img.ScaleToFit(100, 100);
+                            img.SetFixedPosition(456, 784);
 
+                            document.Add(img);
+
+                            // Header
+                            Color headerColor = new DeviceRgb(229, 229, 229);
+                            Color lineColor = new DeviceRgb(245, 245, 245);
+                            Color lightColor = new DeviceRgb(245, 245, 245);
+                            Table tableHeader = new Table(12, true);
+                            Cell cellH11 = new Cell(1, 2)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph("NOMBRE:").SetFont(_fontSemiBold).SetFontSize(7));
+                            Cell cellH12 = new Cell(1, 7)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph(data.name).SetFont(_fontMedium).SetFontSize(7));
+                            //Cell cellH13 = new Cell(1, 1)
+                            //    .SetBorder(Border.NO_BORDER)
+                            //    .SetTextAlignment(TextAlignment.LEFT)
+                            //    .Add(new Paragraph("NC:").SetFont(_fontSemiBold).SetFontSize(7));
+                            //Cell cellH14 = new Cell(1, 2)
+                            //    .SetBorder(Border.NO_BORDER)
+                            //    .SetTextAlignment(TextAlignment.LEFT)
+                            //    .Add(new Paragraph(nc).SetFont(_fontMedium).SetFontSize(7));
+                            Cell cellH15 = new Cell(1, 1)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetBackgroundColor(lightColor)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph("FECHA:").SetFont(_fontSemiBold).SetFontSize(7));
+                            Cell cellH16 = new Cell(1, 2)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetBackgroundColor(lightColor)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")).SetFont(_fontMedium).SetFontSize(7));
+
+                            Cell cellH21 = new Cell(1, 2)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph("DIRECCIÓN:").SetFont(_fontSemiBold).SetFontSize(7));
+                            Cell cellH22 = new Cell(1, 7)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph(data.address).SetFont(_fontMedium).SetFontSize(7));
+                            //Cell cellH23 = new Cell(1, 2)
+                            //    .SetBorder(Border.NO_BORDER)
+                            //    .SetTextAlignment(TextAlignment.LEFT)
+                            //    .Add(new Paragraph("SERVICIOS:").SetFont(_fontSemiBold).SetFontSize(7));
+                            //Cell cellH24 = new Cell(1, 1)
+                            //    .SetBorder(Border.NO_BORDER)
+                            //    .SetTextAlignment(TextAlignment.LEFT)
+                            //    .Add(new Paragraph("Todos.").SetFont(_fontMedium).SetFontSize(7));
+                            Cell cellH25 = new Cell(1, 1)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph("TARIFA:").SetFont(_fontSemiBold).SetFontSize(7));
+                            Cell cellH26 = new Cell(1, 2)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph(data.fee).SetFont(_fontMedium).SetFontSize(7));
+
+                            Cell cellH31 = new Cell(1, 2)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph("CUENTA CONTRATO:").SetFont(_fontSemiBold).SetFontSize(7));
+                            Cell cellH32 = new Cell(1, 7)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph(nc).SetFont(_fontMedium).SetFontSize(7));
+                            Cell cellH35 = new Cell(1, 1)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph("SERVICIO:").SetFont(_fontSemiBold).SetFontSize(7));
+                            Cell cellH36 = new Cell(1, 2)
+                                .SetBorder(Border.NO_BORDER)
+                                .SetTextAlignment(TextAlignment.LEFT)
+                                .Add(new Paragraph("Todos").SetFont(_fontMedium).SetFontSize(7));
+
+                            tableHeader.AddCell(cellH11);
+                            tableHeader.AddCell(cellH12);
+                            //tableHeader.AddCell(cellH13);
+                            //tableHeader.AddCell(cellH14);
+                            tableHeader.AddCell(cellH15);
+                            tableHeader.AddCell(cellH16);
+                            tableHeader.AddCell(cellH21);
+                            tableHeader.AddCell(cellH22);
+                            //tableHeader.AddCell(cellH23);
+                            //tableHeader.AddCell(cellH24);
+                            tableHeader.AddCell(cellH25);
+                            tableHeader.AddCell(cellH26);
+                            tableHeader.AddCell(cellH31);
+                            tableHeader.AddCell(cellH32);
+                            tableHeader.AddCell(cellH35);
+                            tableHeader.AddCell(cellH36);
+
+                            document.Add(tableHeader);
+                            document.Add(newline);
                             // Line separator
-                            //LineSeparator ls = new LineSeparator(new SolidLine());
+                            //LineSeparator ls = new LineSeparator(new SolidLine()).SetBackgroundColor(lineColor);
                             //document.Add(ls);
 
                             // Table
                             Table table = new Table(7, false);
                             Cell cell11 = new Cell(1, 1)
                                 .SetBorder(Border.NO_BORDER)
-                                .SetBorderBottom(new SolidBorder(ColorConstants.GRAY, 1))
-                                //.SetBackgroundColor(ColorConstants.LIGHT_GRAY)
+                                //.SetBorderBottom(new SolidBorder(lineColor, 1))
+                                .SetBackgroundColor(headerColor)
                                 .SetTextAlignment(TextAlignment.CENTER)
-                                .Add(new Paragraph("NUMERO DE FACTURA").SetBold().SetFontSize(7));
+                                .Add(new Paragraph("NÚMERO DE FACTURA")
+                                .SetFont(_fontBold)
+                                .SetFontSize(7));
                             Cell cell12 = new Cell(1, 1)
                                 .SetBorder(Border.NO_BORDER)
-                                .SetBorderBottom(new SolidBorder(ColorConstants.GRAY, 1))
-                               //.SetBackgroundColor(ColorConstants.LIGHT_GRAY)
-                               .SetTextAlignment(TextAlignment.CENTER)
-                               .Add(new Paragraph("FECHA DE FACTURACIÓN").SetBold().SetFontSize(7));
+                                //.SetBorderBottom(new SolidBorder(lineColor, 1))
+                                .SetBackgroundColor(headerColor)
+                                .SetTextAlignment(TextAlignment.CENTER)
+                                .Add(new Paragraph("FECHA DE FACTURACIÓN")
+                                .SetFont(_fontBold)
+                                .SetFontSize(7));
                             Cell cell13 = new Cell(1, 1)
                                 .SetBorder(Border.NO_BORDER)
-                                .SetBorderBottom(new SolidBorder(ColorConstants.GRAY, 1))
-                               //.SetBackgroundColor(ColorConstants.LIGHT_GRAY)
+                               //.SetBorderBottom(new SolidBorder(lineColor, 1))
+                               .SetBackgroundColor(headerColor)
                                .SetTextAlignment(TextAlignment.CENTER)
-                               .Add(new Paragraph("MONTO FACTURADO").SetBold().SetFontSize(7));
+                               .Add(new Paragraph("MONTO FACTURADO")
+                               .SetFont(_fontBold)
+                               .SetFontSize(7));
                             //Cell cell14 = new Cell(1, 1)
                             //    .SetBorder(Border.NO_BORDER)
                             //    .SetBorderBottom(new SolidBorder(ColorConstants.GRAY, 1))
@@ -422,28 +683,36 @@ namespace AESMovilAPI.Controllers
                             //   .Add(new Paragraph("FECHA DE VENCIMIENTO").SetBold().SetFontSize(8));
                             Cell cell15 = new Cell(1, 1)
                                 .SetBorder(Border.NO_BORDER)
-                                .SetBorderBottom(new SolidBorder(ColorConstants.GRAY, 1))
-                               //.SetBackgroundColor(ColorConstants.LIGHT_GRAY)
+                               //.SetBorderBottom(new SolidBorder(lineColor, 1))
+                               .SetBackgroundColor(headerColor)
                                .SetTextAlignment(TextAlignment.CENTER)
-                               .Add(new Paragraph("MONTO CANCELADO").SetBold().SetFontSize(7));
+                               .Add(new Paragraph("MONTO CANCELADO")
+                               .SetFont(_fontBold)
+                               .SetFontSize(7));
                             Cell cell16 = new Cell(1, 1)
                                 .SetBorder(Border.NO_BORDER)
-                                .SetBorderBottom(new SolidBorder(ColorConstants.GRAY, 1))
-                               //.SetBackgroundColor(ColorConstants.LIGHT_GRAY)
+                               //.SetBorderBottom(new SolidBorder(lineColor, 1))
+                               .SetBackgroundColor(headerColor)
                                .SetTextAlignment(TextAlignment.CENTER)
-                               .Add(new Paragraph("FECHA DE PAGO").SetBold().SetFontSize(7));
+                               .Add(new Paragraph("FECHA DE PAGO")
+                               .SetFont(_fontBold)
+                               .SetFontSize(7));
                             Cell cell17 = new Cell(1, 1)
                                 .SetBorder(Border.NO_BORDER)
-                                .SetBorderBottom(new SolidBorder(ColorConstants.GRAY, 1))
-                               //.SetBackgroundColor(ColorConstants.LIGHT_GRAY)
+                               //.SetBorderBottom(new SolidBorder(lineColor, 1))
+                               .SetBackgroundColor(headerColor)
                                .SetTextAlignment(TextAlignment.LEFT)
-                               .Add(new Paragraph("ESTADO").SetBold().SetFontSize(8));
+                               .Add(new Paragraph("ESTADO")
+                               .SetFont(_fontBold)
+                               .SetFontSize(7));
                             Cell cell18 = new Cell(1, 1)
                                 .SetBorder(Border.NO_BORDER)
-                                .SetBorderBottom(new SolidBorder(ColorConstants.GRAY, 1))
-                               //.SetBackgroundColor(ColorConstants.LIGHT_GRAY)
+                               //.SetBorderBottom(new SolidBorder(lineColor, 1))
+                               .SetBackgroundColor(headerColor)
                                .SetTextAlignment(TextAlignment.LEFT)
-                               .Add(new Paragraph("LUGAR DE PAGO").SetBold().SetFontSize(7));
+                               .Add(new Paragraph("LUGAR DE PAGO")
+                               .SetFont(_fontBold)
+                               .SetFontSize(7));
 
 
                             table.AddCell(cell11);
@@ -460,15 +729,15 @@ namespace AESMovilAPI.Controllers
                                 Cell cell1 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.CENTER)
-                                    .Add(new Paragraph(item.NumRecibo).SetFontSize(7));
+                                    .Add(new Paragraph(item.NumRecibo).SetFont(_fontRegular).SetFontSize(7));
                                 Cell cell2 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.CENTER)
-                                    .Add(new Paragraph(item.FechaFacturacion).SetFontSize(7));
+                                    .Add(new Paragraph(item.FechaFacturacion).SetFont(_fontRegular).SetFontSize(7));
                                 Cell cell3 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.RIGHT)
-                                    .Add(new Paragraph("$ " + item.ImpFact.Trim()).SetFontSize(7));
+                                    .Add(new Paragraph("$ " + item.ImpFact.Trim()).SetFont(_fontRegular).SetFontSize(7));
                                 //Cell cell4 = new Cell(1, 1)
                                 //    .SetBorder(Border.NO_BORDER)
                                 //    .SetTextAlignment(TextAlignment.LEFT)
@@ -476,19 +745,19 @@ namespace AESMovilAPI.Controllers
                                 Cell cell5 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.RIGHT)
-                                    .Add(new Paragraph("$ " + item.ImpFactCanc.Trim()).SetFontSize(7));
+                                    .Add(new Paragraph("$ " + item.ImpFactCanc.Trim()).SetFont(_fontRegular).SetFontSize(7));
                                 Cell cell6 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.CENTER)
-                                    .Add(new Paragraph(item.FechaPago).SetFontSize(7));
+                                    .Add(new Paragraph(item.FechaPago).SetFont(_fontRegular).SetFontSize(7));
                                 Cell cell7 = new Cell(1, 1)
                                 .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.LEFT)
-                                    .Add(new Paragraph(item.Status).SetFontSize(7));
+                                    .Add(new Paragraph(item.Status).SetFont(_fontRegular).SetFontSize(7));
                                 Cell cell8 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.LEFT)
-                                    .Add(new Paragraph(item.LugarPago).SetFontSize(7));
+                                    .Add(new Paragraph(item.LugarPago).SetFont(_fontRegular).SetFontSize(7));
 
                                 table.AddCell(cell1);
                                 table.AddCell(cell2);

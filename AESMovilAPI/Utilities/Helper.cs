@@ -50,5 +50,52 @@ namespace AESMovilAPI.Utilities
             byte[] bytesToEncode = System.Text.Encoding.UTF8.GetBytes(source);
             return Convert.ToBase64String(bytesToEncode);
         }
+
+        public static string GetCompanyName(string source)
+        {
+            string companyName = string.Empty;
+            if (!string.IsNullOrEmpty(source))
+            {
+                if (source.ToUpper().Contains("CAESS"))
+                {
+                    companyName = "CAESS";
+                }
+                else if (source.ToUpper().Contains("EEO"))
+                {
+                    companyName = "EEO";
+                }
+                else if (source.ToUpper().Contains("DEUSEM"))
+                {
+                    companyName = "DEUSEM";
+                }
+                else if (source.ToUpper().Contains("CLESA"))
+                {
+                    companyName = "CLESA";
+                }
+
+                if (string.IsNullOrEmpty(companyName))
+                {
+                    switch (source)
+                    {
+                        case "SV10":
+                            companyName = "CAESS";
+                            break;
+                        case "SV20":
+                            companyName = "EEO";
+                            break;
+                        case "SV30":
+                            companyName = "DEUSEM";
+                            break;
+                        case "SV40":
+                            companyName = "CLESA";
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            return companyName;
+        }
     }
 }
