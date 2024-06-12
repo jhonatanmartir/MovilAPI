@@ -126,6 +126,15 @@ builder.Services.AddHttpClient();
 // Registrar los filtros de ejemplos
 builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
 
+// Configurar CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+    builder => builder.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader());
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -149,6 +158,9 @@ app.UseMiddleware<CustomMiddleware>();
 app.UseStaticFiles();
 
 app.UseHttpsRedirection();
+
+// Aplicar la política de CORS
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
