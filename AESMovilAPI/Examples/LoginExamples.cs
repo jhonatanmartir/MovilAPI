@@ -3,11 +3,11 @@ using Swashbuckle.AspNetCore.Filters;
 
 namespace AESMovilAPI.Examples
 {
-    public class LoginExample : IExamplesProvider<LoginDto>
+    public class LoginExample : IExamplesProvider<Login>
     {
-        public LoginDto GetExamples()
+        public Login GetExamples()
         {
-            return new LoginDto
+            return new Login
             {
                 Auth = "Basic "
             };

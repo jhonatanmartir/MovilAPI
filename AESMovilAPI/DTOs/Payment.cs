@@ -5,7 +5,7 @@ namespace AESMovilAPI.DTOs
     /// <summary>
     /// Parametros para crear link de pago.
     /// </summary>
-    public class PaymentDto
+    public class Payment
     {
         /// <summary>
         /// Número de contrato

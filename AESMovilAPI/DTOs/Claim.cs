@@ -5,7 +5,7 @@ namespace AESMovilAPI.DTOs
     /// <summary>
     /// Datos para crear reclamo.
     /// </summary>
-    public class ClaimDto
+    public class Claim
     {
         /// <summary>
         /// Número de cuenta.

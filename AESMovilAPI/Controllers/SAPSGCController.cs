@@ -32,7 +32,7 @@ namespace AESMovilAPI.Controllers
         /// <response code="502">Incidente en el servicio.</response>
         /// <response code="503">Error interno en el proceso de consulta.</response>
         // GET: api/SAPSGC/2222222
-        [HttpGet("{id}")]
+        [HttpPost]
         public async Task<IActionResult> GetById(string id)
         {
             bool fromBD = false;

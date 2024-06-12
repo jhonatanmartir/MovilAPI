@@ -22,7 +22,7 @@ namespace AESMovilAPI.Controllers
         /// <summary>
         /// Generar un link de pago.
         /// </summary>
-        /// <param name="data">Objeto que representa <see cref="PaymentDto">PaymentDto</see> para crear links de pago.</param>
+        /// <param name="data">Objeto que representa <see cref="Payment">PaymentDto</see> para crear links de pago.</param>
         /// <returns>Link de pago.</returns>
         /// <response code="201">Link creado.</response>
         /// <response code="400">Datos incompletos.</response>
@@ -31,7 +31,7 @@ namespace AESMovilAPI.Controllers
         /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
         /// <response code="502">Incidente en el servicio.</response>
         [HttpPost]
-        public async Task<IActionResult> Create(PaymentDto data)
+        public async Task<IActionResult> Create(Payment data)
         {
             Response<string> response = new Response<string>();
 

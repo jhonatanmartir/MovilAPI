@@ -2,7 +2,7 @@
 
 namespace AESMovilAPI.DTOs
 {
-    public class LoginDto
+    public class Login
     {
         [Required]
         public string Auth { get; set; }

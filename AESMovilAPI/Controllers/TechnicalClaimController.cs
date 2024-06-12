@@ -49,7 +49,7 @@ namespace AESMovilAPI.Controllers
         /// <summary>
         /// Creación de reclamos técnicos.
         /// </summary>
-        /// <param name="claim">Datos del reaclamo representado por el objeto <see cref="ClaimDto">ClaimDto</see>. Reclamo por falta de suministro.</param>
+        /// <param name="claim">Datos del reaclamo representado por el objeto <see cref="Claim">ClaimDto</see>. Reclamo por falta de suministro.</param>
         /// <returns>Número de reclamo</returns>
         /// <response code="201">Se creó el reclamo.</response>
         /// <response code="400">Error en datos para crear reclamo.</response>
@@ -59,7 +59,7 @@ namespace AESMovilAPI.Controllers
         /// <response code="503">Error interno en el proceso de creación del reclamo.</response>
         // POST: api/v1/technicalclaims
         [HttpPost]
-        public async Task<IActionResult> Create(ClaimDto claim)
+        public async Task<IActionResult> Create(Claim claim)
         {
             Response<ClaimResponse> response = new Response<ClaimResponse>();
 
