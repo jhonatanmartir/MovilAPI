@@ -1,6 +1,8 @@
-﻿using AESMovilAPI.Models;
+﻿using AESMovilAPI.DTOs;
+using AESMovilAPI.Models;
 using AESMovilAPI.Responses;
 using AESMovilAPI.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Dynamic;
@@ -22,7 +24,7 @@ namespace AESMovilAPI.Controllers
         /// <summary>
         /// Consulta información de Cuenta contrato o NIC.
         /// </summary>
-        /// <param name="id">Número de Cuenta o NIC.</param>
+        /// <param name="value">Número de Cuenta, NIC o NPE, representado por el objeto <see cref="Query">Query</see></param>
         /// <returns>información de contrato o NIC</returns>
         /// <response code="200">Correcto</response>
         /// <response code="400">El dato a consultar no es correcto.</response>
@@ -31,13 +33,15 @@ namespace AESMovilAPI.Controllers
         /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
         /// <response code="502">Incidente en el servicio.</response>
         /// <response code="503">Error interno en el proceso de consulta.</response>
-        // GET: api/SAPSGC/2222222
+        // GET: api/SAPSGC
+        [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> GetById(string id)
+        public async Task<IActionResult> GetById(Query query)
         {
             bool fromBD = false;
             Response<List<SAPSGCResponse>> response = new Response<List<SAPSGCResponse>>();
             BigInteger number;
+            string id = query.Id;
 
             id = Helper.RemoveWhitespaces(id);
 
