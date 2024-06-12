@@ -7,29 +7,22 @@ using iText.Layout;
 using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
-using Newtonsoft.Json;
-using System.Dynamic;
-using System.Net.Http.Headers;
-using System.Text;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace AESMovilAPI.Controllers
 {
     [Route("api/v1/[controller]")]
     public class FileController : BaseController
     {
-        private readonly HttpClient _client;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly PdfFont _fontRegular;
         private readonly PdfFont _fontMedium;
         private readonly PdfFont _fontSemiBold;
         private readonly PdfFont _fontBold;
 
-        public FileController(IConfiguration config, HttpClient client, IWebHostEnvironment webHostEnvironment) : base(config)
+        public FileController(IConfiguration config, HttpClient client, IWebHostEnvironment webHostEnvironment) : base(config, client)
         {
-            _client = client;
             _webHostEnvironment = webHostEnvironment;
 
             string fontPathRegular = Path.Combine(_webHostEnvironment.ContentRootPath, "Sources", "Fonts", "PublicSans-Regular.otf"); // Path to the custom font file
@@ -70,7 +63,7 @@ namespace AESMovilAPI.Controllers
         /// <response code="404">No se encontró historico de facturación.</response>
         /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
         /// <response code="502">Incidente en el servicio.</response>
-        [AllowAnonymous]
+        // [AllowAnonymous]
         [HttpGet("BillingHistory/{id}/{fromDate=}/{toDate=}")]
         public async Task<IActionResult> GetBillingHistory(string id, string? fromDate = null, string? toDate = null)
         {
@@ -83,9 +76,35 @@ namespace AESMovilAPI.Controllers
             {
                 toDate = DateTime.Now.ToString("yyyyMMdd");
             }
-            dynamic? data = await GetBillingHistoryData(id, fromDate, toDate);
-            byte[] fileBytes = BuildBillingHistoryFile(id, fromDate, toDate, data);
-            return File(fileBytes, "application/pdf", id + "hf.pdf");
+
+            if (!string.IsNullOrEmpty(id))
+            {
+                //dynamic? data = await GetBillingHistoryData(id, fromDate, toDate);
+                string endpoint = "BIL_BILLIMAGEPREVIEWES_AZUREAPPSERVICES_TO_SAPCIS;v=1/InvHistSummarySet(Nic='" + id + "',Ab='" + fromDate + "',Bis='" + toDate + "')";
+                dynamic? result = await ExecuteGetRequestSAP(endpoint);
+
+                if (result != null)
+                {
+                    dynamic data = new
+                    {
+                        values = result.data.DataSet.results,
+                        name = result.data.DataSet.results[0].Cliente,
+                        address = result.data.DataSet.results[0].DireccionCliente,
+                        fee = result.data.DataSet.results[0].TipoTarifa,
+                        company = result.data.DataSet.results[0].Sociedad
+                    };
+                    byte[] fileBytes = BuildBillingHistoryFile(id, fromDate, toDate, data);
+                    return File(fileBytes, "application/pdf", id + "hf.pdf");
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
 
         /// <summary>
@@ -101,9 +120,11 @@ namespace AESMovilAPI.Controllers
         /// <response code="404">No se encontró historico de alcaldía.</response>
         /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
         /// <response code="502">Incidente en el servicio.</response>
-        [AllowAnonymous]
-        [HttpGet("MayoralHistory/{id}/{fromDate=}/{toDate=}")]
-        public async Task<IActionResult> GetMayoralHistory(string id, string? fromDate = null, string? toDate = null)
+        // [AllowAnonymous]
+        [HttpGet("MayoralHistory/{id}/{fromDate?}/{toDate?}")]
+        public async Task<IActionResult> GetMayoralHistory(string id,
+            [FromRoute, SwaggerParameter("Desde", Required = false)] string? fromDate = null,
+            [FromRoute, SwaggerParameter("Hasta", Required = false)] string? toDate = null)
         {
             if (string.IsNullOrEmpty(fromDate) || string.IsNullOrEmpty(fromDate.Trim(',')))
             {
@@ -115,77 +136,35 @@ namespace AESMovilAPI.Controllers
                 toDate = DateTime.Now.ToString("yyyyMMdd");
             }
 
-            dynamic? data = await GetMayoralHistoryData(id, fromDate, toDate);
-            byte[] fileBytes = BuildMayoralHistoryFile(id, fromDate, toDate, data);
-            return File(fileBytes, "application/pdf", id + "ha.pdf");
+            if (!string.IsNullOrEmpty(id))
+            {
+                string endpoint = "ACC_GETHISTORICOCARGOSALCALDIA_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetHistoricoAlcaldiaSet(Nic='" + id + "',Fechainicio='" + fromDate + "',Fechafin='" + toDate + "')";
+                dynamic? result = await ExecuteGetRequestSAP(endpoint);
+                if (result != null)
+                {
+                    dynamic data = new
+                    {
+                        values = result.data.DataSet.results,
+                        name = result.data.DataSet.results[0].Cliente,
+                        address = result.data.DataSet.results[0].Domicilio,
+                        fee = result.data.DataSet.results[0].Tarifa,
+                        company = result.data.DataSet.results[0].Sociedad
+                    };
+                    byte[] fileBytes = BuildMayoralHistoryFile(id, fromDate, toDate, data);
+                    return File(fileBytes, "application/pdf", id + "ha.pdf");
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
 
         #region "MayoralHistory"
-        private async Task<object?> GetMayoralHistoryData(string nc, string fromDate, string toDate)
-        {
-            string baseUrl = "https://aes-cf-gcp-1kg8o7mu.it-cpi017-rt.cfapps.us30.hana.ondemand.com/gw/odata/SAP/";
-            string mandante = "CCG160";
-            string link = baseUrl + "CIS_" + mandante + "_ACC_GETHISTORICOCARGOSALCALDIA_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetHistoricoAlcaldiaSet(Nic='" + nc + "',Fechainicio='" + fromDate + "',Fechafin='" + toDate + "')";
-            var responseContent = "";
-            dynamic? result = null;
-
-            var queryParams = new Dictionary<string, string>
-            {
-                { "$expand", "DataSet" },
-                { "$format", "json" }
-            };
-
-            // Build the URL with query parameters
-            var urlWithParams = QueryHelpers.AddQueryString(link, queryParams);
-            // Create HttpRequestMessage
-            var request = new HttpRequestMessage(HttpMethod.Get, urlWithParams);
-
-            // Define the username and password for Basic Authentication
-            var username = "sb-5c453da1-0024-4006-b300-e197893b4667!b2748|it-rt-aes-cf-gcp-1kg8o7mu!b2560";
-            var password = "596b8c78-a140-4dea-9961-50efa79000a5$RtXYp7cf2Jl36e5SWod9iHCwUAtPpERsIi8qFGA6YUE=";
-
-            // Create the authentication header value
-            var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
-            var authHeader = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
-
-            // Set the authorization header
-            _client.DefaultRequestHeaders.Authorization = authHeader;
-
-            // Set custom headers
-            request.Headers.Add("x-csfr-token", "c9HO1hYCsB6KRhAIDPUT0lKXxyLyYWXH");
-
-            try
-            {
-                // Send the GET request
-                var response = await _client.SendAsync(request);
-
-                // Ensure the request was successful
-                response.EnsureSuccessStatusCode();
-
-                // Read the response content as a string
-                responseContent = await response.Content.ReadAsStringAsync();
-                dynamic responseObject = JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
-
-                if (string.IsNullOrEmpty(responseObject.d.Errorcode) || responseObject.d.Errorcode == "0")
-                {
-                    return new
-                    {
-                        values = responseObject.d.DataSet.results,
-                        name = responseObject.d.DataSet.results[0].Cliente,
-                        address = responseObject.d.DataSet.results[0].Domicilio,
-                        fee = responseObject.d.DataSet.results[0].Tarifa,
-                        company = responseObject.d.DataSet.results[0].Sociedad
-                    };
-                }
-            }
-            catch (HttpRequestException e)
-            {
-
-            }
-
-            return null;
-        }
-
         private byte[]? BuildMayoralHistoryFile(string nc, string fromDate, string toDate, dynamic data)
         {
             if (data != null)
@@ -453,69 +432,6 @@ namespace AESMovilAPI.Controllers
         #endregion
 
         #region "BillingHistory"
-        private async Task<object?> GetBillingHistoryData(string nc, string fromDate, string toDate)
-        {
-            string baseUrl = "https://aes-cf-gcp-1kg8o7mu.it-cpi017-rt.cfapps.us30.hana.ondemand.com/gw/odata/SAP/";
-            string mandante = "CCG160";
-            string link = baseUrl + "CIS_" + mandante + "_BIL_BILLIMAGEPREVIEWES_AZUREAPPSERVICES_TO_SAPCIS;v=1/InvHistSummarySet(Nic='" + nc + "',Ab='" + fromDate + "',Bis='" + toDate + "')";
-
-            var queryParams = new Dictionary<string, string>
-            {
-                { "$expand", "DataSet" },
-                { "$format", "json" }
-            };
-
-            // Build the URL with query parameters
-            var urlWithParams = QueryHelpers.AddQueryString(link, queryParams);
-            // Create HttpRequestMessage
-            var request = new HttpRequestMessage(HttpMethod.Get, urlWithParams);
-
-            // Define the username and password for Basic Authentication
-            var username = "sb-5c453da1-0024-4006-b300-e197893b4667!b2748|it-rt-aes-cf-gcp-1kg8o7mu!b2560";
-            var password = "596b8c78-a140-4dea-9961-50efa79000a5$RtXYp7cf2Jl36e5SWod9iHCwUAtPpERsIi8qFGA6YUE=";
-
-            // Create the authentication header value
-            var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
-            var authHeader = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
-
-            // Set the authorization header
-            _client.DefaultRequestHeaders.Authorization = authHeader;
-
-            // Set custom headers
-            request.Headers.Add("x-csfr-token", "c9HO1hYCsB6KRhAIDPUT0lKXxyLyYWXH");
-
-            try
-            {
-                // Send the GET request
-                var response = await _client.SendAsync(request);
-
-                // Ensure the request was successful
-                response.EnsureSuccessStatusCode();
-
-                // Read the response content as a string
-                var responseContent = await response.Content.ReadAsStringAsync();
-                dynamic responseObject = JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
-
-                if (string.IsNullOrEmpty(responseObject.d.Errorcode) || responseObject.d.Errorcode == "0")
-                {
-                    return new
-                    {
-                        values = responseObject.d.DataSet.results,
-                        name = responseObject.d.DataSet.results[0].Cliente,
-                        address = responseObject.d.DataSet.results[0].DireccionCliente,
-                        fee = responseObject.d.DataSet.results[0].TipoTarifa,
-                        company = responseObject.d.DataSet.results[0].Sociedad
-                    };
-                }
-            }
-            catch (HttpRequestException e)
-            {
-
-            }
-
-            return null;
-        }
-
         private byte[]? BuildBillingHistoryFile(string nc, string fromDate, string toDate, dynamic data)
         {
             if (data != null)
