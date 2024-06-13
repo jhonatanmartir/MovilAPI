@@ -5,26 +5,34 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702;1591</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Sources\aes-elsalvador-black.png" />
     <None Remove="Sources\aes-elsalvador-white.png" />
-    <None Remove="SwaggerCustomizations\custom.css" />
-    <None Remove="SwaggerCustomizations\custom.js" />
+    <None Remove="wwwroot\swagger-ui\aes-el-salvador-black.png" />
+    <None Remove="wwwroot\swagger-ui\aes-elsalvador-black.png" />
+    <None Remove="wwwroot\swagger-ui\aes-elsalvador.png" />
+    <None Remove="wwwroot\swagger-ui\AESElSavador.png" />
+    <None Remove="wwwroot\swagger-ui\custom.css" />
+    <None Remove="wwwroot\swagger-ui\custom.js" />
+    <None Remove="wwwroot\swagger-ui\Inter-Medium.ttf" />
+    <None Remove="wwwroot\swagger-ui\Inter-Regular.ttf" />
+    <None Remove="wwwroot\swagger-ui\Rubik-Medium.ttf" />
+    <None Remove="wwwroot\swagger-ui\Rubik-Regular.ttf" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Sources\aes-elsalvador-black.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="SwaggerCustomizations\custom-logo.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="SwaggerCustomizations\custom.css">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="SwaggerCustomizations\custom.js">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
@@ -44,6 +52,25 @@
     <PackageReference Include="System.ServiceModel.Http" Version="4.10.*" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="4.10.*" />
     <PackageReference Include="System.ServiceModel.Security" Version="4.10.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\swagger-ui\aes-elsalvador.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CustomToolNamespace></CustomToolNamespace>
+    </Content>
+    <Content Update="wwwroot\swagger-ui\custom.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CustomToolNamespace></CustomToolNamespace>
+    </Content>
+    <Content Update="wwwroot\swagger-ui\custom.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CustomToolNamespace></CustomToolNamespace>
+    </Content>
+    <Content Update="wwwroot\swagger-ui\Inter-Medium.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CustomToolNamespace></CustomToolNamespace>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

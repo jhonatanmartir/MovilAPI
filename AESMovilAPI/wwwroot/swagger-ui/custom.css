@@ -1,0 +1,89 @@
+﻿@font-face {
+    font-family: 'Inter';
+    src: url('/swagger-ui/Inter-Medium.ttf') format('truetype');
+}
+body {
+    background: #F5F5F5;
+    font-family: 'Inter', sans-serif;
+}
+.swagger-ui,
+.swagger-ui label,
+.swagger-ui select,
+.swagger-ui .info .title,
+.swagger-ui .info a,
+.swagger-ui .info p,
+.swagger-ui .opblock-tag,
+.swagger-ui .opblock .opblock-summary-method,
+.swagger-ui .opblock .opblock-summary-description,
+.swagger-ui table tbody tr td:first-of-type,
+.swagger-ui .opblock .opblock-section-header h4,
+.swagger-ui .btn,
+.swagger-ui .opblock-description-wrapper p,
+.swagger-ui button,
+.swagger-ui .model-title,
+.swagger-ui .response-col_status,
+.swagger-ui table thead tr td,
+.swagger-ui section.models h4 {
+    font-family: 'Inter', sans-serif;
+}
+    .swagger-ui table tbody tr td:first-of-type {
+        vertical-align: middle;
+        padding: 0;
+    }
+    .swagger-ui label, .swagger-ui select{
+        font-weight:100;
+    }
+/* Hide the default logo */
+    .swagger-ui .topbar .topbar-wrapper .link img {
+        content: url('/swagger-ui/aes-elsalvador.png');
+    }
+    /* Adjust the logo size if needed */
+    .swagger-ui .topbar .topbar-wrapper .link img {
+        width: auto; /* Adjust the width as needed */
+        height: 32px; /* Adjust the height as needed */
+        object-fit: cover;
+    }
+
+.swagger-ui .topbar {
+    background-color: #FFFFFF;
+}
+
+    .swagger-ui .topbar .download-url-wrapper .select-label {
+        color: #000000
+    }
+
+        .swagger-ui .topbar .download-url-wrapper .select-label select {
+            border: 2px solid #E5E5E5;
+        }
+/*GET*/
+.swagger-ui .opblock.opblock-get {
+    background: rgba(200, 210, 247,.2);
+    border-color: #214ADE;
+}
+
+    .swagger-ui .opblock.opblock-get .opblock-summary {
+        border-color: #214ADE;
+    }
+
+    .swagger-ui .opblock.opblock-get .opblock-summary-method {
+        background: #214ADE;
+    }
+
+/*POST*/
+.swagger-ui .opblock.opblock-post {
+    background: rgba(197, 233, 205,.2);
+    border-color: #16A837;
+}
+
+    .swagger-ui .opblock.opblock-post .opblock-summary {
+        border-color: #16A837;
+    }
+
+    .swagger-ui .opblock.opblock-post .opblock-summary-method {
+        background: #16A837;
+    }
+
+/*Shemas*/
+.swagger-ui section.models .model-container {
+    background: #E5E5E5
+}
