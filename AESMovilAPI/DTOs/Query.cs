@@ -11,6 +11,6 @@ namespace AESMovilAPI.DTOs
         /// NIC, NPE, o NC a consultar
         /// </summary>
         [Required]
-        public string Id { get; set; }
+        public string Cuenta { get; set; }
     }
 }

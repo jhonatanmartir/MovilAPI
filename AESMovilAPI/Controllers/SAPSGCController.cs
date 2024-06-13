@@ -1,10 +1,12 @@
 ﻿using AESMovilAPI.DTOs;
+using AESMovilAPI.Examples;
 using AESMovilAPI.Models;
 using AESMovilAPI.Responses;
 using AESMovilAPI.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Swashbuckle.AspNetCore.Filters;
 using System.Dynamic;
 using System.Numerics;
 
@@ -24,7 +26,7 @@ namespace AESMovilAPI.Controllers
         /// <summary>
         /// Consulta información de Cuenta contrato o NIC.
         /// </summary>
-        /// <param name="value">Número de Cuenta, NIC o NPE, representado por el objeto <see cref="Query">Query</see></param>
+        /// <param name="query">Número de Cuenta, NIC o NPE, representado por el objeto <see cref="Query">Query</see></param>
         /// <returns>información de contrato o NIC</returns>
         /// <response code="200">Correcto</response>
         /// <response code="400">El dato a consultar no es correcto.</response>
@@ -34,14 +36,15 @@ namespace AESMovilAPI.Controllers
         /// <response code="502">Incidente en el servicio.</response>
         /// <response code="503">Error interno en el proceso de consulta.</response>
         // GET: api/SAPSGC
+        [SwaggerRequestExample(typeof(Query), typeof(SGCSAPExample))]
         [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> GetById(Query query)
         {
             bool fromBD = false;
-            Response<List<SAPSGCResponse>> response = new Response<List<SAPSGCResponse>>();
+            dynamic? response = null;
             BigInteger number;
-            string id = query.Id;
+            string id = query.Cuenta;
 
             id = Helper.RemoveWhitespaces(id);
 
@@ -89,7 +92,7 @@ namespace AESMovilAPI.Controllers
                                     Partner = a.Partner,
                                     Nombre = a.NameFirst,
                                     Apellido = a.NameLast,
-                                    Vkont = a.Vkont,
+                                    CuentaContrato = a.Vkont,
                                     Vertrag = a.Vertrag,
                                     Tariftyp = a.Tariftyp,
                                     Ableinh = a.Ableinh,
@@ -100,14 +103,13 @@ namespace AESMovilAPI.Controllers
                                     Opbuk = a.Opbuk
                                 });
                             }
-
-                            response.Data = list;
+                            response = new { Data = list, ErrorCode = "0", ErrorMsg = "Servicio ejecutado con exito" };
                         }
                     }
                     catch (Exception ex)
                     {
                         _statusCode = SERVICE_UNAVAILABLE_503;
-                        response.Message = ex.Message;
+                        response = new { Data = new List<SAPSGCResponse>(), ErrorCode = "1", ErrorMsg = ex.Message };
                     }
                 }
                 else
@@ -143,7 +145,7 @@ namespace AESMovilAPI.Controllers
                                     Partner = (long)item.partner,
                                     Nombre = item.nombre,
                                     Apellido = item.apellido,
-                                    Vkont = (long)item.vkont,
+                                    CuentaContrato = (long)item.vkont,
                                     Vertrag = (long)item.vertrag,
                                     Tariftyp = item.tariftyp,
                                     Ableinh = item.ableinh,
@@ -155,18 +157,18 @@ namespace AESMovilAPI.Controllers
                                 });
                             }
 
-                            response.Data = list;
+                            response = new { Data = list, ErrorCode = "0", ErrorMsg = "Servicio ejecutado con exito" };
                         }
                     }
-                    catch (HttpRequestException e)
+                    catch (HttpRequestException ex)
                     {
                         _statusCode = SERVICE_UNAVAILABLE_503;
-                        response.Message = e.Message;
+                        response = new { Data = new List<SAPSGCResponse>(), ErrorCode = "1", ErrorMsg = ex.Message };
                     }
                 }
             }
 
-            return GetResponse(response);
+            return Ok(response);
         }
     }
 }

@@ -47,8 +47,15 @@ namespace AESMovilAPI.Controllers
             switch (_statusCode)
             {
                 case CREATED_201:      //POST
-                    response.Success = true;
-                    response.Message = response.Message.Equals("Failed") ? "Successfully" : response.Message;
+                    try
+                    {
+                        response.Success = true;
+                        response.Message = response.Message.Equals("Failed") ? "Successfully" : response.Message;
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
                     return StatusCode(_statusCode, response);
                 case BAD_REQUEST_400:   //POST, GET, Default
                     return BadRequest(response);
@@ -61,8 +68,15 @@ namespace AESMovilAPI.Controllers
                 case SERVICE_UNAVAILABLE_503:
                     return StatusCode(_statusCode, response);
                 default:
-                    response.Success = true;
-                    response.Message = response.Message.Equals("Failed") ? "Successfully" : response.Message;
+                    try
+                    {
+                        response.Success = true;
+                        response.Message = response.Message.Equals("Failed") ? "Successfully" : response.Message;
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
                     return Ok(response);
             }
         }

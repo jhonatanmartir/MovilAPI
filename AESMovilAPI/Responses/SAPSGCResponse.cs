@@ -7,7 +7,7 @@
         public long Partner { get; set; }
         public string Nombre { get; set; }
         public string Apellido { get; set; }
-        public long Vkont { get; set; }
+        public long CuentaContrato { get; set; }
         public long Vertrag { get; set; }
         public string Tariftyp { get; set; }
         public string Ableinh { get; set; }
