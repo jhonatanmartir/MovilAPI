@@ -103,15 +103,15 @@ namespace AESMovilAPI.Controllers
             var key = Encoding.ASCII.GetBytes("6e7a10f083b54c551425112f0d0180da5c9bc2fe18daedd8dd1e338444ec29db");
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Issuer = "www.movilaesweb.com",
-                Audience = "www.movilaesweb.com",
+                Issuer = _config.GetValue<string>("Security:Iss"),
+                Audience = _config.GetValue<string>("Security:Aud"),
                 Subject = new ClaimsIdentity(new System.Security.Claims.Claim[]
                 {
                 new System.Security.Claims.Claim(ClaimTypes.Name, user),
                 new System.Security.Claims.Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new System.Security.Claims.Claim(ClaimTypes.Email, "creativa.jmartir.c@aes.com")
                 }),
-                Expires = DateTime.UtcNow.AddDays(2),
+                Expires = DateTime.UtcNow.AddDays(_config.GetValue<int>("Security:Exp")),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);

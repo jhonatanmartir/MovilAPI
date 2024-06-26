@@ -41,8 +41,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = "www.movilaesweb.com",
-            ValidAudience = "www.movilaesweb.com",
+            ValidIssuer = builder.Configuration.GetValue<string>("Security:Iss"),
+            ValidAudience = builder.Configuration.GetValue<string>("Security:Aud"),
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("6e7a10f083b54c551425112f0d0180da5c9bc2fe18daedd8dd1e338444ec29db"))
         };
     });
