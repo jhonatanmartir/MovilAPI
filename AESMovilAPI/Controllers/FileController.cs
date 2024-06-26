@@ -8,13 +8,14 @@ using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
 
 namespace AESMovilAPI.Controllers
 {
     [Route("api/v1/[controller]")]
     public class FileController : BaseController
     {
+        private const int _PREVIUS_YEARS = 2;
+
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly PdfFont _fontRegular;
         private readonly PdfFont _fontMedium;
@@ -54,7 +55,7 @@ namespace AESMovilAPI.Controllers
         /// Obtener reporte PDF de historico de facturación
         /// </summary>
         /// <param name="id">NC del cliente</param>
-        /// <param name="fromDate">Desde que fecha se consulta el historico en formato <c>yyyyMMdd</c> por ejemplo <c>20200101</c>. Sino se especifica se tomará 4 años atras, a partir de la fecha actual.</param>
+        /// <param name="fromDate">Desde que fecha se consulta el historico en formato <c>yyyyMMdd</c> por ejemplo <c>20200101</c>. Sino se especifica se tomará 2 años atras, a partir de la fecha actual.</param>
         /// <param name="toDate">Hasta que fecha se consulta el historico en formato <c>yyyyMMdd</c> por ejemplo <c>202400606</c>. Sino se especifica se tomará la fecha actual.</param>
         /// <returns>Archivo PDF</returns>
         /// <response code="200">Correcto.</response>
@@ -69,7 +70,7 @@ namespace AESMovilAPI.Controllers
         {
             if (string.IsNullOrEmpty(fromDate) || string.IsNullOrEmpty(fromDate.Trim(',')))
             {
-                fromDate = DateTime.Now.AddYears(-4).ToString("yyyyMMdd");
+                fromDate = DateTime.Now.AddYears(-_PREVIUS_YEARS).ToString("yyyyMMdd");
             }
 
             if (string.IsNullOrEmpty(toDate) || string.IsNullOrEmpty(toDate.Trim(',')))
@@ -79,7 +80,6 @@ namespace AESMovilAPI.Controllers
 
             if (!string.IsNullOrEmpty(id))
             {
-                //dynamic? data = await GetBillingHistoryData(id, fromDate, toDate);
                 string endpoint = "BIL_BILLIMAGEPREVIEWES_AZUREAPPSERVICES_TO_SAPCIS;v=1/InvHistSummarySet(Nic='" + id + "',Ab='" + fromDate + "',Bis='" + toDate + "')";
                 dynamic? result = await ExecuteGetRequestSAP(endpoint);
 
@@ -111,7 +111,7 @@ namespace AESMovilAPI.Controllers
         /// Obtener reporte PDF de historico de alcaldía
         /// </summary>
         /// <param name="id">NC del cliente</param>
-        /// <param name="fromDate">Desde que fecha se consulta el historico en formato <c>yyyyMMdd</c> por ejemplo <c>20200101</c>. Sino se especifica se tomará 4 años atras, a partir de la fecha actual.</param>
+        /// <param name="fromDate">Desde que fecha se consulta el historico en formato <c>yyyyMMdd</c> por ejemplo <c>20200101</c>. Sino se especifica se tomará 2 años atras, a partir de la fecha actual.</param>
         /// <param name="toDate">Hasta que fecha se consulta el historico en formato <c>yyyyMMdd</c> por ejemplo <c>202400606</c>. Sino se especifica se tomará la fecha actual.</param>
         /// <returns>Archivo PDF</returns>
         /// <response code="200">Correcto.</response>
@@ -121,14 +121,12 @@ namespace AESMovilAPI.Controllers
         /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
         /// <response code="502">Incidente en el servicio.</response>
         // [AllowAnonymous]
-        [HttpGet("MayoralHistory/{id}/{fromDate?}/{toDate?}")]
-        public async Task<IActionResult> GetMayoralHistory(string id,
-            [FromRoute, SwaggerParameter("Desde", Required = false)] string? fromDate = null,
-            [FromRoute, SwaggerParameter("Hasta", Required = false)] string? toDate = null)
+        [HttpGet("MayoralHistory/{id}/{fromDate=}/{toDate=}")]
+        public async Task<IActionResult> GetMayoralHistory(string id, string? fromDate = null, string? toDate = null)
         {
             if (string.IsNullOrEmpty(fromDate) || string.IsNullOrEmpty(fromDate.Trim(',')))
             {
-                fromDate = DateTime.Now.AddYears(-4).ToString("yyyyMMdd");
+                fromDate = DateTime.Now.AddYears(-_PREVIUS_YEARS).ToString("yyyyMMdd");
             }
 
             if (string.IsNullOrEmpty(toDate) || string.IsNullOrEmpty(toDate.Trim(',')))

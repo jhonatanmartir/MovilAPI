@@ -6,10 +6,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
+using System.Globalization;
 using System.ServiceModel;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+// Configura la zona horaria y cultura predeterminada para El Salvador
+TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Central America Standard Time");
+var cultureInfo = new CultureInfo("es-SV");
+
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+
 
 // Configurar el pool de DbContext
 builder.Services.AddDbContextPool<SAPSGCDbContext>(options =>

@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace AESMovilAPI.Utilities
 {
@@ -7,16 +6,14 @@ namespace AESMovilAPI.Utilities
     {
         public static DateTime ParseDate(string date, string format = "dd/MM/yyyy")
         {
-            CultureInfo provider = CultureInfo.InvariantCulture;
-            return DateTime.ParseExact(date, format, provider);
+            return DateTime.ParseExact(date, format, null);
         }
         public static string ParseStrDate(string date, string format = "yyyyMMdd")
         {
             string result = string.Empty;
             try
             {
-                CultureInfo provider = CultureInfo.InvariantCulture;
-                result = DateTime.ParseExact(date, format, provider).ToString("dd/MM/yyyy");
+                result = DateTime.ParseExact(date, format, null).ToString("dd/MM/yyyy");
             }
             catch
             {
@@ -29,8 +26,7 @@ namespace AESMovilAPI.Utilities
             string result = string.Empty;
             try
             {
-                CultureInfo provider = CultureInfo.InvariantCulture;
-                result = DateTime.ParseExact(date, format, provider).ToString("MMMM 'de' yyyy");
+                result = DateTime.ParseExact(date, format, null).ToString("MMMM 'de' yyyy");
             }
             catch
             {

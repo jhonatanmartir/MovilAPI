@@ -23,8 +23,9 @@ namespace AESMovilAPI.Filters
             {
                 if (context.ApiDescription.ParameterDescriptions.Any(p => p.Name == parameter.Name && p.RouteInfo != null && p.RouteInfo.IsOptional))
                 {
-                    parameter.Description += " (Opcional)";
-                    parameter.AllowEmptyValue = true;
+                    parameter.Description += parameter.Description + " (Opcional).";
+                    //parameter.AllowEmptyValue = true;
+                    parameter.Required = false;
                 }
             }
         }
