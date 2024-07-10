@@ -122,17 +122,16 @@ namespace AESMovilAPI.Controllers
                 var pwd = "ca557e96b6ef72d973ed99a09b68a797";
                 var postData = new
                 {
-                    ern = bill.DocumentNumberId,        // TODO confirm value
+                    ern = nc,
                     amount = bill.Amount,
-                    currency = "USD",
-                    extended_expiration = false,
                     details = new List<object>
                     {
                         new
                         {
                             quantity = 1,
                             description = "Pago de factura " + bill.IssueDate.ToString("MMMM/yyyy"),
-                            price = bill.Amount
+                            price = bill.Amount,
+                            url_product = ""
                         }
                     }
                 };
@@ -158,9 +157,9 @@ namespace AESMovilAPI.Controllers
                     var responseContent = await response.Content.ReadAsStringAsync();
                     dynamic responseObject = JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
 
-                    if (responseObject.Code == "00")
+                    if (responseObject.code == "00" || responseObject.code == "PG1002")
                     {
-                        result = responseObject.Data.url;
+                        result = responseObject.data.url;
                     }
                 }
                 catch (HttpRequestException e)
