@@ -86,7 +86,7 @@ namespace AESMovilAPI.Controllers
             if (_client != null)
             {
                 string baseUrl = "https://aes-cf-gcp-1kg8o7mu.it-cpi017-rt.cfapps.us30.hana.ondemand.com/gw/odata/SAP/";
-                string mandante = "CCG160";
+                string mandante = "CPE110";
                 string link = baseUrl + "CIS_" + mandante + "_" + endpoint;
 
                 var queryParams = new Dictionary<string, string>
