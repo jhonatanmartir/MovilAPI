@@ -8,6 +8,9 @@ using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace AESMovilAPI.Controllers
 {
@@ -22,7 +25,9 @@ namespace AESMovilAPI.Controllers
         private readonly PdfFont _fontSemiBold;
         private readonly PdfFont _fontBold;
 
-        public FileController(IConfiguration config, HttpClient client, IWebHostEnvironment webHostEnvironment) : base(config, client)
+        private readonly string _baseEBillinApi;
+
+        public FileController(IConfiguration config, HttpClient client, IWebHostEnvironment webHostEnvironment, IMemoryCache cache) : base(config, client, cache)
         {
             _webHostEnvironment = webHostEnvironment;
 
@@ -35,6 +40,8 @@ namespace AESMovilAPI.Controllers
             _fontMedium = PdfFontFactory.CreateFont(fontPathMedium, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
             _fontSemiBold = PdfFontFactory.CreateFont(fontPathSemiBold, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
             _fontBold = PdfFontFactory.CreateFont(fontPathBold, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
+
+            _baseEBillinApi = _config.GetValue<string>("EBillingAPI:Base");
         }
 
         [NonAction]
@@ -44,10 +51,48 @@ namespace AESMovilAPI.Controllers
             return NotFound();
         }
 
-        [NonAction]
         [HttpGet("Dte/{id}")]
-        public IActionResult GetDte(string id)
+        public async Task<IActionResult> GetDte(string id)
         {
+            id = id.PadLeft(14, '0');
+
+            var postData = new
+            {
+                dte = id
+            };
+
+            string url = _baseEBillinApi + "/api/dte/find";
+            string? token = GetToken(Constants.EBILLAPI_BEARER);
+
+            if (token == null)
+            {
+                token = await GetEbillingAPIToken();
+            }
+
+            dynamic? responseObject = await ExecutePostRequest(postData, url, true, token);
+
+            // Retry request with token
+            try
+            {
+                if (responseObject == UNAUTHORIZED_401)
+                {
+                    token = await GetEbillingAPIToken();
+                    responseObject = await ExecutePostRequest(postData, url, true, token);
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            if (responseObject != null && responseObject.code == OK_200)
+            {
+                string json = JsonConvert.SerializeObject(responseObject.data.json_dte);
+                // Convertir el string en bytes
+                var jsonBytes = Encoding.UTF8.GetBytes(json);
+                return File(jsonBytes, "application/json", responseObject.data.vl_controlnumber);
+            }
+
             return NotFound();
         }
 
@@ -64,7 +109,6 @@ namespace AESMovilAPI.Controllers
         /// <response code="404">No se encontró historico de facturación.</response>
         /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
         /// <response code="502">Incidente en el servicio.</response>
-        // [AllowAnonymous]
         [HttpGet("BillingHistory/{id}/{fromDate=}/{toDate=}")]
         public async Task<IActionResult> GetBillingHistory(string id, string? fromDate = null, string? toDate = null)
         {
@@ -120,7 +164,6 @@ namespace AESMovilAPI.Controllers
         /// <response code="404">No se encontró historico de alcaldía.</response>
         /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
         /// <response code="502">Incidente en el servicio.</response>
-        // [AllowAnonymous]
         [HttpGet("MayoralHistory/{id}/{fromDate=}/{toDate=}")]
         public async Task<IActionResult> GetMayoralHistory(string id, string? fromDate = null, string? toDate = null)
         {
@@ -695,5 +738,26 @@ namespace AESMovilAPI.Controllers
             return null;
         }
         #endregion
+
+        private async Task<string> GetEbillingAPIToken()
+        {
+            string url = _baseEBillinApi + "/api/userapi";
+            string token = string.Empty;
+
+            var postData = new
+            {
+                user = _config.GetValue<string>("EBillingAPI:Usr"),
+                pass = _config.GetValue<string>("EBillingAPI:Pwd")
+            };
+            dynamic? responseObject = await ExecutePostRequest(postData, url, false);
+
+            if (responseObject != null && responseObject.code == OK_200)
+            {
+                token = responseObject.data.token;
+                SaveToken(Constants.EBILLAPI_BEARER, token);
+            }
+
+            return token;
+        }
     }
 }

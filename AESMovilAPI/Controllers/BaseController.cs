@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using System.Dynamic;
 using System.Net.Http.Headers;
@@ -27,13 +28,15 @@ namespace AESMovilAPI.Controllers
         protected readonly string _token;
 
         protected int _statusCode;
+        protected IMemoryCache _memory;
 
-        public BaseController(IConfiguration config, HttpClient? client = null)
+        public BaseController(IConfiguration config, HttpClient? client = null, IMemoryCache cache = null)
         {
             _config = config;
             _token = string.Empty;
             _statusCode = BAD_REQUEST_400;
             _client = client;
+            _memory = cache;
         }
 
         /// <summary>
@@ -85,9 +88,9 @@ namespace AESMovilAPI.Controllers
         {
             if (_client != null)
             {
-                string baseUrl = "https://aes-cf-gcp-1kg8o7mu.it-cpi017-rt.cfapps.us30.hana.ondemand.com/gw/odata/SAP/";
-                string mandante = "CPE110";
-                string link = baseUrl + "CIS_" + mandante + "_" + endpoint;
+                string baseUrl = _config.GetValue<string>("SAPInterface:Base");
+                string mandante = _config.GetValue<string>("SAPInterface:ID");
+                string link = baseUrl + "/CIS_" + mandante + "_" + endpoint;
 
                 var queryParams = new Dictionary<string, string>
             {
@@ -101,8 +104,8 @@ namespace AESMovilAPI.Controllers
                 var request = new HttpRequestMessage(HttpMethod.Get, urlWithParams);
 
                 // Define the username and password for Basic Authentication
-                var username = "sb-5c453da1-0024-4006-b300-e197893b4667!b2748|it-rt-aes-cf-gcp-1kg8o7mu!b2560";
-                var password = "596b8c78-a140-4dea-9961-50efa79000a5$RtXYp7cf2Jl36e5SWod9iHCwUAtPpERsIi8qFGA6YUE=";
+                var username = _config.GetValue<string>("SAPInterface:Usr");
+                var password = _config.GetValue<string>("SAPInterface:Pwd");
 
                 // Create the authentication header value
                 var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
@@ -112,7 +115,7 @@ namespace AESMovilAPI.Controllers
                 _client.DefaultRequestHeaders.Authorization = authHeader;
 
                 // Set custom headers
-                request.Headers.Add("x-csfr-token", "c9HO1hYCsB6KRhAIDPUT0lKXxyLyYWXH");
+                request.Headers.Add("x-csfr-token", _config.GetValue<string>("SAPInterface:Token"));
 
                 try
                 {
@@ -141,6 +144,72 @@ namespace AESMovilAPI.Controllers
             }
 
             return null;
+        }
+        protected async Task<object?> ExecutePostRequest(object postData, string url, bool auth = true, string token = "", bool bearer = true)
+        {
+            var jsonContent = JsonConvert.SerializeObject(postData);
+            var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            if (auth && !string.IsNullOrEmpty(token))
+            {
+                AuthenticationHeaderValue authHeader;
+                if (bearer)
+                {
+                    authHeader = new AuthenticationHeaderValue("Bearer", token);
+                }
+                else
+                {
+                    authHeader = new AuthenticationHeaderValue("Basic", token);
+                }
+
+                // Set the authorization header
+                _client.DefaultRequestHeaders.Authorization = authHeader;
+            }
+
+            try
+            {
+                // Send the POST request
+                var response = await _client.PostAsync(url, httpContent);
+
+                // Ensure the request was successful
+                response.EnsureSuccessStatusCode();
+
+                // Read the response content as a string
+                var responseContent = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                return UNAUTHORIZED_401;
+            }
+            catch (HttpRequestException e)
+            {
+
+            }
+
+            return null;
+        }
+
+        protected void SaveToken(string clave, string token)
+        {
+            if (_memory != null)
+            {
+                // Almacena el token en la caché con una expiración de 60 minutos
+                var opcionesDeCache = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromHours(24));
+
+                _memory.Set(clave, token, opcionesDeCache);
+            }
+        }
+
+        protected string? GetToken(string clave)
+        {
+            string? token = null;
+            if (_memory != null)
+            {
+                _memory.TryGetValue(clave, out token);
+            }
+            return token;
         }
     }
 }

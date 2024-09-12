@@ -6,5 +6,7 @@
         public const string SV20_EEO = "3";
         public const string SV30_DEUSEM = "4";
         public const string SV40_CLESA = "5";
+
+        public const string EBILLAPI_BEARER = "EBillAPI_Bearer";
     }
 }

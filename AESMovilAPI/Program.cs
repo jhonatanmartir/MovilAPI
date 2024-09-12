@@ -139,6 +139,9 @@ builder.Services.AddCors(options =>
                       .AllowAnyHeader());
 });
 
+// Register memory cache service
+builder.Services.AddMemoryCache();
+
 var app = builder.Build();
 
 
