@@ -174,7 +174,7 @@ namespace AESMovilAPI.Controllers
         private async Task<BillDto?> GetInvoiceData(string nc)
         {
             string baseUrl = "https://aes-cf-gcp-1kg8o7mu.it-cpi017-rt.cfapps.us30.hana.ondemand.com/gw/odata/SAP/";
-            string mandante = "CCG160";
+            string mandante = _config.GetValue<string>("SAPInterface:ID");
             string link = baseUrl + "CIS_" + mandante + "_BIL_LASTACCOUNTBALANCE_AZUREAPPSERVICES_TO_SAPCIS;v=1/PendingDebtDetailsSet('" + nc + "')";
             var responseContent = "";
             BillDto? result = null;
