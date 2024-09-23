@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
 using System.Dynamic;
 using System.Net.Http.Headers;
+using System.Net.Mime;
 using System.Text;
 
 namespace AESMovilAPI.Controllers
@@ -57,13 +58,13 @@ namespace AESMovilAPI.Controllers
         private async Task<string> GetPaywayLink(string nc)
         {
             string result = string.Empty;
-            string token = "mGZl9TQmpIxm9MUiLODM1lwzNacRVV846UBqv1mq/qPL2NasUbhhQz6lkIB1TB3dq8lN8Idq/Dv9yGtYkdGvLA==";
+            string token = _config.GetValue<string>(Constants.CONF_PAYWAY_TOKEN);
             BillDto? bill = await GetInvoiceData(nc);
 
             if (bill != null)
             {
                 string usuarioOperacion = GetUsuarioOperacionPayway(bill.Company);
-                string colectorId = GetcolectorIdPayway(bill.Company);
+                string colectorId = GetColectorIdPayway(bill.Company);
                 var postData = new
                 {
                     token = token,                                                          // Req. Const
@@ -83,12 +84,12 @@ namespace AESMovilAPI.Controllers
                 };
 
                 var jsonContent = JsonConvert.SerializeObject(postData);
-                using var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                using var httpContent = new StringContent(jsonContent, Encoding.UTF8, MediaTypeNames.Application.Json);
 
                 try
                 {
                     // Send the POST request
-                    var response = await _client.PostAsync("https://test.payway.sv/web-payway-sv/paywayone/api/rest/links", httpContent);
+                    var response = await _client.PostAsync(_config.GetValue<string>(Constants.CONF_PAYWAY_ENDPOINT), httpContent);
 
                     // Ensure the request was successful
                     response.EnsureSuccessStatusCode();
@@ -118,8 +119,8 @@ namespace AESMovilAPI.Controllers
 
             if (bill != null)
             {
-                var user = "e45e8561e4a694e369bd78267bd5a828";
-                var pwd = "ca557e96b6ef72d973ed99a09b68a797";
+                var user = _config.GetValue<string>(Constants.CONF_PAGADITO_USER);
+                var pwd = _config.GetValue<string>(Constants.CONF_PAGADITO_PASSWORD);
                 var postData = new
                 {
                     ern = nc,
@@ -137,7 +138,7 @@ namespace AESMovilAPI.Controllers
                 };
 
                 var jsonContent = JsonConvert.SerializeObject(postData);
-                using var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                using var httpContent = new StringContent(jsonContent, Encoding.UTF8, MediaTypeNames.Application.Json);
 
                 try
                 {
@@ -148,7 +149,7 @@ namespace AESMovilAPI.Controllers
                     _client.DefaultRequestHeaders.Authorization = authHeader;
 
                     // Send the POST request
-                    var response = await _client.PostAsync("https://sandbox-connect.pagadito.com/api/v2/exec-trans", httpContent);
+                    var response = await _client.PostAsync(_config.GetValue<string>(Constants.CONF_PAGADITO_ENDPOINT), httpContent);
 
                     // Ensure the request was successful
                     response.EnsureSuccessStatusCode();
@@ -174,7 +175,7 @@ namespace AESMovilAPI.Controllers
         private async Task<BillDto?> GetInvoiceData(string nc)
         {
             string baseUrl = "https://aes-cf-gcp-1kg8o7mu.it-cpi017-rt.cfapps.us30.hana.ondemand.com/gw/odata/SAP/";
-            string mandante = _config.GetValue<string>("SAPInterface:ID");
+            string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
             string link = baseUrl + "CIS_" + mandante + "_BIL_LASTACCOUNTBALANCE_AZUREAPPSERVICES_TO_SAPCIS;v=1/PendingDebtDetailsSet('" + nc + "')";
             var responseContent = "";
             BillDto? result = null;
@@ -244,36 +245,36 @@ namespace AESMovilAPI.Controllers
             switch (company)
             {
                 case Constants.SV10_CAESS:
-                    value = "PAGOS.LINK.CAESS";
+                    value = _config.GetValue<string>(Constants.CONF_PAYWAY_USER_CAESS);
                     break;
                 case Constants.SV20_EEO:
-                    value = "PAGOS.LINK.EEO";
+                    value = _config.GetValue<string>(Constants.CONF_PAYWAY_USER_EEO);
                     break;
                 case Constants.SV30_DEUSEM:
-                    value = "PAGOS.LINK.DEUSEM";
+                    value = _config.GetValue<string>(Constants.CONF_PAYWAY_USER_DEUSEM);
                     break;
                 case Constants.SV40_CLESA:
-                    value = "PAGOS.LINK.CLESA";
+                    value = _config.GetValue<string>(Constants.CONF_PAYWAY_USER_CLESA);
                     break;
             }
             return value;
         }
-        private string GetcolectorIdPayway(string company)
+        private string GetColectorIdPayway(string company)
         {
             string value = string.Empty;
             switch (company)
             {
                 case Constants.SV10_CAESS:
-                    value = "384";
+                    value = _config.GetValue<string>(Constants.CONF_PAYWAY_ID_CAESS);
                     break;
                 case Constants.SV20_EEO:
-                    value = "386";
+                    value = _config.GetValue<string>(Constants.CONF_PAYWAY_ID_EEO);
                     break;
                 case Constants.SV30_DEUSEM:
-                    value = "387";
+                    value = _config.GetValue<string>(Constants.CONF_PAYWAY_ID_DEUSEM);
                     break;
                 case Constants.SV40_CLESA:
-                    value = "385";
+                    value = _config.GetValue<string>(Constants.CONF_PAYWAY_ID_CLESA);
                     break;
             }
             return value;
