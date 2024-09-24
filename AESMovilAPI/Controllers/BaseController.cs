@@ -1,7 +1,9 @@
 ﻿using AESMovilAPI.Responses;
+using AESMovilAPI.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using System.Dynamic;
@@ -88,9 +90,9 @@ namespace AESMovilAPI.Controllers
         {
             if (_client != null)
             {
-                string baseUrl = _config.GetValue<string>("SAPInterface:Base");
-                string mandante = _config.GetValue<string>("SAPInterface:ID");
-                string link = baseUrl + "/CIS_" + mandante + "_" + endpoint;
+                string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
+                string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
+                string link = baseUrl + "/gw/odata/SAP/CIS_" + mandante + "_" + endpoint;
 
                 var queryParams = new Dictionary<string, string>
             {
@@ -104,8 +106,8 @@ namespace AESMovilAPI.Controllers
                 var request = new HttpRequestMessage(HttpMethod.Get, urlWithParams);
 
                 // Define the username and password for Basic Authentication
-                var username = _config.GetValue<string>("SAPInterface:Usr");
-                var password = _config.GetValue<string>("SAPInterface:Pwd");
+                var username = _config.GetValue<string>(Constants.CONF_SAP_USER);
+                var password = _config.GetValue<string>(Constants.CONF_SAP_PASSWORD);
 
                 // Create the authentication header value
                 var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
@@ -115,7 +117,7 @@ namespace AESMovilAPI.Controllers
                 _client.DefaultRequestHeaders.Authorization = authHeader;
 
                 // Set custom headers
-                request.Headers.Add("x-csfr-token", _config.GetValue<string>("SAPInterface:Token"));
+                request.Headers.Add("x-csfr-token", _config.GetValue<string>(Constants.CONF_SAP_TOKEN));
 
                 try
                 {
@@ -129,13 +131,137 @@ namespace AESMovilAPI.Controllers
                     var responseContent = await response.Content.ReadAsStringAsync();
                     dynamic responseObject = JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
 
-                    if (string.IsNullOrEmpty(responseObject.d.Errorcode) || responseObject.d.Errorcode == "0")
+                    try
                     {
-                        return new
+                        if (string.IsNullOrEmpty(responseObject.d.Errorcode) || responseObject.d.Errorcode == "0")
                         {
-                            data = responseObject.d
-                        };
+                            return new
+                            {
+                                data = responseObject.d
+                            };
+                        }
                     }
+                    catch (RuntimeBinderException ex)
+                    {
+                        if (responseObject.d.MessageType == "0")
+                        {
+                            return new
+                            {
+                                data = responseObject.d
+                            };
+                        }
+                    }
+
+                }
+                catch (HttpRequestException e)
+                {
+
+                }
+            }
+
+            return null;
+        }
+        protected async Task<object?> ExecuteGetRequestRPToken(string endpoint)
+        {
+            string result = string.Empty;
+
+            if (_client != null)
+            {
+                string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
+                string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
+                string link = baseUrl + "/http/" + mandante + endpoint;
+
+                // Create HttpRequestMessage
+                var request = new HttpRequestMessage(HttpMethod.Get, new Uri(link));
+                var authHeader = new AuthenticationHeaderValue("Basic", _config.GetValue<string>(Constants.CONF_SAP_REAL_PAYMENT_TOKEN));
+
+                // Set the authorization header
+                _client.DefaultRequestHeaders.Authorization = authHeader;
+
+                // Set custom headers
+                request.Headers.Add("x-csrf-token", "fetch");
+                try
+                {
+                    // Send the GET request
+                    var response = await _client.SendAsync(request);
+
+                    // Ensure the request was successful
+                    response.EnsureSuccessStatusCode();
+
+                    if (response.Headers.TryGetValues("x-csrf-token", out var token))
+                    {
+                        result = token.ElementAt(0);
+                        SaveToken(Constants.RP_TOKEN, result);
+                    }
+                }
+                catch (HttpRequestException e)
+                {
+
+                }
+            }
+
+            return result;
+        }
+        protected async Task<object?> ExecutePostRequestRP(object postData, string endpoint)
+        {
+            if (_client != null)
+            {
+                string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
+                string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
+                string link = baseUrl + "/http/" + mandante + endpoint;
+                var jsonContent = JsonConvert.SerializeObject(postData);
+                var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                // Create HttpRequestMessage
+                var request = new HttpRequestMessage(HttpMethod.Post, new Uri(link))
+                {
+                    Content = httpContent
+                };
+                var authHeader = new AuthenticationHeaderValue("Basic", _config.GetValue<string>(Constants.CONF_SAP_REAL_PAYMENT_TOKEN));
+
+                // Set the authorization header
+                _client.DefaultRequestHeaders.Authorization = authHeader;
+
+                string? token = GetToken(Constants.RP_TOKEN);
+                if (string.IsNullOrEmpty(token))
+                {
+                    token = (string?)await ExecuteGetRequestRPToken(endpoint);
+                }
+
+                // Set custom headers
+                request.Headers.Add("x-csrf-token", token);
+
+                try
+                {
+                    // Send the GET request
+                    var response = await _client.SendAsync(request);
+                    try
+                    {
+                        // Ensure the request was successful
+                        response.EnsureSuccessStatusCode();
+                    }
+                    catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                    {
+                        token = GetToken(Constants.RP_TOKEN);
+                        if (string.IsNullOrEmpty(token))
+                        {
+                            token = (string?)await ExecuteGetRequestRPToken(endpoint);
+                        }
+
+                        // Set custom headers
+                        request.Headers.Add("x-csrf-token", token);
+                        response = await _client.SendAsync(request);
+
+                        // Ensure the request was successful
+                        response.EnsureSuccessStatusCode();
+                    }
+
+                    // Read the response content as a string
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    responseContent = Helper.CleanXml(responseContent);
+                    var responseObject = Helper.DeserializeXml<CashPointOpenItemSummaryByElementsResponseMessage>(responseContent)!;
+
+                    return responseObject;
                 }
                 catch (HttpRequestException e)
                 {

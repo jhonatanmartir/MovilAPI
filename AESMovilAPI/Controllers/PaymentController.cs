@@ -2,7 +2,6 @@
 using AESMovilAPI.Responses;
 using AESMovilAPI.Utilities;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
 using System.Dynamic;
 using System.Net.Http.Headers;
@@ -15,7 +14,7 @@ namespace AESMovilAPI.Controllers
     public class PaymentController : BaseController
     {
         private readonly HttpClient _client;
-        public PaymentController(IConfiguration config, HttpClient httpClient) : base(config)
+        public PaymentController(IConfiguration config, HttpClient httpClient) : base(config, httpClient)
         {
             _client = httpClient;
         }
@@ -26,9 +25,9 @@ namespace AESMovilAPI.Controllers
         /// <param name="data">Objeto que representa <see cref="Payment">PaymentDto</see> para crear links de pago.</param>
         /// <returns>Link de pago.</returns>
         /// <response code="201">Link creado.</response>
-        /// <response code="400">Datos incompletos.</response>
+        /// <response code="400">Datos incorrectos.</response>
         /// <response code="401">Error por token de autorización.</response>
-        /// <response code="404">No se genero el link.</response>
+        /// <response code="404">No se generó link, no hay deuda que pagar.</response>
         /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
         /// <response code="502">Incidente en el servicio.</response>
         [HttpPost]
@@ -38,7 +37,7 @@ namespace AESMovilAPI.Controllers
 
             if (data != null && ModelState.IsValid)
             {
-                _statusCode = NOT_FOUND_404;
+                _statusCode = BAD_REQUEST_400;
                 switch (data.Collector.ToUpper())
                 {
                     case "PAGADITO":
@@ -59,6 +58,7 @@ namespace AESMovilAPI.Controllers
         {
             string result = string.Empty;
             string token = _config.GetValue<string>(Constants.CONF_PAYWAY_TOKEN);
+
             BillDto? bill = await GetInvoiceData(nc);
 
             if (bill != null)
@@ -71,7 +71,7 @@ namespace AESMovilAPI.Controllers
                     usuarioOperacion = usuarioOperacion,                                    // Req. dinamic
                     colectorId = colectorId,                                                // Req. dinamic
                     clienteNombre = bill.Client,                                            // Dinamic
-                    concepto = "Pago de factura " + bill.IssueDate.ToString("MMMM/yyyy"),   // Dinamic
+                    concepto = "Pago de factura",                                           // Dinamic
                     monto = bill.Amount,                                                    // Dinamic
                     datosAuxiliares = new
                     {
@@ -130,7 +130,7 @@ namespace AESMovilAPI.Controllers
                         new
                         {
                             quantity = 1,
-                            description = "Pago de factura " + bill.IssueDate.ToString("MMMM/yyyy"),
+                            description = "Pago de factura",
                             price = bill.Amount,
                             url_product = ""
                         }
@@ -174,60 +174,107 @@ namespace AESMovilAPI.Controllers
 
         private async Task<BillDto?> GetInvoiceData(string nc)
         {
-            string baseUrl = "https://aes-cf-gcp-1kg8o7mu.it-cpi017-rt.cfapps.us30.hana.ondemand.com/gw/odata/SAP/";
-            string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
-            string link = baseUrl + "CIS_" + mandante + "_BIL_LASTACCOUNTBALANCE_AZUREAPPSERVICES_TO_SAPCIS;v=1/PendingDebtDetailsSet('" + nc + "')";
-            var responseContent = "";
-            BillDto? result = null;
-
-            var queryParams = new Dictionary<string, string>
+            var data = new
             {
-                { "$expand", "DataSet" },
-                { "$format", "json" }
+                Header = "",
+                Body = new
+                {
+                    CashPointOpenItemSummaryByElementsQueryMessage = new
+                    {
+                        MessageHeader = new
+                        {
+                            CreationDateTime = "",
+                            ID = new
+                            {
+                                text = ""
+                            },
+                            ReferenceID = new
+                            {
+                                text = ""
+                            },
+                            SenderParty = new
+                            {
+                                InternalID = new
+                                {
+                                    text = ""
+                                }
+                            },
+                            RecipientParty = new
+                            {
+                                InternalID = new
+                                {
+                                    text = ""
+                                }
+                            }
+                        },
+                        CashPointOpenItemSummaryByElementsQuery = new
+                        {
+                            CashPointReferenceID = new
+                            {
+                                text = _config.GetValue<string>(Constants.CONF_REAL_PAYMENT_CASH_POINT)
+                            },
+                            CashPointOfficeReferenceID = new
+                            {
+                                text = _config.GetValue<string>(Constants.CONF_REAL_PAYMENT_CASH_POINT_OFFICE)
+                            },
+                            ReportingCurrency = "USD",
+                            SelectionByContractAccountID = nc
+                        }
+                    }
+                }
             };
 
-            // Build the URL with query parameters
-            var urlWithParams = QueryHelpers.AddQueryString(link, queryParams);
-            // Create HttpRequestMessage
-            var request = new HttpRequestMessage(HttpMethod.Get, urlWithParams);
-
-            // Define the username and password for Basic Authentication
-            var username = "sb-5c453da1-0024-4006-b300-e197893b4667!b2748|it-rt-aes-cf-gcp-1kg8o7mu!b2560";
-            var password = "596b8c78-a140-4dea-9961-50efa79000a5$RtXYp7cf2Jl36e5SWod9iHCwUAtPpERsIi8qFGA6YUE=";
-
-            // Create the authentication header value
-            var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
-            var authHeader = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
-
-            // Set the authorization header
-            _client.DefaultRequestHeaders.Authorization = authHeader;
-            // Set custom headers
-            request.Headers.Add("x-csfr-token", "c9HO1hYCsB6KRhAIDPUT0lKXxyLyYWXH");
+            BillDto? result = null;
 
             try
             {
-                // Send the GET request
-                var response = await _client.SendAsync(request);
+                CashPointOpenItemSummaryByElementsResponseMessage values = (CashPointOpenItemSummaryByElementsResponseMessage)await ExecutePostRequestRP(data, "OpenItemSummaryByElements");
 
-                // Ensure the request was successful
-                response.EnsureSuccessStatusCode();
-
-                // Read the response content as a string
-                responseContent = await response.Content.ReadAsStringAsync();
-                dynamic responseObject = JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
-
-                if (responseObject.d.MessageType == "0")
+                if (values != null)
                 {
+                    bool mayoral = false;
+                    bool reconnection = false;
+                    decimal amount = 0;
+                    DateTime dueDate = DateTime.Now;
+                    string company = "";
+                    string name = "";
+                    long documentNumber = 0;
+
+                    if (values.CashPointOpenItemSummary.CashPointOpenItems.Count > 0)
+                    {
+                        foreach (var item in values.CashPointOpenItemSummary.CashPointOpenItems)
+                        {
+                            if (item.OpenItemTransactionDescription.Description != "INCB")   //No sumar el monto incobrable
+                            {
+                                amount += item.OpenAmount.Amount;
+                            }
+
+                            if (item.OpenItemTransactionDescription.Description == "ALCA")
+                            {
+                                mayoral = true;
+                            }
+                            if (item.OpenItemTransactionDescription.Description == "RECO")
+                            {
+                                reconnection = true;
+                            }
+
+                            dueDate = item.DueDate;
+                            company = item.PaymentFormID.Split("|")[0];
+                            name = item.PaymentFormID.Split("|")[1];
+                            documentNumber = long.Parse(item.InvoiceID);
+                        }
+                    }
+
                     result = new BillDto()
                     {
-                        Client = responseObject.d.DataSet.results[0].Cliente,
-                        Amount = responseObject.d.DataSet.results[0].SaldoPagar.Trim(),
-                        ExpirationDate = Helper.ParseDate(responseObject.d.DataSet.results[0].FVencimiento),
-                        IssueDate = Helper.ParseDate(responseObject.d.DataSet.results[0].F_emision, "yyyyMMdd"),
-                        MayoralPayment = Decimal.Parse(responseObject.d.DataSet.results[0].Alcaldia) > 0 ? true : false,
-                        ReconnectionPayment = Decimal.Parse(responseObject.d.DataSet.results[0].Reconexion) > 0 ? true : false,
-                        Company = responseObject.d.DataSet.results[0].Empresa,
-                        DocumentNumberId = responseObject.d.DataSet.results[0].IdCobro
+                        Client = name,
+                        Amount = amount.ToString(),
+                        ExpirationDate = dueDate,
+                        IssueDate = new DateTime(),
+                        MayoralPayment = mayoral,
+                        ReconnectionPayment = reconnection,
+                        Company = company,
+                        DocumentNumberId = documentNumber.ToString()
                     };
                 }
             }
@@ -245,15 +292,19 @@ namespace AESMovilAPI.Controllers
             switch (company)
             {
                 case Constants.SV10_CAESS:
+                case Constants.SV10_CAESS_CODE:
                     value = _config.GetValue<string>(Constants.CONF_PAYWAY_USER_CAESS);
                     break;
-                case Constants.SV20_EEO:
-                    value = _config.GetValue<string>(Constants.CONF_PAYWAY_USER_EEO);
-                    break;
-                case Constants.SV30_DEUSEM:
+                case Constants.SV20_DEUSEM:
+                case Constants.SV20_DEUSEM_CODE:
                     value = _config.GetValue<string>(Constants.CONF_PAYWAY_USER_DEUSEM);
                     break;
+                case Constants.SV30_EEO:
+                case Constants.SV30_EEO_CODE:
+                    value = _config.GetValue<string>(Constants.CONF_PAYWAY_USER_EEO);
+                    break;
                 case Constants.SV40_CLESA:
+                case Constants.SV40_CLESA_CODE:
                     value = _config.GetValue<string>(Constants.CONF_PAYWAY_USER_CLESA);
                     break;
             }
@@ -265,15 +316,19 @@ namespace AESMovilAPI.Controllers
             switch (company)
             {
                 case Constants.SV10_CAESS:
+                case Constants.SV10_CAESS_CODE:
                     value = _config.GetValue<string>(Constants.CONF_PAYWAY_ID_CAESS);
                     break;
-                case Constants.SV20_EEO:
-                    value = _config.GetValue<string>(Constants.CONF_PAYWAY_ID_EEO);
-                    break;
-                case Constants.SV30_DEUSEM:
+                case Constants.SV20_DEUSEM:
+                case Constants.SV20_DEUSEM_CODE:
                     value = _config.GetValue<string>(Constants.CONF_PAYWAY_ID_DEUSEM);
                     break;
+                case Constants.SV30_EEO:
+                case Constants.SV30_EEO_CODE:
+                    value = _config.GetValue<string>(Constants.CONF_PAYWAY_ID_EEO);
+                    break;
                 case Constants.SV40_CLESA:
+                case Constants.SV40_CLESA_CODE:
                     value = _config.GetValue<string>(Constants.CONF_PAYWAY_ID_CLESA);
                     break;
             }

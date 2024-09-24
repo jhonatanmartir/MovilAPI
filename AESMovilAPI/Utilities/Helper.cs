@@ -1,4 +1,6 @@
 ﻿using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using System.Xml.Serialization;
 
 namespace AESMovilAPI.Utilities
 {
@@ -56,13 +58,13 @@ namespace AESMovilAPI.Utilities
                 {
                     companyName = "CAESS";
                 }
-                else if (source.ToUpper().Contains("EEO"))
-                {
-                    companyName = "EEO";
-                }
                 else if (source.ToUpper().Contains("DEUSEM"))
                 {
                     companyName = "DEUSEM";
+                }
+                else if (source.ToUpper().Contains("EEO"))
+                {
+                    companyName = "EEO";
                 }
                 else if (source.ToUpper().Contains("CLESA"))
                 {
@@ -77,10 +79,10 @@ namespace AESMovilAPI.Utilities
                             companyName = "CAESS";
                             break;
                         case "SV20":
-                            companyName = "EEO";
+                            companyName = "DEUSEM";
                             break;
                         case "SV30":
-                            companyName = "DEUSEM";
+                            companyName = "EEO";
                             break;
                         case "SV40":
                             companyName = "CLESA";
@@ -92,6 +94,36 @@ namespace AESMovilAPI.Utilities
             }
 
             return companyName;
+        }
+
+        // Método para deserializar la respuesta XML
+        public static T DeserializeXml<T>(string xml)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(T));
+
+
+            using (StringReader reader = new StringReader(xml))
+            {
+                return (T)serializer.Deserialize(reader);
+            }
+        }
+
+        public static string CleanXml(string xmlString)
+        {
+            // Cargar el XML en un XDocument
+            XDocument doc = XDocument.Parse(xmlString);
+
+            // Remover los prefijos, pero manteniendo el namespace correcto
+            XNamespace sapNamespace = "http://sap.com/xi/SAPGlobal/Global";
+            var elements = doc.Descendants().ToList();
+
+            foreach (var element in elements)
+            {
+                element.Name = sapNamespace + element.Name.LocalName; // Remover el prefijo y mantener el namespace
+            }
+
+            // Convertir de nuevo el documento a string limpio
+            return doc.ToString();
         }
     }
 }

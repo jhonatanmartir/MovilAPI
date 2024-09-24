@@ -77,7 +77,7 @@ builder.Services.AddSwaggerGen(c =>
             Contact = new Microsoft.OpenApi.Models.OpenApiContact
             {
                 Name = "Jhonatan Mártir",
-                Email = "creativa.jmartir.c@aes.com"
+                Email = "creativa.jmartir.c@aes.com?subject=Me%20gustaría%20solicitar%20una%20API%20key%20para%AESMovil%20API"
             }
         });
         // Remover status code 200 by default
