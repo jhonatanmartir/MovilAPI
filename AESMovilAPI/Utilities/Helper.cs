@@ -140,5 +140,20 @@ namespace AESMovilAPI.Utilities
 
             return amount;
         }
+        public static string MoneyValue(string value)
+        {
+            string result = ParseToNegative(value).ToString("F2");
+
+            if (result.StartsWith("-"))
+            {
+                result = result.Replace("-", "").Insert(0, "-$ ");
+            }
+            else
+            {
+                result = "$ " + result;
+            }
+
+            return result;
+        }
     }
 }

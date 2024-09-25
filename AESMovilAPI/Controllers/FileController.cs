@@ -7,7 +7,6 @@ using iText.Layout;
 using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
@@ -415,7 +414,14 @@ namespace AESMovilAPI.Controllers
                             table.AddCell(cell17);
                             table.AddCell(cell18);
 
-                            foreach (var item in data.values)
+                            var sortedList = ((List<dynamic>)data.values).OrderByDescending(obj =>
+                            {
+                                DateTime dateValue;
+                                return DateTime.TryParse(obj.FechaFacturado, out dateValue) ? dateValue : DateTime.MinValue;
+                            })
+                            .ToList();
+
+                            foreach (var item in sortedList)
                             {
                                 Cell cell1 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
@@ -428,7 +434,7 @@ namespace AESMovilAPI.Controllers
                                 Cell cell3 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.RIGHT)
-                                    .Add(new Paragraph("$ " + Helper.ParseToNegative(item.Monto.Trim()).ToString("F2")).SetFont(_fontRegular).SetFontSize(7));
+                                    .Add(new Paragraph(Helper.MoneyValue(item.Monto.Trim())).SetFont(_fontRegular).SetFontSize(7));
                                 //Cell cell4 = new Cell(1, 1)
                                 //    .SetBorder(Border.NO_BORDER)
                                 //    .SetTextAlignment(TextAlignment.LEFT)
@@ -682,7 +688,14 @@ namespace AESMovilAPI.Controllers
                             table.AddCell(cell17);
                             table.AddCell(cell18);
 
-                            foreach (var item in data.values)
+                            var sortedList = ((List<dynamic>)data.values).OrderByDescending(obj =>
+                            {
+                                DateTime dateValue;
+                                return DateTime.TryParse(obj.FechaFacturacion, out dateValue) ? dateValue : DateTime.MinValue;
+                            })
+                            .ToList();
+
+                            foreach (var item in sortedList)
                             {
                                 Cell cell1 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
@@ -695,7 +708,7 @@ namespace AESMovilAPI.Controllers
                                 Cell cell3 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.RIGHT)
-                                    .Add(new Paragraph("$ " + Helper.ParseToNegative(item.ImpFact.Trim()).ToString("F2")).SetFont(_fontRegular).SetFontSize(7));
+                                    .Add(new Paragraph(Helper.MoneyValue(item.ImpFact.Trim())).SetFont(_fontRegular).SetFontSize(7));
                                 //Cell cell4 = new Cell(1, 1)
                                 //    .SetBorder(Border.NO_BORDER)
                                 //    .SetTextAlignment(TextAlignment.LEFT)
@@ -703,7 +716,7 @@ namespace AESMovilAPI.Controllers
                                 Cell cell5 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.RIGHT)
-                                    .Add(new Paragraph("$ " + Helper.ParseToNegative(item.ImpFactCanc.Trim()).ToString("F2")).SetFont(_fontRegular).SetFontSize(7));
+                                    .Add(new Paragraph(Helper.MoneyValue(item.ImpFactCanc.Trim())).SetFont(_fontRegular).SetFontSize(7));
                                 Cell cell6 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.CENTER)
