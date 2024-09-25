@@ -125,5 +125,20 @@ namespace AESMovilAPI.Utilities
             // Convertir de nuevo el documento a string limpio
             return doc.ToString();
         }
+
+        public static double ParseToNegative(string value)
+        {
+            double amount = 0.00;
+            if (value.Trim().EndsWith("-"))
+            {
+                amount = -double.Parse(value.Trim('-'));
+            }
+            else
+            {
+                amount = double.Parse(value);
+            }
+
+            return amount;
+        }
     }
 }

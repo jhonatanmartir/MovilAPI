@@ -7,6 +7,7 @@ using iText.Layout;
 using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
@@ -392,7 +393,7 @@ namespace AESMovilAPI.Controllers
                                //.SetBorderBottom(new SolidBorder(lineColor, 1))
                                .SetBackgroundColor(headerColor)
                                .SetTextAlignment(TextAlignment.LEFT)
-                               .Add(new Paragraph("ALCLADÍA")
+                               .Add(new Paragraph("ALCALDÍA")
                                .SetFont(_fontBold)
                                .SetFontSize(7));
                             Cell cell18 = new Cell(1, 1)
@@ -427,7 +428,7 @@ namespace AESMovilAPI.Controllers
                                 Cell cell3 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.RIGHT)
-                                    .Add(new Paragraph("$ " + item.Monto.Trim()).SetFont(_fontRegular).SetFontSize(7));
+                                    .Add(new Paragraph("$ " + Helper.ParseToNegative(item.Monto.Trim()).ToString("F2")).SetFont(_fontRegular).SetFontSize(7));
                                 //Cell cell4 = new Cell(1, 1)
                                 //    .SetBorder(Border.NO_BORDER)
                                 //    .SetTextAlignment(TextAlignment.LEFT)
@@ -694,7 +695,7 @@ namespace AESMovilAPI.Controllers
                                 Cell cell3 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.RIGHT)
-                                    .Add(new Paragraph("$ " + item.ImpFact.Trim()).SetFont(_fontRegular).SetFontSize(7));
+                                    .Add(new Paragraph("$ " + Helper.ParseToNegative(item.ImpFact.Trim()).ToString("F2")).SetFont(_fontRegular).SetFontSize(7));
                                 //Cell cell4 = new Cell(1, 1)
                                 //    .SetBorder(Border.NO_BORDER)
                                 //    .SetTextAlignment(TextAlignment.LEFT)
@@ -702,7 +703,7 @@ namespace AESMovilAPI.Controllers
                                 Cell cell5 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.RIGHT)
-                                    .Add(new Paragraph("$ " + item.ImpFactCanc.Trim()).SetFont(_fontRegular).SetFontSize(7));
+                                    .Add(new Paragraph("$ " + Helper.ParseToNegative(item.ImpFactCanc.Trim()).ToString("F2")).SetFont(_fontRegular).SetFontSize(7));
                                 Cell cell6 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.CENTER)

@@ -20,7 +20,6 @@
         public const string CONF_SAP_USER = "SAP:Usr";
         public const string CONF_SAP_PASSWORD = "SAP:Pwd";
         public const string CONF_SAP_TOKEN = "SAP:Token";
-        public const string CONF_SAP_REAL_PAYMENT_TOKEN = "SAP:RPToken";
 
         public const string CONF_PAGADITO_ENDPOINT = "PagaditoParams:Endpoint";
         public const string CONF_PAGADITO_USER = "PagaditoParams:Usr";
@@ -37,6 +36,7 @@
         public const string CONF_PAYWAY_ID_DEUSEM = "PaywayParams:IdDEUSEM";
         public const string CONF_PAYWAY_ID_CLESA = "PaywayParams:IdCLESA";
 
+        public const string CONF_SAP_REAL_PAYMENT_TOKEN = "RealPayment:Token";
         public const string CONF_REAL_PAYMENT_CASH_POINT = "RealPayment:CashPoint";
         public const string CONF_REAL_PAYMENT_CASH_POINT_OFFICE = "RealPayment:CashPointOffice";
         #endregion
