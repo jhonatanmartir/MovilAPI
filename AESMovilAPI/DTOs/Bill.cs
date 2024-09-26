@@ -9,6 +9,6 @@
         public bool MayoralPayment { get; set; }
         public bool ReconnectionPayment { get; set; }
         public string Company { get; set; }
-        public string DocumentNumberId { get; set; }
+        public string BP { get; set; }
     }
 }

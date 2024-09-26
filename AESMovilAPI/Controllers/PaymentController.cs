@@ -79,7 +79,7 @@ namespace AESMovilAPI.Controllers
                         datoAuxiliar2 = bill.ExpirationDate.ToString("yyyyMMdd"),           // Vencimiento YYYYMMDD
                         datoAuxiliar3 = bill.MayoralPayment ? "1" : "0",                    // Paga alcaldia = 1, else 0
                         datoAuxiliar4 = bill.ReconnectionPayment ? "1" : "0",               // Paga recon = 1, else 0
-                        datoAuxiliar5 = bill.DocumentNumberId                               // Factura
+                        datoAuxiliar5 = bill.BP                                             // BP
                     },
                 };
 
@@ -274,7 +274,7 @@ namespace AESMovilAPI.Controllers
                         MayoralPayment = mayoral,
                         ReconnectionPayment = reconnection,
                         Company = company,
-                        DocumentNumberId = documentNumber.ToString()
+                        BP = values.CashPointOpenItemSummary.PartyReference.InternalID
                     };
                 }
             }
