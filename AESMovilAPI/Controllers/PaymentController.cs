@@ -244,24 +244,28 @@ namespace AESMovilAPI.Controllers
                     {
                         foreach (var item in values.CashPointOpenItemSummary.CashPointOpenItems)
                         {
-                            if (item.OpenItemTransactionDescription.Description != "INCB")   //No sumar el monto incobrable
+                            try
                             {
                                 amount += item.OpenAmount.Amount;
-                            }
 
-                            if (item.OpenItemTransactionDescription.Description == "ALCA")
-                            {
-                                mayoral = true;
-                            }
-                            if (item.OpenItemTransactionDescription.Description == "RECO")
-                            {
-                                reconnection = true;
-                            }
+                                if (item.OpenItemTransactionDescription.Description == "ALCA")
+                                {
+                                    mayoral = true;
+                                }
+                                if (item.OpenItemTransactionDescription.Description == "RECO")
+                                {
+                                    reconnection = true;
+                                }
 
-                            dueDate = item.DueDate;
-                            company = item.PaymentFormID.Split("|")[0];
-                            name = item.PaymentFormID.Split("|")[1];
-                            documentNumber = long.Parse(item.InvoiceID);
+                                dueDate = item.DueDate;
+                                company = item.PaymentFormID.Split("|")[0];
+                                name = item.PaymentFormID.Split("|")[1];
+                                documentNumber = string.IsNullOrEmpty(item.InvoiceID) ? 0 : long.Parse(item.InvoiceID);
+                            }
+                            catch (Exception ex)
+                            {
+
+                            }
                         }
                     }
 
