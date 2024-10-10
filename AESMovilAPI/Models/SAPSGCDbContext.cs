@@ -8,6 +8,11 @@ namespace AESMovilAPI.Models
         : base(options)
         {
         }
-        public DbSet<Associations> Associations { get; set; }
+        public DbSet<SapData> SAPData { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<SapData>().ToTable("SAP_DATA", "OSBILLING").HasNoKey();     //No requiere PK
+        }
     }
 }

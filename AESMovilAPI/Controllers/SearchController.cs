@@ -12,12 +12,11 @@ using System.Numerics;
 
 namespace AESMovilAPI.Controllers
 {
-    [Route("api/v1/[controller]")]
-    public class SAPSGCController : BaseController
+    public class SearchController : BaseController
     {
         private readonly SAPSGCDbContext _db;
         private readonly HttpClient _client;
-        public SAPSGCController(IConfiguration config, SAPSGCDbContext db, HttpClient httpClient) : base(config)
+        public SearchController(IConfiguration config, SAPSGCDbContext db, HttpClient httpClient) : base(config)
         {
             _db = db;
             _client = httpClient;
@@ -39,9 +38,11 @@ namespace AESMovilAPI.Controllers
         [SwaggerRequestExample(typeof(Query), typeof(SGCSAPExample))]
         [AllowAnonymous]
         [HttpPost]
+        [Route("api/v1/Search")]
+        [Route("api/v1/SAPSGC")]
         public async Task<IActionResult> GetById(Query query)
         {
-            bool fromBD = false;
+            bool fromBD = true;
             dynamic? response = null;
             BigInteger number;
             string id = query.Cuenta;
@@ -55,7 +56,7 @@ namespace AESMovilAPI.Controllers
             {
                 _statusCode = NOT_FOUND_404;
 
-                List<Associations> value = new List<Associations>();
+                List<SapData> value = new List<SapData>();
 
                 if (fromBD)
                 {
@@ -69,12 +70,12 @@ namespace AESMovilAPI.Controllers
                         if (id.Length == 6 || id.Length == 7)
                         {
                             // NIC
-                            value = _db.Associations.Where(a => a.Nic == int.Parse(id)).ToList();
+                            value = _db.SAPData.Where(a => a.Nic == int.Parse(id)).ToList();
                         }
                         else
                         {
                             // NC
-                            value = _db.Associations.Where(a => a.Vkont == long.Parse(id)).ToList();
+                            value = _db.SAPData.Where(a => a.Vkont == id).ToList();
                         }
 
                         if (value != null && value.Count > 0)
@@ -142,11 +143,11 @@ namespace AESMovilAPI.Controllers
                                 {
                                     Nic = (int)item.nic,
                                     NisRad = (int)item.nisRad,
-                                    Partner = (long)item.partner,
+                                    Partner = item.partner,
                                     Nombre = item.nombre,
                                     Apellido = item.apellido,
-                                    CuentaContrato = (long)item.vkont,
-                                    Vertrag = (long)item.vertrag,
+                                    CuentaContrato = item.vkont,
+                                    Vertrag = item.vertrag,
                                     Tariftyp = item.tariftyp,
                                     Ableinh = item.ableinh,
                                     Portion = item.portion,

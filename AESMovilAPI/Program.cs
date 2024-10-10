@@ -21,12 +21,8 @@ CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 // Configurar el pool de DbContext
 builder.Services.AddDbContextPool<SAPSGCDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-    sqlOptions => sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 2,
-            maxRetryDelay: TimeSpan.FromSeconds(10),
-            errorNumbersToAdd: null
-        )));
+    options.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection"))
+    );
 
 // Load ConnectedService.json
 var connectedServiceConfig = new ConfigurationBuilder()
