@@ -7,6 +7,7 @@ using iText.Layout;
 using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
@@ -156,7 +157,7 @@ namespace AESMovilAPI.Controllers
         /// </summary>
         /// <param name="id">NC del cliente</param>
         /// <param name="fromDate">Desde que fecha se consulta el historico en formato <c>yyyyMMdd</c> por ejemplo <c>20200101</c>. Sino se especifica se tomará 2 años atras, a partir de la fecha actual.</param>
-        /// <param name="toDate">Hasta que fecha se consulta el historico en formato <c>yyyyMMdd</c> por ejemplo <c>202400606</c>. Sino se especifica se tomará la fecha actual.</param>
+        /// <param name="toDate">Hasta que fecha se consulta el historico en formato <c>yyyyMMdd</c> por ejemplo <c>20240606</c>. Sino se especifica se tomará la fecha actual.</param>
         /// <returns>Archivo PDF</returns>
         /// <response code="200">Correcto.</response>
         /// <response code="400">Parametros incorrectos.</response>
