@@ -14,7 +14,7 @@ namespace AESMovilAPI.Filters
         public void OnActionExecuting(ActionExecutingContext context)
         {
             string actionName = context.ActionDescriptor.DisplayName;
-            Info(data: context.ActionArguments, caller: actionName);
+            Info(data: context.ActionArguments, message: "IN", caller: actionName);
         }
 
         // Se ejecuta después de que la acción ha sido ejecutada
@@ -26,7 +26,7 @@ namespace AESMovilAPI.Filters
             if (context.Exception == null)
             {
                 // Si no hay excepción, se loguea el resultado
-                Info(data: result, caller: actionName);
+                Info(data: result, message: "LEFT", caller: actionName);
             }
             else
             {
