@@ -90,18 +90,19 @@ namespace AESMovilAPI.Controllers
                                 {
                                     Nic = a.Nic,
                                     NisRad = a.NisRad,
-                                    Partner = a.Partner,
+                                    SocioComercial = a.Partner,
                                     Nombre = a.NameFirst,
                                     Apellido = a.NameLast,
                                     CuentaContrato = a.Vkont,
-                                    Vertrag = a.Vertrag,
-                                    Tariftyp = a.Tariftyp,
-                                    Ableinh = a.Ableinh,
-                                    Portion = a.Portion,
-                                    Sernr = a.Sernr,
-                                    Vstelle = a.Vstelle,
-                                    Haus = a.Haus,
-                                    Opbuk = a.Opbuk
+                                    Contrato = a.Vertrag,
+                                    Tarifa = a.Tariftyp,
+                                    UnidadLectura = a.Ableinh,
+                                    Porcion = a.Portion,
+                                    NumeroMedidor = a.Sernr,
+                                    PuntoSuministro = a.Vstelle,
+                                    ObjetoConexion = a.Haus,
+                                    Empresa = a.Opbuk,
+                                    Instalacion = a.Anlage
                                 });
                             }
                             response = new { Data = list, ErrorCode = "0", ErrorMsg = "Servicio ejecutado con exito" };
@@ -143,18 +144,18 @@ namespace AESMovilAPI.Controllers
                                 {
                                     Nic = (int)item.nic,
                                     NisRad = (int)item.nisRad,
-                                    Partner = item.partner,
+                                    SocioComercial = item.partner,
                                     Nombre = item.nombre,
                                     Apellido = item.apellido,
                                     CuentaContrato = item.vkont,
-                                    Vertrag = item.vertrag,
-                                    Tariftyp = item.tariftyp,
-                                    Ableinh = item.ableinh,
-                                    Portion = item.portion,
-                                    Sernr = item.sernr,
-                                    Vstelle = item.vstelle,
-                                    Haus = item.haus,
-                                    Opbuk = item.opbuk
+                                    Contrato = item.vertrag,
+                                    Tarifa = item.tariftyp,
+                                    UnidadLectura = item.ableinh,
+                                    Porcion = item.portion,
+                                    NumeroMedidor = item.sernr,
+                                    PuntoSuministro = item.vstelle,
+                                    ObjetoConexion = item.haus,
+                                    Empresa = item.opbuk
                                 });
                             }
 

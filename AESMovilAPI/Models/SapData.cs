@@ -34,5 +34,7 @@ namespace AESMovilAPI.Models
         public string Haus { get; set; }
         [Column("OPBUK")]
         public string Opbuk { get; set; }
+        [Column("ANLAGE")]
+        public string Anlage { get; set; }
     }
 }

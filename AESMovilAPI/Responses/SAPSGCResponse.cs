@@ -4,17 +4,18 @@
     {
         public int Nic { get; set; }
         public int NisRad { get; set; }
-        public string Partner { get; set; }
+        public string SocioComercial { get; set; }
         public string Nombre { get; set; }
         public string Apellido { get; set; }
         public string CuentaContrato { get; set; }
-        public string Vertrag { get; set; }
-        public string Tariftyp { get; set; }
-        public string Ableinh { get; set; }
-        public string Portion { get; set; }
-        public string Sernr { get; set; }
-        public string Vstelle { get; set; }
-        public string Haus { get; set; }
-        public string Opbuk { get; set; }
+        public string Contrato { get; set; }
+        public string Tarifa { get; set; }
+        public string UnidadLectura { get; set; }
+        public string Porcion { get; set; }
+        public string NumeroMedidor { get; set; }
+        public string PuntoSuministro { get; set; }
+        public string ObjetoConexion { get; set; }
+        public string Empresa { get; set; }
+        public string Instalacion { get; set; }
     }
 }
