@@ -1,4 +1,5 @@
-﻿using AESMovilAPI.Responses;
+﻿using AESMovilAPI.Filters;
+using AESMovilAPI.Responses;
 using AESMovilAPI.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,8 +7,11 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
+using NLog;
+using System.Diagnostics;
 using System.Dynamic;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace AESMovilAPI.Controllers
@@ -15,6 +19,7 @@ namespace AESMovilAPI.Controllers
     [Authorize]
     [ApiController]
     [RequireHttps]
+    [ServiceFilter(typeof(ActionExecutionFilter))]
     public class BaseController : ControllerBase
     {
         protected const int OK_200 = StatusCodes.Status200OK;
@@ -31,6 +36,8 @@ namespace AESMovilAPI.Controllers
 
         protected int _statusCode;
         protected IMemoryCache _memory;
+
+        private static readonly Logger _logger = NLog.LogManager.GetCurrentClassLogger();
 
         public BaseController(IConfiguration config, HttpClient? client = null, IMemoryCache cache = null)
         {
@@ -336,6 +343,60 @@ namespace AESMovilAPI.Controllers
                 _memory.TryGetValue(clave, out token);
             }
             return token;
+        }
+
+        protected static void Info(object? data = null, string message = "", bool isAsync = true, [CallerMemberName] string caller = "")
+        {
+            string info;
+            if (isAsync)
+            {
+                info = caller;
+            }
+            else
+            {
+                var stackFrame = new StackFrame(1, true);
+                info = "line " + stackFrame.GetFileLineNumber() + "::" + stackFrame.GetMethod().Name;
+            }
+
+            if (data != null)
+            {
+                _logger.Info("{method} result: {result} | {data}", info, message, JsonConvert.SerializeObject(data));
+            }
+            else
+            {
+                _logger.Info("{method} result: {result}", info, message);
+            }
+        }
+
+        protected static void Err(string message, bool isAsync = true, [CallerMemberName] string caller = "")
+        {
+            string info;
+            if (isAsync)
+            {
+                info = caller;
+            }
+            else
+            {
+                var stackFrame = new StackFrame(1, true);
+                info = "line " + stackFrame.GetFileLineNumber() + "::" + stackFrame.GetMethod().Name;
+            }
+
+            _logger.Error("{method} result: {result}", info, message);
+        }
+
+        public static void Ex(Exception ex, string message = "", bool isAsync = true, [CallerMemberName] string caller = "")
+        {
+            string info;
+            if (isAsync)
+            {
+                info = caller;
+            }
+            else
+            {
+                var stackFrame = new StackFrame(1, true);
+                info = "line " + stackFrame.GetFileLineNumber() + "::" + stackFrame.GetMethod().Name;
+            }
+            _logger.Fatal(ex, "{method} result: {result}", info, message);
         }
     }
 }

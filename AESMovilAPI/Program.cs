@@ -5,59 +5,72 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using NLog;
+using NLog.Web;
 using Swashbuckle.AspNetCore.Filters;
 using System.Globalization;
 using System.ServiceModel;
 using System.Text;
 
-var builder = WebApplication.CreateBuilder(args);
-// Configura la zona horaria y cultura predeterminada para El Salvador
-TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Central America Standard Time");
-var cultureInfo = new CultureInfo("es-SV");
+var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+logger.Debug("Iniciando aplicación...");
 
-CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
-CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+try
+{
+    var builder = WebApplication.CreateBuilder(args);
+    // Configura la zona horaria y cultura predeterminada para El Salvador
+    TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Central America Standard Time");
+    var cultureInfo = new CultureInfo("es-SV");
 
+    CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+    CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
-// Configurar el pool de DbContext
-builder.Services.AddDbContextPool<SAPSGCDbContext>(options =>
-    options.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection"))
-    );
+    // Configurar NLog como el proveedor de logging
+    builder.Logging.ClearProviders();
+    builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+    builder.Host.UseNLog();
 
-// Load ConnectedService.json
-var connectedServiceConfig = new ConfigurationBuilder()
-    .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("Connected Services/ivraes/ConnectedService.json", false, true)
-    .Build();
+    // Configurar el pool de DbContext
+    builder.Services.AddDbContextPool<SAPSGCDbContext>(options =>
+        options.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection"))
+        );
 
-// Extract the endpoint address
-var endpointUrls = connectedServiceConfig.GetSection("ExtendedData:inputs").Get<string[]>();
-// Use the first endpoint for simplicity, or apply your own logic to select the desired endpoint
-var endpointUrl = endpointUrls?.FirstOrDefault() ?? "";
+    // Load ConnectedService.json
+    var connectedServiceConfig = new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("Connected Services/ivraes/ConnectedService.json", false, true)
+        .Build();
 
-// Configurar autenticación JWT
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
+    // Extract the endpoint address
+    var endpointUrls = connectedServiceConfig.GetSection("ExtendedData:inputs").Get<string[]>();
+    // Use the first endpoint for simplicity, or apply your own logic to select the desired endpoint
+    var endpointUrl = endpointUrls?.FirstOrDefault() ?? "";
+
+    // Configurar autenticación JWT
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration.GetValue<string>("Security:Iss"),
-            ValidAudience = builder.Configuration.GetValue<string>("Security:Aud"),
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("6e7a10f083b54c551425112f0d0180da5c9bc2fe18daedd8dd1e338444ec29db"))
-        };
-    });
-builder.Services.AddAuthorization();
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = builder.Configuration.GetValue<string>("Security:Iss"),
+                ValidAudience = builder.Configuration.GetValue<string>("Security:Aud"),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("6e7a10f083b54c551425112f0d0180da5c9bc2fe18daedd8dd1e338444ec29db"))
+            };
+        });
+    builder.Services.AddAuthorization();
 
-// Add services to the container.
+    // Add services to the container.
+    // Registrar el filtro en el contenedor de servicios
+    builder.Services.AddScoped<ActionExecutionFilter>();
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+    builder.Services.AddControllers();
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(c =>
     {
         c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
         {
@@ -111,61 +124,71 @@ builder.Services.AddSwaggerGen(c =>
         c.ExampleFilters(); // Habilitar filtros de ejemplos
     });
 
-// Registrar el servicio con una vida útil específica (Singleton, Scoped, Transient)
-builder.Services.AddSingleton<VRAESELSALVADORSoapClient>(provider =>
-{
-    var binding = new BasicHttpBinding();
-    var endpoint = new EndpointAddress(endpointUrl);
-    return new VRAESELSALVADORSoapClient(binding, endpoint);
-});
+    // Registrar el servicio con una vida útil específica (Singleton, Scoped, Transient)
+    builder.Services.AddSingleton<VRAESELSALVADORSoapClient>(provider =>
+    {
+        var binding = new BasicHttpBinding();
+        var endpoint = new EndpointAddress(endpointUrl);
+        return new VRAESELSALVADORSoapClient(binding, endpoint);
+    });
 
-// Make sure the configuration from appsettings.json is added.
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-// Register the HttpClientFactory
-builder.Services.AddHttpClient();
-// Registrar los filtros de ejemplos
-builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
+    // Make sure the configuration from appsettings.json is added.
+    builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+    // Register the HttpClientFactory
+    builder.Services.AddHttpClient();
+    // Registrar los filtros de ejemplos
+    builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
 
-// Configurar CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll",
-    builder => builder.AllowAnyOrigin()
-                      .AllowAnyMethod()
-                      .AllowAnyHeader());
-});
+    // Configurar CORS
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAll",
+        builder => builder.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader());
+    });
 
-// Register memory cache service
-builder.Services.AddMemoryCache();
+    // Register memory cache service
+    builder.Services.AddMemoryCache();
 
-var app = builder.Build();
+    var app = builder.Build();
 
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(
-        c =>
-        {
-            //c.SwaggerEndpoint("/swagger/v1/swagger.json", "AESMovil API V1");
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI(
+            c =>
+            {
+                //c.SwaggerEndpoint("/swagger/v1/swagger.json", "AESMovil API V1");
 
-            // Custom UI settings
-            c.InjectStylesheet("/swagger-ui/custom.css");
-            c.InjectJavascript("/swagger-ui/custom.js");
-            c.DocumentTitle = "AESMovil API Doc";
-            //c.RoutePrefix = string.Empty; // Serve Swagger UI at application root
-        });
+                // Custom UI settings
+                c.InjectStylesheet("/swagger-ui/custom.css");
+                c.InjectJavascript("/swagger-ui/custom.js");
+                c.DocumentTitle = "AESMovil API Doc";
+                //c.RoutePrefix = string.Empty; // Serve Swagger UI at application root
+            });
+    }
+
+    app.UseHttpsRedirection();
+
+    app.UseStaticFiles();
+    app.UseCors("AllowAll");    // Aplicar la política de CORS
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-app.UseStaticFiles();
-app.UseCors("AllowAll");    // Aplicar la política de CORS
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+{
+    logger.Error(ex, "Se detuvo la aplicación. " + ex.Message);
+    throw;
+}
+finally
+{
+    NLog.LogManager.Shutdown();
+}
