@@ -819,7 +819,7 @@ namespace AESMovilAPI.Controllers
                 string json = JsonConvert.SerializeObject(responseObject.data.json_dte);
                 // Convertir el string en bytes
                 result = Encoding.UTF8.GetBytes(json);
-                name = responseObject.data.vl_controlnumber;
+                name = responseObject.data.vl_controlnumber + ".json";
             }
 
             return new FileDataDto { DataByte = result, Name = name };

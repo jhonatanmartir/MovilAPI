@@ -23,6 +23,7 @@ namespace AESMovilAPI.DTOs
         /// Código de la tipologia del reclamo
         /// </summary>
         /// <value>Por defecto <c>ZO400</c></value>
+        [Required]
         public string TipoReclamo { get; set; } = "ZO400";
 
         /// <summary>
@@ -41,6 +42,7 @@ namespace AESMovilAPI.DTOs
         /// Código de peligro
         /// </summary>
         /// <value>Por defecto <c>SE001</c></value>
+        [Required]
         public string Peligro { get; set; } = "SE001";
 
         /// <summary>
@@ -73,7 +75,6 @@ namespace AESMovilAPI.DTOs
         /// <summary>
         /// Nombre del cliente.
         /// </summary>
-        [Required]
         public string Nombre { get; set; }
 
         /// <summary>
