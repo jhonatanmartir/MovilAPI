@@ -11,7 +11,7 @@ namespace AESMovilAPI.DTOs
         /// Número de cuenta.
         /// </summary>
         [Required]
-        public long NC { get; set; }
+        public long Contrato { get; set; }
 
         /// <summary>
         /// Código que determina el medio donde se realizó el reclamo

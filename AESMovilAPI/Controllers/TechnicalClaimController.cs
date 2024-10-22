@@ -69,7 +69,7 @@ namespace AESMovilAPI.Controllers
                 {
                     _statusCode = CREATED_201;
                     CrearReclamoResponse ivResponse = await _ivrClient.CrearReclamoAsync(
-                    claim.NC.ToString(),
+                    claim.Contrato.ToString(),
                     claim.OrigenReclamo,
                     claim.TipoReclamo,
                     claim.ComentarioReclamo,
