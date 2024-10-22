@@ -55,6 +55,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="AESEncryption">
+      <HintPath>..\..\AESEncryption\AESEncryption\bin\Release\AESEncryption.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="wwwroot\swagger-ui\aes-elsalvador.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <CustomToolNamespace></CustomToolNamespace>

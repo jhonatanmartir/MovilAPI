@@ -1,4 +1,6 @@
-﻿using AESMovilAPI.Utilities;
+﻿using AESMovilAPI.DTOs;
+using AESMovilAPI.Responses;
+using AESMovilAPI.Utilities;
 using iText.IO.Image;
 using iText.Kernel.Colors;
 using iText.Kernel.Font;
@@ -45,6 +47,47 @@ namespace AESMovilAPI.Controllers
             _baseEBillinApi = _config.GetValue<string>("EBillingAPI:Base");
         }
 
+        [HttpGet("{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetFile(string id)
+        {
+            if (!string.IsNullOrEmpty(id.Trim()))
+            {
+                id = AESEncryption.AES.GetDecrypt(id, Constants.ENCRYPT_KEY, Constants.SECRECT_KEY_IV);
+
+                FileInfoDto data = JsonConvert.DeserializeObject<FileInfoDto>(id)!;   // !: indica que no sera null en tiempo de ejecucion
+
+                try
+                {
+                    switch (data.Type)
+                    {
+                        case "dte":
+                            var dataResult = await BuildDteFile(data.DocumentNumber);
+                            if (dataResult.DataByte != null)
+                            {
+                                return File(dataResult.DataByte, "application/json", dataResult.Name);
+                            }
+                            break;
+                        case "invoice":
+                            var dataFileResult = await BuildBillFile(data.DocumentNumber);
+                            if (dataFileResult.DataByte != null)
+                            {
+                                return File(dataFileResult.DataByte, "application/pdf", dataFileResult.Name);
+                            }
+                            break;
+                        default: break;
+                    }
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
+            _statusCode = NOT_FOUND_404;
+
+            return GetResponse(new Response<string>());
+        }
+
         [NonAction]
         [HttpGet("Bill/{id}")]
         public IActionResult GetBill(string id)
@@ -52,51 +95,32 @@ namespace AESMovilAPI.Controllers
             return NotFound();
         }
 
+        /// <summary>
+        /// Obtener Json DTE certificado por el Ministerio de Hacienda
+        /// </summary>
+        /// <param name="id">Número de documento</param>
+        /// <returns>Archivo Json</returns>
+        /// <response code="200">Correcto.</response>
+        /// <response code="401">Error por token de autorización.</response>
+        /// <response code="404">No se encontró certificación.</response>
+        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
+        /// <response code="502">Incidente en el servicio.</response>
+        [NonAction]
         [HttpGet("Dte/{id}")]
         public async Task<IActionResult> GetDte(string id)
         {
-            id = id.PadLeft(14, '0');
-
-            var postData = new
+            if (!string.IsNullOrEmpty(id))
             {
-                dte = id
-            };
-
-            string url = _baseEBillinApi + "/api/dte/find";
-            string? token = GetToken(Constants.EBILLAPI_BEARER);
-
-            if (token == null)
-            {
-                token = await GetEbillingAPIToken();
-            }
-
-            dynamic? responseObject = await ExecutePostRequest(postData, url, true, token);
-
-            // Retry request with token
-            try
-            {
-                if (responseObject == UNAUTHORIZED_401)
+                var dataResult = await BuildDteFile(id);
+                if (dataResult.DataByte != null)
                 {
-                    token = await GetEbillingAPIToken();
-                    responseObject = await ExecutePostRequest(postData, url, true, token);
+                    return File(dataResult.DataByte, "application/json", dataResult.Name);
                 }
             }
-            catch (Exception ex)
-            {
+            _statusCode = NOT_FOUND_404;
 
-            }
-
-            if (responseObject != null && responseObject.code == OK_200)
-            {
-                string json = JsonConvert.SerializeObject(responseObject.data.json_dte);
-                // Convertir el string en bytes
-                var jsonBytes = Encoding.UTF8.GetBytes(json);
-                return File(jsonBytes, "application/json", responseObject.data.vl_controlnumber);
-            }
-
-            return NotFound();
+            return GetResponse(new Response<string>());
         }
-
         /// <summary>
         /// Obtener reporte PDF de historico de facturación
         /// </summary>
@@ -753,7 +777,67 @@ namespace AESMovilAPI.Controllers
             return null;
         }
         #endregion
+        private async Task<FileDataDto> BuildDteFile(string id)
+        {
+            byte[]? result = null;
+            string name = "";
 
+            id = id.PadLeft(14, '0');
+
+            var postData = new
+            {
+                dte = id
+            };
+
+
+            string url = _baseEBillinApi + "/api/dte/find";
+            string? token = GetToken(Constants.EBILLAPI_BEARER);
+
+            if (token == null)
+            {
+                token = await GetEbillingAPIToken();
+            }
+
+            dynamic? responseObject = await ExecutePostRequest(postData, url, true, token);
+
+            // Retry request with token
+            try
+            {
+                if (responseObject == UNAUTHORIZED_401)
+                {
+                    token = await GetEbillingAPIToken();
+                    responseObject = await ExecutePostRequest(postData, url, true, token);
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            if (responseObject != null && responseObject.code == OK_200)
+            {
+                string json = JsonConvert.SerializeObject(responseObject.data.json_dte);
+                // Convertir el string en bytes
+                result = Encoding.UTF8.GetBytes(json);
+                name = responseObject.data.vl_controlnumber;
+            }
+
+            return new FileDataDto { DataByte = result, Name = name };
+        }
+        private async Task<FileDataDto> BuildBillFile(string id)
+        {
+            string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
+            string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
+            string endpoint = baseUrl + "/http/CIS_" + mandante + "_ACC_GetInvoicePDF";
+            Dictionary<string, string> queryParams = new Dictionary<string, string>
+                            {
+                                { "DocumentNumber", "'"+id+"'" }
+                            };
+            string name = id + ".pdf";
+            byte[]? result = (byte[]?)await ExecuteGetRequestSAP(endpoint, queryParams, true);
+
+            return new FileDataDto { DataByte = result, Name = name };
+        }
         private async Task<string> GetEbillingAPIToken()
         {
             string url = _baseEBillinApi + "/api/userapi";

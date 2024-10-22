@@ -93,7 +93,7 @@ namespace AESMovilAPI.Controllers
             }
         }
 
-        protected async Task<object?> ExecuteGetRequestSAP(string endpoint)
+        protected async Task<object?> ExecuteGetRequestSAP(string endpoint, Dictionary<string, string>? queryParams = null, bool overrideUrl = false)
         {
             if (_client != null)
             {
@@ -101,11 +101,20 @@ namespace AESMovilAPI.Controllers
                 string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
                 string link = baseUrl + "/gw/odata/SAP/CIS_" + mandante + "_" + endpoint;
 
-                var queryParams = new Dictionary<string, string>
-            {
-                { "$expand", "DataSet" },
-                { "$format", "json" }
-            };
+                if (overrideUrl)
+                {
+                    link = endpoint;
+                }
+
+                if (queryParams == null)
+                {
+                    queryParams = new Dictionary<string, string>
+                    {
+                        { "$expand", "DataSet" },
+                        { "$format", "json" }
+                    };
+                }
+
 
                 // Build the URL with query parameters
                 var urlWithParams = QueryHelpers.AddQueryString(link, queryParams);
@@ -136,29 +145,44 @@ namespace AESMovilAPI.Controllers
 
                     // Read the response content as a string
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    dynamic responseObject = JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
-
                     try
                     {
-                        if (string.IsNullOrEmpty(responseObject.d.Errorcode) || responseObject.d.Errorcode == "0")
-                        {
-                            return new
-                            {
-                                data = responseObject.d
-                            };
-                        }
-                    }
-                    catch (RuntimeBinderException ex)
-                    {
-                        if (responseObject.d.MessageType == "0")
-                        {
-                            return new
-                            {
-                                data = responseObject.d
-                            };
-                        }
-                    }
+                        dynamic responseObject = JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
 
+                        try
+                        {
+                            if (string.IsNullOrEmpty(responseObject.d.Errorcode) || responseObject.d.Errorcode == "0")
+                            {
+                                return new
+                                {
+                                    data = responseObject.d
+                                };
+                            }
+                        }
+                        catch (RuntimeBinderException ex)
+                        {
+                            if (responseObject.d.MessageType == "0")
+                            {
+                                return new
+                                {
+                                    data = responseObject.d
+                                };
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        try
+                        {
+                            // Leer el contenido como un array de bytes
+                            var pdfBytes = await response.Content.ReadAsByteArrayAsync();
+                            return pdfBytes;
+                        }
+                        catch (Exception e)
+                        {
+
+                        }
+                    }
                 }
                 catch (HttpRequestException e)
                 {
@@ -345,6 +369,7 @@ namespace AESMovilAPI.Controllers
             return token;
         }
 
+        #region "Logger"
         protected static void Info(object? data = null, string message = "", bool isAsync = true, [CallerMemberName] string caller = "")
         {
             string info;
@@ -398,5 +423,6 @@ namespace AESMovilAPI.Controllers
             }
             _logger.Fatal(ex, "{method} result: {result}", info, message);
         }
+        #endregion
     }
 }

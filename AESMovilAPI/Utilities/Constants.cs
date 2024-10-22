@@ -40,5 +40,10 @@
         public const string CONF_REAL_PAYMENT_CASH_POINT = "RealPayment:CashPoint";
         public const string CONF_REAL_PAYMENT_CASH_POINT_OFFICE = "RealPayment:CashPointOffice";
         #endregion
+
+        #region "Security"
+        public const string ENCRYPT_KEY = "DdAWpGHUnLbvmGhkbydMp4qJNySZ98VAYUgXewR6trs=";
+        public const string SECRECT_KEY_IV = "qJBO+FfIMogaSgmdPAZNFg==";
+        #endregion
     }
 }
