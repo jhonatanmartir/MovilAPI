@@ -5,9 +5,8 @@ using AESMovilAPI.Responses;
 using AESMovilAPI.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Filters;
-using System.Dynamic;
 using System.Numerics;
 
 namespace AESMovilAPI.Controllers
@@ -15,25 +14,21 @@ namespace AESMovilAPI.Controllers
     public class SearchController : BaseController
     {
         private readonly SAPSGCDbContext _db;
-        private readonly HttpClient _client;
-        public SearchController(IConfiguration config, SAPSGCDbContext db, HttpClient httpClient) : base(config)
+        public SearchController(IConfiguration config, SAPSGCDbContext db) : base(config)
         {
             _db = db;
-            _client = httpClient;
         }
 
         /// <summary>
         /// Consulta información de Cuenta contrato o NIC.
         /// </summary>
+        /// <remarks>
+        /// **No recomendado**: Este endpoint es legacy y será deshabilitado por seguridad.
+        /// </remarks>
         /// <param name="query">Número de Cuenta, NIC o NPE, representado por el objeto <see cref="Query">Query</see></param>
         /// <returns>información de contrato o NIC</returns>
         /// <response code="200">Correcto</response>
-        /// <response code="400">El dato a consultar no es correcto.</response>
-        /// <response code="401">Error por token de autorización.</response>
-        /// <response code="404">No existe información de Cuenta contrato o NIC.</response>
         /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
-        /// <response code="502">Incidente en el servicio.</response>
-        /// <response code="503">Error interno en el proceso de consulta.</response>
         // GET: api/SAPSGC
         [SwaggerRequestExample(typeof(Query), typeof(SGCSAPExample))]
         [AllowAnonymous]
@@ -42,7 +37,7 @@ namespace AESMovilAPI.Controllers
         [Route("api/v1/SAPSGC")]
         public async Task<IActionResult> GetById(Query query)
         {
-            bool fromBD = true;
+
             dynamic? response = null;
             BigInteger number;
             string id = query.Cuenta;
@@ -56,121 +51,136 @@ namespace AESMovilAPI.Controllers
             {
                 _statusCode = NOT_FOUND_404;
 
-                List<SapData> value = new List<SapData>();
+                var data = await GetData(id);
 
-                if (fromBD)
+                if (data != null)
                 {
-                    try
-                    {
-                        if (id.Length == 24)
-                        {
-                            id = id.Substring(12, 7);
-                        }
-
-                        if (id.Length == 6 || id.Length == 7)
-                        {
-                            // NIC
-                            value = _db.SAPData.Where(a => a.Nic == int.Parse(id)).ToList();
-                        }
-                        else
-                        {
-                            // NC
-                            value = _db.SAPData.Where(a => a.Vkont == id).ToList();
-                        }
-
-                        if (value != null && value.Count > 0)
-                        {
-                            _statusCode = OK_200;
-
-                            List<SAPSGCResponse> list = new List<SAPSGCResponse>();
-
-                            foreach (var a in value)
-                            {
-                                list.Add(new SAPSGCResponse
-                                {
-                                    Nic = a.Nic,
-                                    NisRad = a.NisRad,
-                                    SocioComercial = a.Partner,
-                                    Nombre = a.NameFirst,
-                                    Apellido = a.NameLast,
-                                    CuentaContrato = a.Vkont,
-                                    Contrato = a.Vertrag,
-                                    Tarifa = a.Tariftyp,
-                                    UnidadLectura = a.Ableinh,
-                                    Porcion = a.Portion,
-                                    NumeroMedidor = a.Sernr,
-                                    PuntoSuministro = a.Vstelle,
-                                    ObjetoConexion = a.Haus,
-                                    Empresa = a.Opbuk,
-                                    Instalacion = a.Anlage
-                                });
-                            }
-                            response = new { Data = list, ErrorCode = "0", ErrorMsg = "Servicio ejecutado con exito" };
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _statusCode = SERVICE_UNAVAILABLE_503;
-                        response = new { Data = new List<SAPSGCResponse>(), ErrorCode = "1", ErrorMsg = ex.Message };
-                    }
+                    _statusCode = OK_200;
+                    response = new { Data = data, ErrorCode = "0", ErrorMsg = "Servicio ejecutado con exito." };
                 }
                 else
+                {
+                    response = new { Data = data, ErrorCode = "4", ErrorMsg = "No hay datos." };
+                }
+            }
+
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Consulta información de Cuenta contrato o NIC.
+        /// </summary>
+        /// <param name="id">Cuenta Contrato, NIC o NPE</param>
+        /// <remarks>
+        /// **Recomendado usar.**
+        /// </remarks>
+        /// <returns>Información del cliente</returns>
+        /// <response code="200">Correcto</response>
+        /// <response code="400">El dato a consultar no es correcto.</response>
+        /// <response code="401">Error por token de autorización.</response>
+        /// <response code="404">No existe información de Cuenta contrato o NIC.</response>
+        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
+        /// <response code="502">Incidente en el servicio.</response>
+        /// <response code="503">Error interno en el proceso de consulta.</response>
+        // GET: api/Search
+        [HttpGet("api/v1/Search/{id}")]
+        public async Task<IActionResult> Get(string id)
+        {
+            Response<List<SAPSGCResponse>> response = new Response<List<SAPSGCResponse>>();
+            BigInteger number;
+
+            id = Helper.RemoveWhitespaces(id);
+
+            if (id != null && id.Length == 6 && BigInteger.TryParse(id, out number) ||
+                id != null && id.Length == 7 && BigInteger.TryParse(id, out number) ||
+                id != null && id.Length == 12 && BigInteger.TryParse(id, out number) ||
+                id != null && id.Length == 24 && BigInteger.TryParse(id, out number))
+            {
+                _statusCode = NOT_FOUND_404;
+
+                var data = await GetData(id);
+
+                if (data != null)
+                {
+                    _statusCode = OK_200;
+                    response.Success = true;
+                    response.Data = data;
+                }
+                else
+                {
+                    _statusCode = NOT_FOUND_404;
+                }
+            }
+            else
+            {
+                _statusCode = BAD_REQUEST_400;
+            }
+
+            return GetResponse(response);
+        }
+
+        private async Task<List<SAPSGCResponse>?> GetData(string id)
+        {
+            List<SapData> value = new List<SapData>();
+            List<SAPSGCResponse>? dataList = null;
+            bool fromBD = true;
+
+            if (fromBD)
+            {
+                try
                 {
                     if (id.Length == 24)
                     {
                         id = id.Substring(12, 7);
                     }
-                    try
+
+                    if (id.Length == 6 || id.Length == 7)
                     {
-                        // Send the POST request
-                        var responseApi = await _client.GetAsync("https://mcacdv01billing003.azurewebsites.net/api/sapsgc/" + id);
+                        // NIC
+                        value = await _db.SAPData.Where(a => a.Nic == int.Parse(id)).ToListAsync();
+                    }
+                    else
+                    {
+                        // NC
+                        value = await _db.SAPData.Where(a => a.Vkont == id).ToListAsync();
+                    }
 
-                        // Ensure the request was successful
-                        responseApi.EnsureSuccessStatusCode();
+                    if (value != null && value.Count > 0)
+                    {
+                        _statusCode = OK_200;
 
-                        // Read the response content as a string
-                        var responseContent = await responseApi.Content.ReadAsStringAsync();
-                        dynamic responseObject = JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
+                        dataList = new List<SAPSGCResponse>();
 
-                        if (responseObject.success == true)
+                        foreach (var a in value)
                         {
-                            _statusCode = OK_200;
-
-                            List<SAPSGCResponse> list = new List<SAPSGCResponse>();
-
-                            foreach (var item in responseObject.data)
+                            dataList.Add(new SAPSGCResponse
                             {
-                                list.Add(new SAPSGCResponse
-                                {
-                                    Nic = (int)item.nic,
-                                    NisRad = (int)item.nisRad,
-                                    SocioComercial = item.partner,
-                                    Nombre = item.nombre,
-                                    Apellido = item.apellido,
-                                    CuentaContrato = item.vkont,
-                                    Contrato = item.vertrag,
-                                    Tarifa = item.tariftyp,
-                                    UnidadLectura = item.ableinh,
-                                    Porcion = item.portion,
-                                    NumeroMedidor = item.sernr,
-                                    PuntoSuministro = item.vstelle,
-                                    ObjetoConexion = item.haus,
-                                    Empresa = item.opbuk
-                                });
-                            }
-
-                            response = new { Data = list, ErrorCode = "0", ErrorMsg = "Servicio ejecutado con exito" };
+                                Nic = a.Nic,
+                                NisRad = a.NisRad,
+                                SocioComercial = a.Partner,
+                                Nombre = a.NameFirst,
+                                Apellido = a.NameLast,
+                                CuentaContrato = a.Vkont,
+                                Contrato = a.Vertrag,
+                                Tarifa = a.Tariftyp,
+                                UnidadLectura = a.Ableinh,
+                                Porcion = a.Portion,
+                                NumeroMedidor = a.Sernr,
+                                PuntoSuministro = a.Vstelle,
+                                ObjetoConexion = a.Haus,
+                                Empresa = a.Opbuk,
+                                Instalacion = a.Anlage
+                            });
                         }
                     }
-                    catch (HttpRequestException ex)
-                    {
-                        _statusCode = SERVICE_UNAVAILABLE_503;
-                        response = new { Data = new List<SAPSGCResponse>(), ErrorCode = "1", ErrorMsg = ex.Message };
-                    }
+                }
+                catch (Exception ex)
+                {
+
                 }
             }
 
-            return Ok(response);
+            return dataList;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Numerics;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 
@@ -154,6 +155,19 @@ namespace AESMovilAPI.Utilities
             }
 
             return result;
+        }
+
+        public static bool IsCuentaContrato(string value)
+        {
+            if (value.Length == 12)
+            {
+                bool isNumber = BigInteger.TryParse(value, out BigInteger numeroEntero);
+                if (isNumber)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

@@ -4,6 +4,7 @@ using AESMovilAPI.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace AESMovilAPI.Controllers
 {
@@ -29,12 +30,13 @@ namespace AESMovilAPI.Controllers
         {
             Response<ReplacementResponse> response = new Response<ReplacementResponse>();
 
-            if (!string.IsNullOrEmpty(id))
+            if (!string.IsNullOrEmpty(id) && Helper.IsCuentaContrato(id))
             {
                 string fromDate = DateTime.Now.AddMonths(-6).ToString("yyyyMMdd");
                 string toDate = DateTime.Now.ToString("yyyyMMdd");
                 string endpoint = "BIL_BILLIMAGEPREVIEWES_AZUREAPPSERVICES_TO_SAPCIS;v=1/InvHistSummarySet(Nic='" + id + "',Ab='" + fromDate + "',Bis='" + toDate + "')";
                 dynamic? result = await ExecuteGetRequestSAP(endpoint);
+                result = null;
 
                 if (result != null)
                 {
@@ -63,7 +65,7 @@ namespace AESMovilAPI.Controllers
                             return DateTime.TryParse(obj.FechaFacturacion, out dateValue) ? dateValue : DateTime.MinValue;
                         }).ToList();
 
-                        string url = _config.GetValue<string>("Replacement:Base") + "/api/v1/file/";
+                        string url = $"{Request.Scheme}://{Request.Host}/api/v1/file/";
                         string documentNumber = sortedList.ElementAt(0).NumRecibo;
                         FileInfoDto dteInfo = new FileInfoDto() { Type = "dte", DocumentNumber = documentNumber };
                         FileInfoDto pdfInfo = new FileInfoDto() { Type = "invoice", DocumentNumber = documentNumber };
@@ -86,11 +88,76 @@ namespace AESMovilAPI.Controllers
                 }
                 else
                 {
-                    _statusCode = NOT_FOUND_404;
+                    var url = $"{Request.Scheme}://{Request.Host}/api/v1/search/{id}";
+                    string? token = GetToken(Constants.AESMOVIL_BEARER);
+
+                    if (token == null)
+                    {
+                        token = await GetBearer();
+                    }
+
+                    result = await ExecuteGetRequest(url, true, token);
+
+                    if (result is int numero && numero == UNAUTHORIZED_401)
+                    {
+                        token = await GetBearer();
+                        result = await ExecuteGetRequest(url, true, token);
+                    }
+
+                    if (result != null)
+                    {
+                        var nic = result.data[0].nic;
+
+                        url = _config.GetValue<string>("Legacy:Base") + $"/GetHistoricofact/{nic}";
+                        result = await ExecuteGetRequest(url, false);
+
+                        if (result != null && result.data != null && result.data.Count > 0)
+                        {
+                            ReplacementResponse replacementResponse = new ReplacementResponse()
+                            {
+                                Dte = result.data[0].dte,
+                                Pdf = result.data[0].url_recibo
+                            };
+
+                            response.Data = replacementResponse;
+                            response.Success = true;
+                            _statusCode = OK_200;
+                        }
+                    }
+                    else
+                    {
+                        _statusCode = NOT_FOUND_404;
+                    }
                 }
             }
 
             return GetResponse(response);
+        }
+
+        private async Task<string?> GetBearer()
+        {
+            var url = $"{Request.Scheme}://{Request.Host}/api/v1/auth/login";
+            var authorizedUsers = _config.GetSection("Authorized").Get<Dictionary<string, string>>();
+
+            if (authorizedUsers != null && authorizedUsers.Count > 0)
+            {
+                byte[] textoBytes = Encoding.UTF8.GetBytes(authorizedUsers.ElementAt(0).Key + ":" + authorizedUsers.ElementAt(0).Value);
+                string textoBase64 = Convert.ToBase64String(textoBytes);
+                var postData = new
+                {
+                    auth = "Basic " + textoBase64
+                };
+
+                dynamic? authResponse = await ExecutePostRequest(postData, url, false);
+
+                if (authResponse != null && authResponse.success)
+                {
+                    SaveToken(Constants.AESMOVIL_BEARER, authResponse.data);
+                    return authResponse.data;
+                }
+            }
+
+            return null;
         }
     }
 }

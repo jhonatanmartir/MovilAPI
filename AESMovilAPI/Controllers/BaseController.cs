@@ -347,6 +347,52 @@ namespace AESMovilAPI.Controllers
             return null;
         }
 
+        protected async Task<object?> ExecuteGetRequest(string url, bool auth = true, string? token = "", bool bearer = true)
+        {
+            string result = string.Empty;
+
+            if (_client != null)
+            {
+                // Create HttpRequestMessage
+                var request = new HttpRequestMessage(HttpMethod.Get, new Uri(url));
+
+                if (auth && !string.IsNullOrEmpty(token))
+                {
+                    AuthenticationHeaderValue authHeader;
+                    if (bearer)
+                    {
+                        authHeader = new AuthenticationHeaderValue("Bearer", token);
+                    }
+                    else
+                    {
+                        authHeader = new AuthenticationHeaderValue("Basic", token);
+                    }
+
+                    // Set the authorization header
+                    _client.DefaultRequestHeaders.Authorization = authHeader;
+                }
+
+                try
+                {
+                    // Send the GET request
+                    var response = await _client.SendAsync(request);
+
+                    // Ensure the request was successful
+                    response.EnsureSuccessStatusCode();
+
+                    // Read the response content as a string
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    return JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
+                }
+                catch (HttpRequestException e)
+                {
+
+                }
+            }
+
+            return null;
+        }
+        #region "Cache"
         protected void SaveToken(string clave, string token)
         {
             if (_memory != null)
@@ -368,6 +414,7 @@ namespace AESMovilAPI.Controllers
             }
             return token;
         }
+        #endregion
 
         #region "Logger"
         protected static void Info(object? data = null, string message = "", bool isAsync = true, [CallerMemberName] string caller = "")

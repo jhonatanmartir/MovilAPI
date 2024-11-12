@@ -13,6 +13,7 @@
 
         public const string EBILLAPI_BEARER = "EBillAPI_Bearer";
         public const string RP_TOKEN = "RP_TOKEN";
+        public const string AESMOVIL_BEARER = "AM_TOKEN";
 
         #region "Config"
         public const string CONF_SAP_BASE = "SAP:Base";
