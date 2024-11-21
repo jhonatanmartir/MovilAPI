@@ -8,6 +8,22 @@
 		<GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
   </PropertyGroup>
 
+	<Target Name="SetGitVersion" BeforeTargets="GenerateAssemblyInfo">
+		<!-- Ejecutar el script de PowerShell -->
+		<Exec Command="powershell -ExecutionPolicy Bypass -File GetGitVersion.ps1" />
+	</Target>
+	
+	<!-- Leer el archivo generado con las propiedades -->
+	<Import Project="GitVersion.props" Condition="Exists('GitVersion.props')" />
+
+	<!-- Usar las propiedades de Git para las versiones -->
+	<PropertyGroup>
+		<Version>$(Tag)</Version>
+		<AssemblyVersion>$(Tag)</AssemblyVersion>
+		<FileVersion>$(Tag)</FileVersion>
+		<InformationalVersion>$(Tag) - $(Message)</InformationalVersion>
+	</PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
