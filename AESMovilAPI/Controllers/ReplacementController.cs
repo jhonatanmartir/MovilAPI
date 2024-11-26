@@ -64,7 +64,7 @@ namespace AESMovilAPI.Controllers
                             return DateTime.TryParse(obj.FechaFacturacion, out dateValue) ? dateValue : DateTime.MinValue;
                         }).ToList();
 
-                        string url = $"{Request.Scheme}://{Request.Host}/api/v1/file/";
+                        string url = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/v1/file/";
                         string documentNumber = sortedList.ElementAt(0).NumRecibo;
                         FileInfoDto dteInfo = new FileInfoDto() { Type = "dte", DocumentNumber = documentNumber };
                         FileInfoDto pdfInfo = new FileInfoDto() { Type = "invoice", DocumentNumber = documentNumber };
@@ -87,7 +87,7 @@ namespace AESMovilAPI.Controllers
                 }
                 else
                 {
-                    var url = $"{Request.Scheme}://{Request.Host}/api/v1/search/{id}";
+                    var url = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/v1/search/{id}";
                     string? token = GetToken(Constants.AESMOVIL_BEARER);
 
                     if (token == null)
@@ -135,7 +135,7 @@ namespace AESMovilAPI.Controllers
 
         private async Task<string?> GetBearer()
         {
-            var url = $"{Request.Scheme}://{Request.Host}/api/v1/auth/login";
+            var url = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/v1/auth/login";
             var authorizedUsers = _config.GetSection("Authorized").Get<Dictionary<string, string>>();
 
             if (authorizedUsers != null && authorizedUsers.Count > 0)
