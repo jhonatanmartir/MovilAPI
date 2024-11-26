@@ -36,7 +36,6 @@ namespace AESMovilAPI.Controllers
                 string toDate = DateTime.Now.ToString("yyyyMMdd");
                 string endpoint = "BIL_BILLIMAGEPREVIEWES_AZUREAPPSERVICES_TO_SAPCIS;v=1/InvHistSummarySet(Nic='" + id + "',Ab='" + fromDate + "',Bis='" + toDate + "')";
                 dynamic? result = await ExecuteGetRequestSAP(endpoint);
-                result = null;
 
                 if (result != null)
                 {
