@@ -104,5 +104,39 @@ namespace AESMovilAPI.Controllers
 
             return GetResponse(response);
         }
+
+        /// <summary>
+        /// Confirmacion de restablecimiento de suministro.
+        /// </summary>
+        /// <param name="customer">Confirmacion del cliente representado por el objeto <see cref="Callback">Callback</see>.</param>
+        /// <returns>Correcto o Incorrecto.</returns>
+        /// <response code="200">Correcto.</response>
+        /// <response code="400">Incorrecto.</response>
+        /// <response code="401">Error por token de autorización.</response>
+        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
+        /// <response code="502">Incidente en el servicio.</response>
+        /// <response code="503">Error interno.</response>
+        // POST: api/v1/ivrcallback
+        [HttpPost]
+        [Route("[action]")]
+        public IActionResult IVRCallback(Callback customer)
+        {
+            Response<string> response = new Response<string>();
+
+            if (customer != null && ModelState.IsValid)
+            {
+                try
+                {
+                    _statusCode = OK_200;
+                }
+                catch (Exception ex)
+                {
+                    _statusCode = BAD_REQUEST_400;
+                    response.Message = ex.Message;
+                }
+            }
+
+            return GetResponse(response);
+        }
     }
 }
