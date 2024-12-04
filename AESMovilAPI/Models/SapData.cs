@@ -22,6 +22,8 @@ namespace AESMovilAPI.Models
         public string Vertrag { get; set; }
         [Column("TARIFTYP")]
         public string Tariftyp { get; set; }
+        [Column("TARIFTYP_DESC")]
+        public string TariftypDesc { get; set; }
         [Column("ABLEINH")]
         public string Ableinh { get; set; }
         [Column("PORTION")]

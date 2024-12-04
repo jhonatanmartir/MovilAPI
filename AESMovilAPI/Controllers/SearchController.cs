@@ -163,6 +163,7 @@ namespace AESMovilAPI.Controllers
                                 CuentaContrato = a.Vkont,
                                 Contrato = a.Vertrag,
                                 Tarifa = a.Tariftyp,
+                                TarifaDescripcion = a.TariftypDesc,
                                 UnidadLectura = a.Ableinh,
                                 Porcion = a.Portion,
                                 NumeroMedidor = a.Sernr,
