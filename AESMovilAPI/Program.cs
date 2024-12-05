@@ -79,10 +79,14 @@ try
             Description = @"Documentación para realizar integraciones con los <strong>Canales Digitales</strong> de AES El Salvador.<br/><br/>
                             Contactar a TI AES El Salvador para obtener Key de autenticación.<br/>
                             Con el Key proporcionada utilice en endpoint de <code>Auth</code> para generar el token de autorización.<br/><br/>
-                            <em>Los endpoints que aparecen en este documento estan disponibles para pruebas y no seran modificados a excepción en caso de hacer correciones o mejoras.<br/>
-                            A medida que se desarrolla el servicio se iran habilitando mas endpoints.<br/><br/>
-                            En ambiente desarrollo los token de autorizacion tienen validez por 48 horas.<br/><br/>
-                            El texto de este documento puede ir cambiando para dar mas claridad en las especificaciones del API.</em>",
+                            Los endpoints que aparecen en este documento estan disponibles para pruebas y no seran modificados a excepción en caso de hacer correciones o mejoras.<br/>
+                            <h4>Consideraciones</h4>
+                            <ul>
+                                <li>A medida que se desarrolla el servicio se iran habilitando mas endpoints.</li>
+                                <li>En ambiente desarrollo los token de autorización tienen validez por 48 horas.</li>
+                                <li>El texto de este documento puede ir cambiando para dar mas claridad en las especificaciones del API.</li>
+                                <li>No se recomienda utilizar los endpoints legacy, revisar la descripción.</li>
+                            </ul>",
             Contact = new Microsoft.OpenApi.Models.OpenApiContact
             {
                 Name = "Jhonatan Mártir",

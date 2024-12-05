@@ -23,7 +23,8 @@ body {
 .swagger-ui .model-title,
 .swagger-ui .response-col_status,
 .swagger-ui table thead tr td,
-.swagger-ui section.models h4 {
+.swagger-ui section.models h4,
+.swagger-ui .info li {
     font-family: 'Inter', sans-serif;
 }
     .swagger-ui table tbody tr td:first-of-type {

@@ -68,9 +68,9 @@ namespace AESMovilAPI.Controllers
         }
 
         /// <summary>
-        /// Consulta información de Cuenta contrato o NIC.
+        /// Consulta información de Contrato, Cuenta contrato, NIC o NPE.
         /// </summary>
-        /// <param name="id">Cuenta Contrato, NIC o NPE</param>
+        /// <param name="id">Contrato, Cuenta Contrato, NIC o NPE</param>
         /// <remarks>
         /// **Recomendado usar.**
         /// </remarks>
@@ -93,6 +93,7 @@ namespace AESMovilAPI.Controllers
 
             if (id != null && id.Length == 6 && BigInteger.TryParse(id, out number) ||
                 id != null && id.Length == 7 && BigInteger.TryParse(id, out number) ||
+                id != null && id.Length == 10 && BigInteger.TryParse(id, out number) ||
                 id != null && id.Length == 12 && BigInteger.TryParse(id, out number) ||
                 id != null && id.Length == 24 && BigInteger.TryParse(id, out number))
             {
@@ -131,6 +132,7 @@ namespace AESMovilAPI.Controllers
                 {
                     if (id.Length == 24)
                     {
+                        // NPE
                         id = id.Substring(12, 7);
                     }
 
@@ -138,6 +140,11 @@ namespace AESMovilAPI.Controllers
                     {
                         // NIC
                         value = await _db.SAPData.Where(a => a.Nic == int.Parse(id)).ToListAsync();
+                    }
+                    else if (id.Length == 10)
+                    {
+                        // Contrato
+                        value = await _db.SAPData.Where(a => a.Vertrag == id).ToListAsync();
                     }
                     else
                     {
