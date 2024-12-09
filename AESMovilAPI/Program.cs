@@ -140,6 +140,10 @@ try
     builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
     // Register the HttpClientFactory
     builder.Services.AddHttpClient();
+    //builder.Services.AddSingleton(new HttpClient(new HttpClientHandler
+    //{
+    //    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    //}));
     // Registrar los filtros de ejemplos
     builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
 

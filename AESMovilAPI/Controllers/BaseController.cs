@@ -347,6 +347,56 @@ namespace AESMovilAPI.Controllers
             return null;
         }
 
+        protected async Task<object?> ExecutePostRequestInsecure(object postData, string url, bool auth = true, string token = "", bool bearer = true)
+        {
+            var jsonContent = JsonConvert.SerializeObject(postData);
+            var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            // Usar validación personalizada temporal
+            var handler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+            using var client = new HttpClient(handler);
+
+            if (auth && !string.IsNullOrEmpty(token))
+            {
+                AuthenticationHeaderValue authHeader;
+                if (bearer)
+                {
+                    authHeader = new AuthenticationHeaderValue("Bearer", token);
+                }
+                else
+                {
+                    authHeader = new AuthenticationHeaderValue("Basic", token);
+                }
+
+                // Set the authorization header
+                client.DefaultRequestHeaders.Authorization = authHeader;
+            }
+
+            try
+            {
+                // Send the POST request
+                var response = await client.PostAsync(url, httpContent);
+
+                // Ensure the request was successful
+                response.EnsureSuccessStatusCode();
+
+                // Read the response content as a string
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                return UNAUTHORIZED_401;
+            }
+            catch (HttpRequestException e)
+            {
+
+            }
+
+            return null;
+        }
+
         protected async Task<object?> ExecuteGetRequest(string url, bool auth = true, string? token = "", bool bearer = true)
         {
             string result = string.Empty;

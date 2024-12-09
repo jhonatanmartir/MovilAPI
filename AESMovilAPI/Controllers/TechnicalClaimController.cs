@@ -1,8 +1,14 @@
 ﻿using AESMovilAPI.DTOs;
+using AESMovilAPI.Examples;
 using AESMovilAPI.Responses;
+using AESMovilAPI.Utilities;
 using ivraes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Swashbuckle.AspNetCore.Filters;
+using System.Net.Mime;
+using System.Text;
 
 namespace AESMovilAPI.Controllers
 {
@@ -11,7 +17,7 @@ namespace AESMovilAPI.Controllers
     {
         private readonly VRAESELSALVADORSoapClient _ivrClient;
 
-        public TechnicalClaimController(IConfiguration config, VRAESELSALVADORSoapClient ivr) : base(config)
+        public TechnicalClaimController(IConfiguration config, HttpClient client, VRAESELSALVADORSoapClient ivr) : base(config, client)
         {
             _ivrClient = ivr;
         }
@@ -117,9 +123,10 @@ namespace AESMovilAPI.Controllers
         /// <response code="502">Incidente en el servicio.</response>
         /// <response code="503">Error interno.</response>
         // POST: api/v1/ivrcallback
+        [SwaggerRequestExample(typeof(Callback), typeof(CallbackExample))]
         [HttpPost]
         [Route("[action]")]
-        public IActionResult IVRCallback(Callback customer)
+        public async Task<IActionResult> IVRCallback(Callback customer)
         {
             Response<string> response = new Response<string>();
 
@@ -127,7 +134,31 @@ namespace AESMovilAPI.Controllers
             {
                 try
                 {
-                    _statusCode = OK_200;
+                    var jsonContent = JsonConvert.SerializeObject(customer.Option);
+                    using var httpContent = new StringContent(jsonContent, Encoding.UTF8, MediaTypeNames.Application.Json);
+
+                    try
+                    {
+                        var url = $"{_config.GetValue<string>(Constants.CONF_OMS_BASE)}/oms/external/api/ServiceType/Electric/Callback/{customer.Code}/Status";
+                        var byteArray = Encoding.ASCII.GetBytes($"{_config.GetValue<string>(Constants.CONF_OMS_USER)}:{_config.GetValue<string>(Constants.CONF_OMS_PASSWORD)}");
+                        var token = Convert.ToBase64String(byteArray);
+
+                        // Send the POST request
+                        dynamic? result = await ExecutePostRequestInsecure(customer.Option, url, true, token, false);
+
+                        if (result == Constants.SUCCESS)
+                        {
+                            _statusCode = OK_200;
+                        }
+                        else
+                        {
+                            _statusCode = NOT_FOUND_404;
+                        }
+                    }
+                    catch (HttpRequestException e)
+                    {
+
+                    }
                 }
                 catch (Exception ex)
                 {

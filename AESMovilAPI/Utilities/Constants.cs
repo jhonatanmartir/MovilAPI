@@ -40,11 +40,17 @@
         public const string CONF_SAP_REAL_PAYMENT_TOKEN = "RealPayment:Token";
         public const string CONF_REAL_PAYMENT_CASH_POINT = "RealPayment:CashPoint";
         public const string CONF_REAL_PAYMENT_CASH_POINT_OFFICE = "RealPayment:CashPointOffice";
+
+        public const string CONF_OMS_BASE = "OMS:Base";
+        public const string CONF_OMS_USER = "OMS:Usr";
+        public const string CONF_OMS_PASSWORD = "OMS:Pwd";
         #endregion
 
         #region "Security"
         public const string ENCRYPT_KEY = "DdAWpGHUnLbvmGhkbydMp4qJNySZ98VAYUgXewR6trs=";
         public const string SECRECT_KEY_IV = "qJBO+FfIMogaSgmdPAZNFg==";
         #endregion
+
+        public const string SUCCESS = "success";
     }
 }
