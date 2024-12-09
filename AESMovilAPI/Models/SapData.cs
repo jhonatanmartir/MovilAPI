@@ -29,7 +29,7 @@ namespace AESMovilAPI.Models
         [Column("PORTION")]
         public string Portion { get; set; }
         [Column("SERNR")]
-        public string Sernr { get; set; }
+        public string? Sernr { get; set; }
         [Column("VSTELLE")]
         public string Vstelle { get; set; }
         [Column("HAUS")]
@@ -38,5 +38,7 @@ namespace AESMovilAPI.Models
         public string Opbuk { get; set; }
         [Column("ANLAGE")]
         public string Anlage { get; set; }
+        [Column("DIRECCION")]
+        public string? Address { get; set; }
     }
 }

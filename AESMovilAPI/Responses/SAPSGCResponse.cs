@@ -13,10 +13,11 @@
         public string TarifaDescripcion { get; set; }
         public string UnidadLectura { get; set; }
         public string Porcion { get; set; }
-        public string NumeroMedidor { get; set; }
+        public string? NumeroMedidor { get; set; }
         public string PuntoSuministro { get; set; }
         public string ObjetoConexion { get; set; }
         public string Empresa { get; set; }
         public string Instalacion { get; set; }
+        public string? Direccion { get; set; }
     }
 }

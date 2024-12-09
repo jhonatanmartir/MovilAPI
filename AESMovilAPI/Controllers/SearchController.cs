@@ -177,7 +177,8 @@ namespace AESMovilAPI.Controllers
                                 PuntoSuministro = a.Vstelle,
                                 ObjetoConexion = a.Haus,
                                 Empresa = a.Opbuk,
-                                Instalacion = a.Anlage
+                                Instalacion = a.Anlage,
+                                Direccion = a.Address
                             });
                         }
                     }
