@@ -23,7 +23,7 @@ namespace AESMovilAPI.Models
         [Column("TARIFTYP")]
         public string Tariftyp { get; set; }
         [Column("TARIFTYP_DESC")]
-        public string TariftypDesc { get; set; }
+        public string? TariftypDesc { get; set; }
         [Column("ABLEINH")]
         public string Ableinh { get; set; }
         [Column("PORTION")]

@@ -10,7 +10,7 @@
         public string CuentaContrato { get; set; }
         public string Contrato { get; set; }
         public string Tarifa { get; set; }
-        public string TarifaDescripcion { get; set; }
+        public string? TarifaDescripcion { get; set; }
         public string UnidadLectura { get; set; }
         public string Porcion { get; set; }
         public string? NumeroMedidor { get; set; }
