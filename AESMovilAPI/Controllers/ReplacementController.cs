@@ -66,26 +66,39 @@ namespace AESMovilAPI.Controllers
 
                         string url = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/v1/file/";
                         string documentNumber = sortedList.ElementAt(0).NumRecibo;
-                        FileInfoDto dteInfo = new FileInfoDto() { Type = "dte", DocumentNumber = documentNumber };
-                        FileInfoDto pdfInfo = new FileInfoDto() { Type = "invoice", DocumentNumber = documentNumber };
-                        string dteData = JsonConvert.SerializeObject(dteInfo);
-                        string pdfData = JsonConvert.SerializeObject(pdfInfo);
 
-                        dteData = AESEncryption.AES.SetEncrypt(dteData, Constants.ENCRYPT_KEY, Constants.SECRECT_KEY_IV);
-                        pdfData = AESEncryption.AES.SetEncrypt(pdfData, Constants.ENCRYPT_KEY, Constants.SECRECT_KEY_IV);
+                        string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
+                        string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
+                        endpoint = baseUrl + "/gw/odata/SAP/CIS_" + mandante + $"_ACC_GETINVOICEFORMJSON_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetInvoiceToJsonSet('{documentNumber}')";
 
-                        ReplacementResponse replacementResponse = new ReplacementResponse()
+                        result = await ExecuteGetRequest(endpoint, true, null, false, false);
+                        string xmlString = Helper.CleanXml(result);
+                        var entry = Helper.DeserializeXml<Entry>(xmlString)!;
+
+                        if (!string.IsNullOrEmpty(entry.Content.Properties.Json) && documentNumber == entry.Content.Properties.Opbel)
                         {
-                            Dte = url + dteData,
-                            Pdf = url + pdfData
-                        };
+                            FileInfoDto dteInfo = new FileInfoDto() { Type = "dte", DocumentNumber = documentNumber };
+                            FileInfoDto pdfInfo = new FileInfoDto() { Type = "invoice", DocumentNumber = documentNumber };
+                            string dteData = JsonConvert.SerializeObject(dteInfo);
+                            string pdfData = JsonConvert.SerializeObject(pdfInfo);
 
-                        response.Data = replacementResponse;
-                        response.Success = true;
-                        _statusCode = OK_200;
+                            dteData = AESEncryption.AES.SetEncrypt(dteData, Constants.ENCRYPT_KEY, Constants.SECRECT_KEY_IV);
+                            pdfData = AESEncryption.AES.SetEncrypt(pdfData, Constants.ENCRYPT_KEY, Constants.SECRECT_KEY_IV);
+
+                            ReplacementResponse replacementResponse = new ReplacementResponse()
+                            {
+                                Dte = url + dteData,
+                                Pdf = url + pdfData
+                            };
+
+                            response.Data = replacementResponse;
+                            response.Success = true;
+                            _statusCode = OK_200;
+                        }
                     }
                 }
-                else
+
+                if (!response.Success)
                 {
                     var url = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/v1/search/{id}";
                     string? token = GetToken(Constants.AESMOVIL_BEARER);

@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Text;
 
 namespace AESMovilAPI.Controllers
@@ -826,15 +827,19 @@ namespace AESMovilAPI.Controllers
         }
         private async Task<FileDataDto> BuildBillFile(string id)
         {
+            string templatePath = Path.Combine(_webHostEnvironment.ContentRootPath, "Sources", "Template", "FACT122024a.pdf");
             string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
             string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
-            string endpoint = baseUrl + "/http/CIS_" + mandante + "_ACC_GetInvoicePDF";
-            Dictionary<string, string> queryParams = new Dictionary<string, string>
-                            {
-                                { "DocumentNumber", "'"+id+"'" }
-                            };
+            string endpoint = baseUrl + "/gw/odata/SAP/CIS_" + mandante + $"_ACC_GETINVOICEFORMJSON_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetInvoiceToJsonSet('{id}')";
+
+            dynamic? response = await ExecuteGetRequest(endpoint, true, null, false, false);
+            string xmlString = Helper.CleanXml(response);
+            var entry = Helper.DeserializeXml<Entry>(xmlString)!;
+            JObject jsonObject = JObject.Parse(entry.Content.Properties.Json);
+            PDFBuilder builder = new PDFBuilder(templatePath, id);
+            byte[]? result = builder.DoFillFormByte(jsonObject["Cabecera"].ToString(), jsonObject["Items"].ToString());
             string name = id + ".pdf";
-            byte[]? result = (byte[]?)await ExecuteGetRequestSAP(endpoint, queryParams, true);
+
 
             return new FileDataDto { DataByte = result, Name = name };
         }

@@ -397,7 +397,7 @@ namespace AESMovilAPI.Controllers
             return null;
         }
 
-        protected async Task<object?> ExecuteGetRequest(string url, bool auth = true, string? token = "", bool bearer = true)
+        protected async Task<object?> ExecuteGetRequest(string url, bool auth = true, string? token = "", bool bearer = true, bool returnJson = true)
         {
             string result = string.Empty;
 
@@ -405,6 +405,15 @@ namespace AESMovilAPI.Controllers
             {
                 // Create HttpRequestMessage
                 var request = new HttpRequestMessage(HttpMethod.Get, new Uri(url));
+
+                if (!bearer)
+                {
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        byte[] textoBytes = Encoding.UTF8.GetBytes(_config.GetValue<string>("SAP:Usr") + ":" + _config.GetValue<string>("SAP:Pwd"));
+                        token = Convert.ToBase64String(textoBytes);
+                    }
+                }
 
                 if (auth && !string.IsNullOrEmpty(token))
                 {
@@ -432,7 +441,15 @@ namespace AESMovilAPI.Controllers
 
                     // Read the response content as a string
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
+                    if (returnJson)
+                    {
+                        return JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
+                    }
+                    else
+                    {
+                        return responseContent;
+                    }
+
                 }
                 catch (HttpRequestException e)
                 {

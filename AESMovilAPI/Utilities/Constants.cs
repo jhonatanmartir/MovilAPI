@@ -52,5 +52,27 @@
         #endregion
 
         public const string SUCCESS = "success";
+
+        #region Types
+        public const int TIP_REG1_DATOS_SUMINISTRO = 1;
+        public const int TIP_REG2_TARIFA_APLICADA = 2;
+        public const int TIP_REG3_TIPO_MED_LECTURAS = 3;
+        public const int TIP_REG4_CONCEPTOS = 4;
+        public const int TIP_REG5_CARG_VARIOS_OTROS_INGRESOS = 5;
+        public const int TIP_REG6_VENTAS_EXENTAS = 6;
+        public const int TIP_REG7_ALCALDIA = 7;
+        public const int TIP_REG8_OTROS_SERVICIOS = 8;
+        public const int TIP_REG9_RETENCIONES = 9;
+        public const int TIP_REG10_MEDIDOR_LEVANTADO = 10;
+        #endregion
+
+        public const string FILLER = "0.000000";
+
+        #region Extensions
+        public const string EXT_PDF = ".pdf";
+        public const string EXT_PNG = ".png";
+        public const string EXT_ZIP = ".zip";
+        public const string EXT_JSON = ".json";
+        #endregion
     }
 }
