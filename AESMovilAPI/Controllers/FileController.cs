@@ -827,7 +827,7 @@ namespace AESMovilAPI.Controllers
         }
         private async Task<FileDataDto> BuildBillFile(string id)
         {
-            string templatePath = Path.Combine(_webHostEnvironment.ContentRootPath, "Sources", "Template", "FACT122024a.pdf");
+            string rootPath = _webHostEnvironment.ContentRootPath;
             string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
             string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
             string endpoint = baseUrl + "/gw/odata/SAP/CIS_" + mandante + $"_ACC_GETINVOICEFORMJSON_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetInvoiceToJsonSet('{id}')";
@@ -836,7 +836,7 @@ namespace AESMovilAPI.Controllers
             string xmlString = Helper.CleanXml(response);
             var entry = Helper.DeserializeXml<Entry>(xmlString)!;
             JObject jsonObject = JObject.Parse(entry.Content.Properties.Json);
-            PDFBuilder builder = new PDFBuilder(templatePath, id);
+            PDFBuilder builder = new PDFBuilder(rootPath, id);
             byte[]? result = builder.DoFillFormByte(jsonObject["Cabecera"].ToString(), jsonObject["Items"].ToString());
             string name = id + ".pdf";
 

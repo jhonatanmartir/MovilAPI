@@ -10,6 +10,10 @@
         public const string SV20_DEUSEM_CODE = "SV20";
         public const string SV30_EEO_CODE = "SV30";
         public const string SV40_CLESA_CODE = "SV40";
+        public const string CAESS_NAME = "CAESS";
+        public const string DEUSEM_NAME = "DEUSEM";
+        public const string EEO_NAME = "EEO";
+        public const string CLESA_NAME = "CLESA";
 
         public const string EBILLAPI_BEARER = "EBillAPI_Bearer";
         public const string RP_TOKEN = "RP_TOKEN";

@@ -38,6 +38,20 @@ namespace AESMovilAPI.Utilities
             return result;
         }
 
+        public static string ParseStrDate(string date, string format = "yyyyMMdd", string outFormat = "dd/MM/yyyy")
+        {
+            string result = string.Empty;
+            try
+            {
+                result = DateTime.ParseExact(date, format, null).ToString(outFormat);
+            }
+            catch
+            {
+                result = "--";
+            }
+            return result;
+        }
+
         public static string RemoveWhitespaces(string source)
         {
             return Regex.Replace(source, @"\s", string.Empty);
@@ -55,38 +69,38 @@ namespace AESMovilAPI.Utilities
             string companyName = string.Empty;
             if (!string.IsNullOrEmpty(source))
             {
-                if (source.ToUpper().Contains("CAESS"))
+                if (source.ToUpper().Contains(Constants.CAESS_NAME))
                 {
-                    companyName = "CAESS";
+                    companyName = Constants.CAESS_NAME;
                 }
-                else if (source.ToUpper().Contains("DEUSEM"))
+                else if (source.ToUpper().Contains(Constants.DEUSEM_NAME))
                 {
-                    companyName = "DEUSEM";
+                    companyName = Constants.DEUSEM_NAME;
                 }
-                else if (source.ToUpper().Contains("EEO"))
+                else if (source.ToUpper().Contains(Constants.EEO_NAME))
                 {
-                    companyName = "EEO";
+                    companyName = Constants.EEO_NAME;
                 }
-                else if (source.ToUpper().Contains("CLESA"))
+                else if (source.ToUpper().Contains(Constants.CLESA_NAME))
                 {
-                    companyName = "CLESA";
+                    companyName = Constants.CLESA_NAME;
                 }
 
                 if (string.IsNullOrEmpty(companyName))
                 {
                     switch (source)
                     {
-                        case "SV10":
-                            companyName = "CAESS";
+                        case Constants.SV10_CAESS_CODE:
+                            companyName = Constants.CAESS_NAME;
                             break;
-                        case "SV20":
-                            companyName = "DEUSEM";
+                        case Constants.SV20_DEUSEM_CODE:
+                            companyName = Constants.DEUSEM_NAME;
                             break;
-                        case "SV30":
-                            companyName = "EEO";
+                        case Constants.SV30_EEO_CODE:
+                            companyName = Constants.EEO_NAME;
                             break;
-                        case "SV40":
-                            companyName = "CLESA";
+                        case Constants.SV40_CLESA_CODE:
+                            companyName = Constants.CLESA_NAME;
                             break;
                         default:
                             break;

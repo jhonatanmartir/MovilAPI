@@ -13,19 +13,21 @@ namespace AESMovilAPI.Utilities
 {
     public class PDFBuilder
     {
-        private string _templatePath;
+        private string _rootPath;
         private DataTable? _header;
         private DataTable? _detail;
 
         public string DocNumber { set; get; }
         public string FFact { set; get; }
         public string CodUnicom { set; get; }
-        public PDFBuilder(string template, string id)
+        public string Company { set; get; }
+        public PDFBuilder(string rootPath, string id)
         {
             DocNumber = id;
             FFact = "";
             CodUnicom = "";
-            _templatePath = template;
+            Company = "";
+            _rootPath = rootPath;
         }
 
         public byte[]? DoFillFormByte(string jsonHeader, string jsonDetail, bool isPaid = false, List<CargosAnuladosDto>? anulados = null)
@@ -45,7 +47,6 @@ namespace AESMovilAPI.Utilities
                 CodUnicom = GetValueFromDS("COD_UNICOM");
 
                 StampingProperties stamping = new StampingProperties();
-                string diesco = string.Empty;
 
                 using (MemoryStream msTemp = new MemoryStream())
                 {
@@ -54,8 +55,8 @@ namespace AESMovilAPI.Utilities
                         // Since creating a reader/writer in iText causes the underlying
                         // stream to close, we need to prevent that with this call
                         //pdfWriter.SetCloseStream(false);
-
-                        using (PdfDocument doc = new PdfDocument(new PdfReader(_templatePath), pdfWriter, stamping))
+                        string templatePath = Path.Combine(_rootPath, "Sources", "Template", "FACT122024a.pdf");
+                        using (PdfDocument doc = new PdfDocument(new PdfReader(templatePath), pdfWriter, stamping))
                         {
                             //PdfDocument doc = new PdfDocument(new PdfReader(templatePath), new PdfWriter(destPath), stamping);
                             PdfAcroForm form = PdfFormCreator.GetAcroForm(doc, true);
@@ -170,78 +171,13 @@ namespace AESMovilAPI.Utilities
                                                 //field.SetValue(ruta, font, Constants.FONT_SIZE_FORM);
                                             }
 
-                                            if (fieldName.Equals("MESES_PEND") && fielValue == "1")
+                                            if (fieldName.Equals("MESES_PEND") && fielValue == "1" ||
+                                                fieldName.Equals("MESES_PEND") && fielValue == "01")
                                             {
                                                 field = form.GetField("FH_MENSAJE_1");
                                                 string mensaje = "ESTIMADO CLIENTE USTED TIENE 2 FACTURAS PENDIENTES DE PAGO, SI SU CONSUMO ES HASTA 300KWH EN TARIFA RESIDENCIAL, A PARTIR DE LA FECHA DE VENCIMIENTO CUENTA CON 72 HORAS ADICIONALES PARA EFECTUAR SU PAGO, DE NO REALIZARLO SU SERVICIO SERÁ SUSPENDIDO; SI SU CONUSMO ES MAYOR A 300KWH SU SERVICIO SERÁ SUSPENDIDO AL DIA SIGUIENTE.";
                                                 field.SetValue(mensaje);
                                                 //field.SetValue(mensaje, fontBold, Constants.FONT_SIZE_FORM);
-                                            }
-
-                                            if (fieldName.Equals("EMPRESA"))
-                                            {
-                                                string empresaNameVal = string.Empty;
-                                                string empresaName = string.Empty;
-                                                string registroValue = string.Empty;
-                                                string nitValue = string.Empty;
-                                                string addressValue = string.Empty;
-
-                                                switch (fielValue)
-                                                {
-                                                    case "2":   //CAESS
-                                                        empresaNameVal = "CAESS";
-                                                        empresaName = "CAESS S.A. DE C.V.";
-                                                        registroValue = "REGISTRO No.321 - 2";
-                                                        nitValue = "NIT:0614-171190-0013";
-                                                        addressValue = "29 Av. Nte. Y Calle El Bambu, Edif. CAESS, Mejicanos, San Salvador";
-                                                        diesco = "7419700001898";
-                                                        break;
-                                                    case "3":   //EEO
-                                                        empresaNameVal = "EEO";
-                                                        empresaName = "EMPRESA ELECTRICA DE ORIENTE";
-                                                        registroValue = "REGISTRO No.90597-6";
-                                                        nitValue = "NIT:0614-161195-103-0";
-                                                        addressValue = "Final 8a. Calle Pte., calle a C. Pacifica, Edif. Jalacatal, San Miguel";
-                                                        diesco = "7419700002253";
-                                                        break;
-                                                    case "4":   //DEUSEM
-                                                        empresaNameVal = "DEUSEM";
-                                                        empresaName = "DEUSEM";
-                                                        registroValue = "REGISTRO No.3267 - 0";
-                                                        nitValue = "NIT:1123-260757-001-0";
-                                                        addressValue = "Centro Comercial Puerta de Oriente, Usulutan, local 2";
-                                                        diesco = "7419700001881";
-                                                        break;
-                                                    case "5":   //CLESA
-                                                        empresaNameVal = "CLESA";
-                                                        empresaName = "AES CLESA Y CIA S.EN C.DE C.V.";
-                                                        registroValue = "REGISTRO N° 2023-0";
-                                                        nitValue = "NIT: 0210-120792-0015";
-                                                        addressValue = "23 Av. Sur y 5a. Calle Ote., Barrio San Rafael, Santa Ana";
-                                                        diesco = "7419700002260";
-                                                        break;
-                                                    default:
-                                                        break;
-                                                }
-
-                                                //field = form.GetField("F_EMPRESA");
-                                                //field.SetValue(empresaNameVal, fontBold, Constants.FONT_SIZE_FORM_LONG);
-                                                //field.SetColor(DeviceRgb.WHITE);
-                                                field = form.GetField("X_EMPRESA");
-                                                field.SetValue(empresaName);
-                                                //field.SetValue(empresaName, font, Constants.FONT_SIZE_FORM_SMALL);
-                                                field = form.GetField("X_REGISTRO");
-                                                field.SetValue(registroValue);
-                                                //field.SetValue(registroValue, font, Constants.FONT_SIZE_FORM_SMALL);
-                                                field = form.GetField("X_NIT");
-                                                field.SetValue(nitValue);
-                                                //field.SetValue(nitValue, font, Constants.FONT_SIZE_FORM_SMALL);
-                                                field = form.GetField("X_DIRECCION");
-                                                field.SetValue(addressValue);
-                                                //field.SetValue(addressValue, font, Constants.FONT_SIZE_FORM_SMALL);
-                                                field = form.GetField("X_EMPRESA_LABEL");
-                                                field.SetValue(empresaNameVal);
-                                                //field.SetValue(empresaNameVal, fontBold, Constants.FONT_SIZE_FORM);
                                             }
 
                                             //Tipo de factura
@@ -306,6 +242,75 @@ namespace AESMovilAPI.Utilities
                                             }
                                         }
 
+                                        //Custom fields
+                                        if (fieldName.Equals("EMPRESA"))
+                                        {
+                                            string empresaName = string.Empty;
+                                            string registroValue = string.Empty;
+                                            string nitValue = string.Empty;
+                                            string addressValue = string.Empty;
+                                            string CompanyInfo = string.Empty;
+
+                                            switch (fielValue)
+                                            {
+                                                case "2":   //CAESS
+                                                    Company = "CAESS";
+                                                    CompanyInfo = "Compañia de Alumbrado Eléctrico de San Salvador S.A. de C.V.\n" +
+                                                        "Edificio Corporativo CAESS Col. San Antonio,Calle El Bambú\n" +
+                                                        "Ayutuxtepeque, San Salvador\n" +
+                                                        "Registro: 321-2\n" +
+                                                        "NIT 0614-171190-001-3 / Giro: Distribución de Energía Eléctrica";
+                                                    break;
+                                                case "3":   //EEO
+                                                    Company = "EEO";
+                                                    CompanyInfo = "EMPRESA ELECTRICA DE ORIENTE\n" +
+                                                        "Final 8a. Calle Pte., calle a C. Pacifica, Edif. Jalacatal\n" +
+                                                        "San Miguel\n" +
+                                                        "Registro: 90597-6\n" +
+                                                        "NIT 0614-161195-103-0 / Giro: Distribución de Energía Eléctrica";
+                                                    break;
+                                                case "4":   //DEUSEM
+                                                    Company = "DEUSEM";
+                                                    CompanyInfo = "DEUSEM\n" +
+                                                        "Centro Comercial Puerta de Oriente\n" +
+                                                        "Usulutan, local 2\n" +
+                                                        "Registro: 3267-0\n" +
+                                                        "NIT 1123-260757-001-0 / Giro: Distribución de Energía Eléctrica";
+                                                    break;
+                                                case "5":   //CLESA
+                                                    Company = "CLESA";
+                                                    CompanyInfo = "AES CLESA Y CIA S.EN C.DE C.V.\n" +
+                                                        "23 Av. Sur y 5a. Calle Ote., Barrio San Rafael\n" +
+                                                        "Santa Ana\n" +
+                                                        "Registro: 2023-0\n" +
+                                                        "NIT 0210-120792-0015 / Giro: Distribución de Energía Eléctrica";
+                                                    break;
+                                                default:
+                                                    break;
+                                            }
+
+                                            //field = form.GetField("F_EMPRESA");
+                                            //field.SetValue(empresaNameVal, fontBold, Constants.FONT_SIZE_FORM_LONG);
+                                            //field.SetColor(DeviceRgb.WHITE);
+                                            field = form.GetField("X_EMPRESA");
+                                            field.SetValue(Company);
+                                            field = form.GetField("X_INFO");
+                                            field.SetValue(CompanyInfo);
+                                            //field.SetValue(empresaName, font, Constants.FONT_SIZE_FORM_SMALL);
+                                            //field = form.GetField("X_REGISTRO");
+                                            //field.SetValue(registroValue);
+                                            ////field.SetValue(registroValue, font, Constants.FONT_SIZE_FORM_SMALL);
+                                            //field = form.GetField("X_NIT");
+                                            //field.SetValue(nitValue);
+                                            ////field.SetValue(nitValue, font, Constants.FONT_SIZE_FORM_SMALL);
+                                            //field = form.GetField("X_DIRECCION");
+                                            //field.SetValue(addressValue);
+                                            ////field.SetValue(addressValue, font, Constants.FONT_SIZE_FORM_SMALL);
+                                            //field = form.GetField("X_EMPRESA_LABEL");
+                                            //field.SetValue(empresaNameVal);
+                                            //field.SetValue(empresaNameVal, fontBold, Constants.FONT_SIZE_FORM);
+                                        }
+
                                         //if (fieldName.Equals("CONTROL_NUMBER"))
                                         //{
                                         //    field = form.GetField("F_VL_CONTROLNUMBER");
@@ -324,12 +329,12 @@ namespace AESMovilAPI.Utilities
                                 //field.SetValue(suma.ToString(), fontBold, Constants.FONT_SIZE_FORM);
 
                                 // Datos para grafica
-                                dataList.Add(new IdValueDto() { Id = GetValueFromDS("BARRA1_F_LECT"), Value = GetValueFromDS("BARRA1_CSMO", true) });
-                                dataList.Add(new IdValueDto() { Id = GetValueFromDS("BARRA2_F_LECT"), Value = GetValueFromDS("BARRA2_CSMO", true) });
-                                dataList.Add(new IdValueDto() { Id = GetValueFromDS("BARRA3_F_LECT"), Value = GetValueFromDS("BARRA3_CSMO", true) });
-                                dataList.Add(new IdValueDto() { Id = GetValueFromDS("BARRA4_F_LECT"), Value = GetValueFromDS("BARRA4_CSMO", true) });
+                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDS("BARRA6_F_LECT"), "yyyy-MM-dd", "dd MMM"), Value = GetValueFromDS("BARRA6_CSMO", true) });
                                 dataList.Add(new IdValueDto() { Id = GetValueFromDS("BARRA5_F_LECT"), Value = GetValueFromDS("BARRA5_CSMO", true) });
-                                dataList.Add(new IdValueDto() { Id = GetValueFromDS("BARRA6_F_LECT"), Value = GetValueFromDS("BARRA6_CSMO", true) });
+                                dataList.Add(new IdValueDto() { Id = GetValueFromDS("BARRA4_F_LECT"), Value = GetValueFromDS("BARRA4_CSMO", true) });
+                                dataList.Add(new IdValueDto() { Id = GetValueFromDS("BARRA3_F_LECT"), Value = GetValueFromDS("BARRA3_CSMO", true) });
+                                dataList.Add(new IdValueDto() { Id = GetValueFromDS("BARRA2_F_LECT"), Value = GetValueFromDS("BARRA2_CSMO", true) });
+                                dataList.Add(new IdValueDto() { Id = GetValueFromDS("BARRA1_F_LECT"), Value = GetValueFromDS("BARRA1_CSMO", true) });
                                 promedio = GetValueFromDS("CONSUMO_PRO_MES");
 
                                 // Creacion de codigo de barras
@@ -355,6 +360,7 @@ namespace AESMovilAPI.Utilities
                                 int counterTipRegVentasExentas = 1;
                                 int counterTipRegOtrosServicios = 1;
                                 int counterTipLecMedLev = 1;
+                                int counterTarifa = 1;
 
                                 foreach (DataRow row in _detail.Rows)
                                 {
@@ -396,65 +402,88 @@ namespace AESMovilAPI.Utilities
                                                 }
                                                 break;
                                             case Constants.TIP_REG2_TARIFA_APLICADA:
+                                                words = stringDetail.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);       // Separar por espacios (incluye múltiples espacios)
                                                 if (words.Length > 0)
                                                 {
                                                     try
                                                     {
-                                                        field = form.GetField("FD_INICIO");
+                                                        field = form.GetField($"FD_INICIO_{counterTarifa}");
                                                         if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
                                                         {
                                                             field.SetValue(words[0].Trim());
                                                             //field.SetValue(words[0].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
                                                         }
 
-                                                        field = form.GetField("FD_FINAL");
+                                                        //field = form.GetField("FD_FINAL");
+                                                        //if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
+                                                        //{
+                                                        //    field.SetValue(words[1].Trim());
+                                                        //    //field.SetValue(words[1].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                                        //}
+
+                                                        field = form.GetField($"FD_CARGO_COM_{counterTarifa}");
                                                         if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
                                                         {
                                                             field.SetValue(words[1].Trim());
-                                                            //field.SetValue(words[1].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                                            //field.SetValue(words[2].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
                                                         }
 
-                                                        field = form.GetField("FD_ENERGIA");
+                                                        field = form.GetField($"FD_BLOQUE_{counterTarifa}");
                                                         if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
                                                         {
-                                                            field.SetValue(words[2].Trim());
-                                                            //field.SetValue(words[2].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                                            field.SetValue(words[3].Trim());
+                                                            //field.SetValue(words[3].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
                                                         }
 
                                                         try
                                                         {
-                                                            field = form.GetField("FD_PUNTA");
+                                                            field = form.GetField($"FD_UPR_{counterTarifa}");
                                                             if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
                                                             {
-                                                                field.SetValue(words[3].Trim());
-                                                                //field.SetValue(words[3].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                                                field.SetValue(words[2].Trim());
+                                                                //field.SetValue(words[2].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
                                                             }
+                                                        }
+                                                        catch (Exception ex)
+                                                        {
 
-                                                            field = form.GetField("FD_VALLE");
+                                                        }
+
+                                                        try
+                                                        {
+                                                            field = form.GetField($"FD_PUNTA_{counterTarifa}");
                                                             if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
                                                             {
                                                                 field.SetValue(words[4].Trim());
                                                                 //field.SetValue(words[4].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
                                                             }
 
-                                                            field = form.GetField("FD_RESTO");
+                                                            field = form.GetField($"FD_VALLE_{counterTarifa}");
+                                                            if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
+                                                            {
+                                                                field.SetValue(words[6].Trim());
+                                                                //field.SetValue(words[6].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                                            }
+
+                                                            field = form.GetField($"FD_RESTO_{counterTarifa}");
                                                             if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
                                                             {
                                                                 field.SetValue(words[5].Trim());
                                                                 //field.SetValue(words[5].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
                                                             }
 
-                                                            field = form.GetField("FD_DEMANDA");
+                                                            field = form.GetField($"FD_DISTRIBUCION_{counterTarifa}");
                                                             if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
                                                             {
-                                                                field.SetValue(words[6].Trim());
-                                                                //field.SetValue(words[6].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                                                field.SetValue(words[7].Trim());
+                                                                //field.SetValue(words[7].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
                                                             }
                                                         }
                                                         catch (Exception ex)
                                                         {
                                                             //Log.Err(ex.Message);
                                                         }
+                                                        counterTarifa++;
                                                     }
                                                     catch (Exception ex)
                                                     {
@@ -468,16 +497,16 @@ namespace AESMovilAPI.Utilities
                                                     try
                                                     {
                                                         field = form.GetField("FD_TIPO_LECT_" + counterTipLecMed);
-                                                        field.SetValue(words[0]);
+                                                        field.SetValue(words[1]);
                                                         //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                                         field = form.GetField("FD_LECT_ACT_" + counterTipLecMed);
-                                                        field.SetValue(words[1]);
+                                                        field.SetValue(words[2]);
                                                         //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                                         field = form.GetField("FD_LECT_ANT_" + counterTipLecMed);
-                                                        field.SetValue(words[2]);
+                                                        field.SetValue(words[3]);
                                                         //field.SetValue(words[2], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                                         field = form.GetField("FD_CONSUMO_" + counterTipLecMed);
-                                                        field.SetValue(words[3]);
+                                                        field.SetValue(words[4]);
                                                         //field.SetValue(words[3], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                                     }
                                                     catch (Exception ex)
@@ -641,15 +670,6 @@ namespace AESMovilAPI.Utilities
                                         //Log.Ex(ex);
                                     }
                                 }
-
-                                //if (string.IsNullOrEmpty(npeValid))
-                                //{
-                                //    npeValid = Util.GetNPE(SimboloVar.ToString(), alcaldia, suma, diesco);
-                                //    npeValid = Util.GetStyledNPE(npeValid);
-                                //    var field = form.GetField("F_NPE");
-                                //    field.SetValue(npeValid, font, Constants.FONT_SIZE_BIG);
-                                //}
-
                             }
 
                             //Imagenes
@@ -682,16 +702,15 @@ namespace AESMovilAPI.Utilities
                                     document.Add(image);
                                 }
 
-                                //Charts mChart = new Charts();
-                                //byte[]? charBytes = mChart.CreateBarChartByte(dataList, promedio);
-                                //if (charBytes != null)
-                                //{
-                                //    ImageData imageData = ImageDataFactory.Create(charBytes);
-                                //    Image image = new Image(imageData);
-                                //    image.SetHeight(84);
-                                //    image.SetFixedPosition(382, 548);
-                                //    document.Add(image);
-                                //}
+                                byte[]? charBytes = Graphic.CreateBarChartByte(dataList, promedio);
+                                if (charBytes != null)
+                                {
+                                    ImageData imageData = ImageDataFactory.Create(charBytes);
+                                    Image image = new Image(imageData);
+                                    image.SetHeight(80);
+                                    image.SetFixedPosition(28, 512);
+                                    document.Add(image);
+                                }
 
                                 if (isPaid)
                                 {
@@ -702,6 +721,12 @@ namespace AESMovilAPI.Utilities
                                     //image.SetFixedPosition(352, 300);
                                     //document.Add(image);
                                 }
+
+                                ImageData logoData = ImageDataFactory.Create(Path.Combine(_rootPath, "Sources", "Images", Helper.GetCompanyName(Company) + "-logo.png")); ;
+                                Image logo = new Image(logoData);
+                                logo.SetHeight(20);
+                                logo.SetFixedPosition(20, 752);
+                                document.Add(logo);
                             }
                             catch (Exception ex)
                             {
@@ -709,6 +734,7 @@ namespace AESMovilAPI.Utilities
                             }
 
                             form.FlattenFields();
+                            doc.GetDocumentInfo().SetTitle(DocNumber);
                             doc.Close();
 
                             return msTemp.ToArray();
