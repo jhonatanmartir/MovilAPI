@@ -42,9 +42,9 @@ namespace AESMovilAPI.Utilities
                 _header = JsonConvert.DeserializeObject<DataTable>(jsonHeader);
                 _detail = JsonConvert.DeserializeObject<DataTable>(jsonDetail);
 
-                DocNumber = GetValueFromDS("SIMBOLO_VAR");
-                FFact = GetValueFromDS("F_FACT");
-                CodUnicom = GetValueFromDS("COD_UNICOM");
+                DocNumber = GetValueFromDT("SIMBOLO_VAR");
+                FFact = GetValueFromDT("F_FACT");
+                CodUnicom = GetValueFromDT("COD_UNICOM");
 
                 StampingProperties stamping = new StampingProperties();
 
@@ -52,13 +52,9 @@ namespace AESMovilAPI.Utilities
                 {
                     using (PdfWriter pdfWriter = new PdfWriter(msTemp))
                     {
-                        // Since creating a reader/writer in iText causes the underlying
-                        // stream to close, we need to prevent that with this call
-                        //pdfWriter.SetCloseStream(false);
                         string templatePath = Path.Combine(_rootPath, "Sources", "Template", "FACT122024a.pdf");
                         using (PdfDocument doc = new PdfDocument(new PdfReader(templatePath), pdfWriter, stamping))
                         {
-                            //PdfDocument doc = new PdfDocument(new PdfReader(templatePath), new PdfWriter(destPath), stamping);
                             PdfAcroForm form = PdfFormCreator.GetAcroForm(doc, true);
 
                             //Font
@@ -81,7 +77,7 @@ namespace AESMovilAPI.Utilities
                                 foreach (DataColumn col in _header.Columns)
                                 {
                                     string fieldName = col.ColumnName;
-                                    string fielValue = GetValueFromDS(fieldName);
+                                    string fielValue = GetValueFromDT(fieldName);
 
                                     try
                                     {
@@ -92,14 +88,6 @@ namespace AESMovilAPI.Utilities
                                             //Set values to form
                                             field.SetValue(fielValue);
                                             //field.SetValue(fielValue, font, Constants.FONT_SIZE_FORM);
-
-                                            //Customizacion
-                                            //if (fieldName.Equals("NIC"))
-                                            //{
-                                            //    field = form.GetField("F_" + fieldName + "_C");
-                                            //    field.SetValue(fielValue);
-                                            //    //field.SetValue(fielValue, fontBold, Constants.FONT_SIZE_FORM_NIC);
-                                            //}
 
                                             if (fieldName.Equals("SUBTOTAL_CON_GRA"))
                                             {
@@ -165,8 +153,8 @@ namespace AESMovilAPI.Utilities
 
                                             if (fieldName.Equals("RUTA"))
                                             {
-                                                string ruta = GetValueFromDS("COD_UNICOM") + "  " + fielValue + "  " +
-                                                    GetValueFromDS("NUM_ITIN") + "  " + GetValueFromDS("AOL_FIN");
+                                                string ruta = GetValueFromDT("COD_UNICOM") + "  " + fielValue + "  " +
+                                                    GetValueFromDT("NUM_ITIN") + "  " + GetValueFromDT("AOL_FIN");
                                                 field.SetValue(ruta);
                                                 //field.SetValue(ruta, font, Constants.FONT_SIZE_FORM);
                                             }
@@ -209,8 +197,8 @@ namespace AESMovilAPI.Utilities
                                                     field.SetValue("NIT");
                                                     //field.SetValue("NIT", font, Constants.FONT_SIZE_FORM);
                                                     field = form.GetField("FH_NUM_DOC");
-                                                    field.SetValue(GetValueFromDS("NIT_TIT_PAGO"));
-                                                    //field.SetValue(GetValueFromDS("NIT_TIT_PAGO"), fontBold, Constants.FONT_SIZE_FORM);
+                                                    field.SetValue(GetValueFromDT("NIT_TIT_PAGO"));
+                                                    //field.SetValue(GetValueFromDT("NIT_TIT_PAGO"), fontBold, Constants.FONT_SIZE_FORM);
                                                 }
                                                 else
                                                 {
@@ -289,33 +277,11 @@ namespace AESMovilAPI.Utilities
                                                     break;
                                             }
 
-                                            //field = form.GetField("F_EMPRESA");
-                                            //field.SetValue(empresaNameVal, fontBold, Constants.FONT_SIZE_FORM_LONG);
-                                            //field.SetColor(DeviceRgb.WHITE);
                                             field = form.GetField("X_EMPRESA");
                                             field.SetValue(Company);
                                             field = form.GetField("X_INFO");
                                             field.SetValue(CompanyInfo);
-                                            //field.SetValue(empresaName, font, Constants.FONT_SIZE_FORM_SMALL);
-                                            //field = form.GetField("X_REGISTRO");
-                                            //field.SetValue(registroValue);
-                                            ////field.SetValue(registroValue, font, Constants.FONT_SIZE_FORM_SMALL);
-                                            //field = form.GetField("X_NIT");
-                                            //field.SetValue(nitValue);
-                                            ////field.SetValue(nitValue, font, Constants.FONT_SIZE_FORM_SMALL);
-                                            //field = form.GetField("X_DIRECCION");
-                                            //field.SetValue(addressValue);
-                                            ////field.SetValue(addressValue, font, Constants.FONT_SIZE_FORM_SMALL);
-                                            //field = form.GetField("X_EMPRESA_LABEL");
-                                            //field.SetValue(empresaNameVal);
-                                            //field.SetValue(empresaNameVal, fontBold, Constants.FONT_SIZE_FORM);
                                         }
-
-                                        //if (fieldName.Equals("CONTROL_NUMBER"))
-                                        //{
-                                        //    field = form.GetField("F_VL_CONTROLNUMBER");
-                                        //    field.SetValue(fielValue, font, Constants.FONT_SIZE_FORM);
-                                        //}
                                     }
                                     catch (Exception ex)
                                     {
@@ -329,17 +295,17 @@ namespace AESMovilAPI.Utilities
                                 //field.SetValue(suma.ToString(), fontBold, Constants.FONT_SIZE_FORM);
 
                                 // Datos para grafica
-                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDS("BARRA6_F_LECT"), "yyyy-MM-dd", "dd MMM"), Value = GetValueFromDS("BARRA6_CSMO", true) });
-                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDS("BARRA5_F_LECT"), "yyyy-MM-dd", "dd MMM"), Value = GetValueFromDS("BARRA5_CSMO", true) });
-                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDS("BARRA4_F_LECT"), "yyyy-MM-dd", "dd MMM"), Value = GetValueFromDS("BARRA4_CSMO", true) });
-                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDS("BARRA3_F_LECT"), "yyyy-MM-dd", "dd MMM"), Value = GetValueFromDS("BARRA3_CSMO", true) });
-                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDS("BARRA2_F_LECT"), "yyyy-MM-dd", "dd MMM"), Value = GetValueFromDS("BARRA2_CSMO", true) });
-                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDS("BARRA1_F_LECT"), "yyyy-MM-dd", "dd MMM"), Value = GetValueFromDS("BARRA1_CSMO", true) });
-                                promedio = GetValueFromDS("CONSUMO_PRO_MES");
+                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA6_F_LECT"), "yyyy-MM-dd", "dd MMM").ToUpper(), Value = GetValueFromDT("BARRA6_CSMO", true) });
+                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA5_F_LECT"), "yyyy-MM-dd", "dd MMM").ToUpper(), Value = GetValueFromDT("BARRA5_CSMO", true) });
+                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA4_F_LECT"), "yyyy-MM-dd", "dd MMM").ToUpper(), Value = GetValueFromDT("BARRA4_CSMO", true) });
+                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA3_F_LECT"), "yyyy-MM-dd", "dd MMM").ToUpper(), Value = GetValueFromDT("BARRA3_CSMO", true) });
+                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA2_F_LECT"), "yyyy-MM-dd", "dd MMM").ToUpper(), Value = GetValueFromDT("BARRA2_CSMO", true) });
+                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA1_F_LECT"), "yyyy-MM-dd", "dd MMM").ToUpper(), Value = GetValueFromDT("BARRA1_CSMO", true) });
+                                promedio = GetValueFromDT("CONSUMO_PRO_MES");
 
                                 // Creacion de codigo de barras
-                                string npe = GetValueFromDS("NPE");
-                                string npeAlca = GetValueFromDS("NPE_ALCA");
+                                string npe = GetValueFromDT("NPE");
+                                string npeAlca = GetValueFromDT("NPE_ALCA");
                                 npeAlca = anulados == null || anulados.Count == 0 ? npeAlca : string.Empty;
                                 npeValid = string.IsNullOrEmpty(npeAlca.Trim()) ? npe : npeAlca;
 
@@ -679,7 +645,7 @@ namespace AESMovilAPI.Utilities
                                 var document = new Document(doc);
 
                                 // Imagenes
-                                byte[]? qrData = Graphic.GenerateSimpleQRByte(GetValueFromDS("COD_QR"), "QR_" + imgName, 2);
+                                byte[]? qrData = Graphic.GenerateSimpleQRByte(GetValueFromDT("COD_QR"), "QR_" + imgName, 2);
                                 if (qrData != null)
                                 {
                                     ImageData imageData = ImageDataFactory.Create(qrData);
@@ -691,7 +657,7 @@ namespace AESMovilAPI.Utilities
                                     document.Add(image);
                                 }
 
-                                string codBar = GetValueFromDS("BARRA1_DV");
+                                string codBar = GetValueFromDT("BARRA1_DV");
                                 byte[]? barData = Graphic.GenerateBarCodeByte(codBar, "BR_" + imgName, 1);
                                 if (barData != null)
                                 {
@@ -750,7 +716,7 @@ namespace AESMovilAPI.Utilities
             return null;
         }
 
-        private string GetValueFromDS(string name, bool header = true, bool isNumber = false)
+        private string GetValueFromDT(string name, bool header = true, bool isNumber = false)
         {
             string? value = string.Empty;
             if (header)
@@ -863,7 +829,7 @@ namespace AESMovilAPI.Utilities
 
             try
             {
-                value = GetValueFromDS(name, header, isNumber);
+                value = GetValueFromDT(name, header, isNumber);
             }
             catch (Exception ex)
             {
