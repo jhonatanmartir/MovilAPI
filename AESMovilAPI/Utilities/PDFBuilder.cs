@@ -330,11 +330,11 @@ namespace AESMovilAPI.Utilities
 
                                 // Datos para grafica
                                 dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDS("BARRA6_F_LECT"), "yyyy-MM-dd", "dd MMM"), Value = GetValueFromDS("BARRA6_CSMO", true) });
-                                dataList.Add(new IdValueDto() { Id = GetValueFromDS("BARRA5_F_LECT"), Value = GetValueFromDS("BARRA5_CSMO", true) });
-                                dataList.Add(new IdValueDto() { Id = GetValueFromDS("BARRA4_F_LECT"), Value = GetValueFromDS("BARRA4_CSMO", true) });
-                                dataList.Add(new IdValueDto() { Id = GetValueFromDS("BARRA3_F_LECT"), Value = GetValueFromDS("BARRA3_CSMO", true) });
-                                dataList.Add(new IdValueDto() { Id = GetValueFromDS("BARRA2_F_LECT"), Value = GetValueFromDS("BARRA2_CSMO", true) });
-                                dataList.Add(new IdValueDto() { Id = GetValueFromDS("BARRA1_F_LECT"), Value = GetValueFromDS("BARRA1_CSMO", true) });
+                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDS("BARRA5_F_LECT"), "yyyy-MM-dd", "dd MMM"), Value = GetValueFromDS("BARRA5_CSMO", true) });
+                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDS("BARRA4_F_LECT"), "yyyy-MM-dd", "dd MMM"), Value = GetValueFromDS("BARRA4_CSMO", true) });
+                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDS("BARRA3_F_LECT"), "yyyy-MM-dd", "dd MMM"), Value = GetValueFromDS("BARRA3_CSMO", true) });
+                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDS("BARRA2_F_LECT"), "yyyy-MM-dd", "dd MMM"), Value = GetValueFromDS("BARRA2_CSMO", true) });
+                                dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDS("BARRA1_F_LECT"), "yyyy-MM-dd", "dd MMM"), Value = GetValueFromDS("BARRA1_CSMO", true) });
                                 promedio = GetValueFromDS("CONSUMO_PRO_MES");
 
                                 // Creacion de codigo de barras

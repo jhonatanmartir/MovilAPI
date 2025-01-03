@@ -85,17 +85,17 @@ namespace AESMovilAPI.Utilities
                     Labels = labels, // Etiquetas del eje X extraídas de la lista
                     //LabelsRotation = 8,
                     Name = "Fecha de lectura",
-                    NameTextSize = 32,
-                    TextSize = 32,
+                    NameTextSize = 28,
+                    TextSize = 28,
                     MinStep = 1, // Asegura que cada etiqueta sea visible
                 };
 
                 var yAxis = new Axis
                 {
                     Name = "kWh",
-                    NameTextSize = 32,
+                    NameTextSize = 28,
                     MinLimit = 0, // Asegura que el eje Y comience desde cero
-                    TextSize = 32
+                    TextSize = 28
                 };
 
                 // Crear el gráfico utilizando SKCartesianChart
