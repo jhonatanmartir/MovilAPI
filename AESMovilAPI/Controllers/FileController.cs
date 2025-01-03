@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 using System.Text;
 
 namespace AESMovilAPI.Controllers
@@ -71,6 +72,10 @@ namespace AESMovilAPI.Controllers
                             break;
                         case "invoice":
                             var dataFileResult = await BuildBillFile(data.DocumentNumber);
+                            // Agrega los timepos en header personalizados a la respuesta
+                            Response.Headers.Add("X-Interface-Time-ms", dataFileResult.InterfaceTime.ToString());
+                            Response.Headers.Add("X-Builder-Time-ms", dataFileResult.BuildTime.ToString());
+
                             if (dataFileResult.DataByte != null)
                             {
                                 return File(dataFileResult.DataByte, "application/pdf", dataFileResult.Name);
@@ -832,16 +837,25 @@ namespace AESMovilAPI.Controllers
             string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
             string endpoint = baseUrl + "/gw/odata/SAP/CIS_" + mandante + $"_ACC_GETINVOICEFORMJSON_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetInvoiceToJsonSet('{id}')";
 
+            // Inicia el temporizador
+            var stopwatch = Stopwatch.StartNew();
             dynamic? response = await ExecuteGetRequest(endpoint, true, null, false, false);
+
+            stopwatch.Stop();
+
+            var elapsedMillisecondsRequest = stopwatch.ElapsedMilliseconds;
             string xmlString = Helper.CleanXml(response);
             var entry = Helper.DeserializeXml<Entry>(xmlString)!;
             JObject jsonObject = JObject.Parse(entry.Content.Properties.Json);
+
+            stopwatch.Restart();
             PDFBuilder builder = new PDFBuilder(rootPath, id);
             byte[]? result = builder.DoFillFormByte(jsonObject["Cabecera"].ToString(), jsonObject["Items"].ToString());
-            string name = id + ".pdf";
 
+            stopwatch.Stop();
+            var elapsedMillisecondsBuilder = stopwatch.ElapsedMilliseconds;
 
-            return new FileDataDto { DataByte = result, Name = name };
+            return new FileDataDto { DataByte = result, Name = id + ".pdf", InterfaceTime = elapsedMillisecondsRequest, BuildTime = elapsedMillisecondsBuilder };
         }
         private async Task<string> GetEbillingAPIToken()
         {
