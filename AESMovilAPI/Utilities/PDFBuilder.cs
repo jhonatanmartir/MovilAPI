@@ -327,8 +327,418 @@ namespace AESMovilAPI.Utilities
                                 int counterTipRegOtrosServicios = 1;
                                 int counterTipLecMedLev = 1;
                                 int counterTarifa = 1;
+                                PdfFormField field;
+                                string stringDetail;
+                                string[] words;
 
-                                foreach (DataRow row in _detail.Rows)
+                                #region "TIP_REG1_DATOS_SUMINISTRO"
+                                var rowsDetail = _detail.AsEnumerable()
+                                  .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG1_DATOS_SUMINISTRO_STR)
+                                  .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                                  .ToList();
+
+                                foreach (var row in rowsDetail)
+                                {
+                                    stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                    words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+
+                                    if (words.Length > 0)
+                                    {
+                                        try
+                                        {
+                                            field = form.GetField("FD_CALC_CONSUMO_" + counterTipDatosSuministro);
+                                            field.SetValue(words[0]);
+                                            //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                            field = form.GetField("FD_MEDIDOR_" + counterTipDatosSuministro);
+                                            field.SetValue(words[1]);
+                                            //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                            field = form.GetField("FD_MULT_" + counterTipDatosSuministro);
+                                            field.SetValue(words[2]);
+                                            //field.SetValue(words[2], font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                            field = form.GetField("FD_TIPO_" + counterTipDatosSuministro);
+                                            field.SetValue(words[3]);
+                                            //field.SetValue(words[3], font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                            field = form.GetField("FD_MEDI_" + counterTipDatosSuministro);
+                                            field.SetValue(words[4]);
+                                            //field.SetValue(words[4], font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            //Log.Ex(ex);
+                                        }
+                                        counterTipDatosSuministro++;
+                                    }
+                                }
+                                #endregion
+
+                                #region "TIP_REG2_TARIFA_APLICADA"
+                                rowsDetail = _detail.AsEnumerable()
+                                  .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG2_TARIFA_APLICADA_STR)
+                                  .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                                  .ToList();
+
+                                foreach (var row in rowsDetail)
+                                {
+                                    stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                    words = stringDetail.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);       // Separar por espacios (incluye múltiples espacios)
+
+                                    if (words.Length > 0)
+                                    {
+                                        try
+                                        {
+                                            field = form.GetField($"FD_INICIO_{counterTarifa}");
+                                            if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
+                                            {
+                                                field.SetValue(words[0].Trim());
+                                                //field.SetValue(words[0].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                            }
+
+                                            //field = form.GetField("FD_FINAL");
+                                            //if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
+                                            //{
+                                            //    field.SetValue(words[1].Trim());
+                                            //    //field.SetValue(words[1].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                            //}
+
+                                            field = form.GetField($"FD_CARGO_COM_{counterTarifa}");
+                                            if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
+                                            {
+                                                field.SetValue(words[1].Trim());
+                                                //field.SetValue(words[2].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                            }
+
+                                            field = form.GetField($"FD_BLOQUE_{counterTarifa}");
+                                            if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
+                                            {
+                                                field.SetValue(words[3].Trim());
+                                                //field.SetValue(words[3].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                            }
+
+                                            try
+                                            {
+                                                field = form.GetField($"FD_UPR_{counterTarifa}");
+                                                if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
+                                                {
+                                                    field.SetValue(words[2].Trim());
+                                                    //field.SetValue(words[2].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                                }
+                                            }
+                                            catch (Exception ex)
+                                            {
+
+                                            }
+
+                                            try
+                                            {
+                                                field = form.GetField($"FD_PUNTA_{counterTarifa}");
+                                                if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
+                                                {
+                                                    field.SetValue(words[4].Trim());
+                                                    //field.SetValue(words[4].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                                }
+
+                                                field = form.GetField($"FD_VALLE_{counterTarifa}");
+                                                if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
+                                                {
+                                                    field.SetValue(words[6].Trim());
+                                                    //field.SetValue(words[6].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                                }
+
+                                                field = form.GetField($"FD_RESTO_{counterTarifa}");
+                                                if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
+                                                {
+                                                    field.SetValue(words[5].Trim());
+                                                    //field.SetValue(words[5].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                                }
+
+                                                field = form.GetField($"FD_DISTRIBUCION_{counterTarifa}");
+                                                if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
+                                                {
+                                                    field.SetValue(words[7].Trim());
+                                                    //field.SetValue(words[7].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                                }
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                //Log.Err(ex.Message);
+                                            }
+                                            counterTarifa++;
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            //Log.Ex(ex);
+                                        }
+                                    }
+                                }
+                                #endregion
+
+                                #region "TIP_REG3_TIPO_MED_LECTURAS"
+                                rowsDetail = _detail.AsEnumerable()
+                                  .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG3_TIPO_MED_LECTURAS_STR)
+                                  .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                                  .ToList();
+
+                                foreach (var row in rowsDetail)
+                                {
+                                    stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                    words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+
+                                    if (words.Length > 0)
+                                    {
+                                        try
+                                        {
+                                            field = form.GetField("FD_TIPO_LECT_" + counterTipLecMed);
+                                            field.SetValue(words[1]);
+                                            //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                            field = form.GetField("FD_LECT_ACT_" + counterTipLecMed);
+                                            field.SetValue(words[2]);
+                                            //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                            field = form.GetField("FD_LECT_ANT_" + counterTipLecMed);
+                                            field.SetValue(words[3]);
+                                            //field.SetValue(words[2], font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                            field = form.GetField("FD_CONSUMO_" + counterTipLecMed);
+                                            field.SetValue(words[4]);
+                                            //field.SetValue(words[3], font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            //Log.Ex(ex);
+                                        }
+
+                                        counterTipLecMed++;
+                                    }
+                                }
+                                #endregion
+
+                                #region "TIP_REG4_CONCEPTOS"
+                                rowsDetail = _detail.AsEnumerable()
+                                  .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG4_CONCEPTOS_STR)
+                                  .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                                  .ToList();
+
+                                foreach (var row in rowsDetail)
+                                {
+                                    stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                    words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+
+                                    if (words.Length > 0)
+                                    {
+                                        try
+                                        {
+                                            field = form.GetField("FD_CONCEPTO_" + counterTipRegConceptos);
+                                            field.SetValue(words[0]);
+                                            //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
+                                            field = form.GetField("FD_CONCEPTO_VAL_" + counterTipRegConceptos);
+                                            field.SetValue(words[1]);
+                                            //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            //Log.Ex(ex);
+                                        }
+
+                                        counterTipRegConceptos++;
+                                    }
+                                }
+                                #endregion
+
+                                #region "TIP_REG5_CARG_VARIOS_OTROS_INGRESOS"
+                                rowsDetail = _detail.AsEnumerable()
+                                  .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG5_CARG_VARIOS_OTROS_INGRESOS_STR)
+                                  .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                                  .ToList();
+
+                                foreach (var row in rowsDetail)
+                                {
+                                    stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                    words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+
+                                    if (words.Length > 0)
+                                    {
+                                        try
+                                        {
+                                            field = form.GetField("FD_CONCEPTO_CV_" + counterTipRegCargVarios);
+                                            field.SetValue(words[0]);
+                                            //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
+                                            field = form.GetField("FD_CONCEPTO_CV_VAL_" + counterTipRegCargVarios);
+                                            field.SetValue(words[1]);
+                                            //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            //Log.Ex(ex);
+                                        }
+
+                                        counterTipRegCargVarios++;
+                                    }
+                                }
+                                #endregion
+
+                                #region "TIP_REG6_VENTAS_EXENTAS"
+                                rowsDetail = _detail.AsEnumerable()
+                                  .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG6_VENTAS_EXENTAS_STR)
+                                  .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                                  .ToList();
+
+                                foreach (var row in rowsDetail)
+                                {
+                                    stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                    words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+
+                                    if (words.Length > 0)
+                                    {
+                                        try
+                                        {
+                                            field = form.GetField("FD_CONCEPTO_EX_" + counterTipRegVentasExentas);
+                                            field.SetValue(words[0]);
+                                            //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
+                                            field = form.GetField("FD_CONCEPTO_EX_VAL_" + counterTipRegVentasExentas);
+                                            field.SetValue(words[1]);
+                                            //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            //Log.Ex(ex);
+                                        }
+
+                                        counterTipRegVentasExentas++;
+                                    }
+                                }
+                                #endregion
+
+                                #region "TIP_REG7_ALCALDIA"
+                                rowsDetail = _detail.AsEnumerable()
+                                  .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG7_ALCALDIA_STR)
+                                  .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                                  .ToList();
+
+                                foreach (var row in rowsDetail)
+                                {
+                                    stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                    words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+
+                                    if (words.Length > 0)
+                                    {
+                                        try
+                                        {
+                                            if (anulados == null)
+                                            {
+                                                field = form.GetField("FD_CONCEPTO_ALCA_" + counterTipRegAlcaldia);
+                                                field.SetValue(words[0]);
+                                                //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
+                                                field = form.GetField("FD_CONCEPTO_ALCA_VAL_" + counterTipRegAlcaldia);
+                                                field.SetValue(words[1]);
+                                                //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            //Log.Ex(ex);
+                                        }
+
+                                        counterTipRegAlcaldia++;
+                                    }
+                                }
+                                #endregion
+
+                                #region "TIP_REG8_OTROS_SERVICIOS"
+                                rowsDetail = _detail.AsEnumerable()
+                                  .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG8_OTROS_SERVICIOS_STR)
+                                  .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                                  .ToList();
+
+                                foreach (var row in rowsDetail)
+                                {
+                                    stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                    words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+
+                                    if (words.Length > 0)
+                                    {
+                                        try
+                                        {
+                                            field = form.GetField("FD_CONCEPTO_OTROS_" + counterTipRegOtrosServicios);
+                                            field.SetValue(words[0]);
+                                            //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
+                                            field = form.GetField("FD_CONCEPTO_OTROS_VAL_" + counterTipRegOtrosServicios);
+                                            field.SetValue(words[1]);
+                                            //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            //Log.Ex(ex);
+                                        }
+
+                                        counterTipRegOtrosServicios++;
+                                    }
+                                }
+                                #endregion
+
+                                #region "TIP_REG9_RETENCIONES"
+                                rowsDetail = _detail.AsEnumerable()
+                                  .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG9_RETENCIONES_STR)
+                                  .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                                  .ToList();
+
+                                foreach (var row in rowsDetail)
+                                {
+                                    stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                    words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+
+                                    if (words.Length > 0)
+                                    {
+                                        try
+                                        {
+                                            field = form.GetField("FD_RETENCION");
+                                            field.SetValue(words[0]);
+                                            //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
+                                            field = form.GetField("FD_RETENCION_VAL");
+                                            field.SetValue(words[1]);
+                                            //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            //Log.Ex(ex);
+                                        }
+                                    }
+                                }
+                                #endregion
+
+                                #region "TIP_REG10_MEDIDOR_LEVANTADO"
+                                rowsDetail = _detail.AsEnumerable()
+                                  .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG10_MEDIDOR_LEVANTADO_STR)
+                                  .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                                  .ToList();
+
+                                foreach (var row in rowsDetail)
+                                {
+                                    stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                    words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+
+                                    if (words.Length > 0)
+                                    {
+                                        try
+                                        {
+                                            field = form.GetField("FD_LECT_ACT_ML_" + counterTipLecMedLev);
+                                            field.SetValue(words[1]);
+                                            //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                            field = form.GetField("FD_LECT_ANT_ML_" + counterTipLecMedLev);
+                                            field.SetValue(words[2]);
+                                            //field.SetValue(words[2], font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                            field = form.GetField("FD_CONSUMO_ML_" + counterTipLecMedLev);
+                                            field.SetValue(words[3]);
+                                            //field.SetValue(words[3], font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            //Log.Ex(ex);
+                                        }
+
+                                        counterTipLecMedLev++;
+                                    }
+                                }
+                                #endregion
+
+                                /*foreach (DataRow row in _detail.Rows)
                                 {
                                     try
                                     {
@@ -635,7 +1045,7 @@ namespace AESMovilAPI.Utilities
                                     {
                                         //Log.Ex(ex);
                                     }
-                                }
+                                }*/
                             }
 
                             //Imagenes
@@ -762,7 +1172,7 @@ namespace AESMovilAPI.Utilities
 
             return value == null ? string.Empty : value;
         }
-        public string GetValueFromDR(DataRow dr, string colName)
+        private string GetValueFromDR(DataRow dr, string colName)
         {
             string? value = string.Empty;
 
@@ -777,7 +1187,7 @@ namespace AESMovilAPI.Utilities
 
             return value == null ? string.Empty : value;
         }
-        public int GetIntValueFromDR(DataRow? dr, string colName)
+        private int GetIntValueFromDR(DataRow? dr, string colName)
         {
             string? value = "0";
             if (dr != null)
@@ -800,7 +1210,7 @@ namespace AESMovilAPI.Utilities
             return int.Parse(value);
         }
 
-        public long GetLongValueFromDR(DataRow? dr, string colName)
+        private long GetLongValueFromDR(DataRow? dr, string colName)
         {
             string? value = "0";
             if (dr != null)
@@ -823,7 +1233,7 @@ namespace AESMovilAPI.Utilities
             return long.Parse(value);
         }
 
-        public string GetValueFromJson(string json, string name, bool header = true, bool isNumber = false)
+        private string GetValueFromJson(string json, string name, bool header = true, bool isNumber = false)
         {
             string? value = string.Empty;
 
@@ -838,5 +1248,16 @@ namespace AESMovilAPI.Utilities
 
             return value;
         }
+
+        //private string[] GetValuesDetail()
+        //{
+        //    var rowsDetail = _detail.AsEnumerable()
+        //                          .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG1_DATOS_SUMINISTRO_STR)
+        //                          .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+        //                          .ToList();
+
+        //    string stringDetail = GetValueFromDR(row, "DATO_PRINT");
+        //    string[] words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+        //}
     }
 }

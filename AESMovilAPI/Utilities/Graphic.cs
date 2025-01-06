@@ -88,6 +88,7 @@ namespace AESMovilAPI.Utilities
                     NameTextSize = 28,
                     TextSize = 28,
                     MinStep = 1, // Asegura que cada etiqueta sea visible
+
                 };
 
                 var yAxis = new Axis
