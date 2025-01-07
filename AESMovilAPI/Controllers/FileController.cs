@@ -31,8 +31,9 @@ namespace AESMovilAPI.Controllers
         private readonly PdfFont _fontBold;
 
         private readonly string _baseEBillinApi;
+        private readonly PDFBuilder _builder;
 
-        public FileController(IConfiguration config, HttpClient client, IWebHostEnvironment webHostEnvironment, IMemoryCache cache) : base(config, client, cache)
+        public FileController(IConfiguration config, HttpClient client, IWebHostEnvironment webHostEnvironment, IMemoryCache cache, PDFBuilder builder) : base(config, client, cache)
         {
             _webHostEnvironment = webHostEnvironment;
 
@@ -47,6 +48,7 @@ namespace AESMovilAPI.Controllers
             _fontBold = PdfFontFactory.CreateFont(fontPathBold, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
 
             _baseEBillinApi = _config.GetValue<string>("EBillingAPI:Base");
+            _builder = builder;
         }
 
         [HttpGet("{id}")]
@@ -849,8 +851,7 @@ namespace AESMovilAPI.Controllers
             JObject jsonObject = JObject.Parse(entry.Content.Properties.Json);
 
             stopwatch.Restart();
-            PDFBuilder builder = new PDFBuilder(rootPath, id);
-            byte[]? result = builder.DoFillFormByte(jsonObject["Cabecera"].ToString(), jsonObject["Items"].ToString());
+            byte[]? result = _builder.DoFillFormByte(jsonObject["Cabecera"].ToString(), jsonObject["Items"].ToString());
 
             stopwatch.Stop();
             var elapsedMillisecondsBuilder = stopwatch.ElapsedMilliseconds;

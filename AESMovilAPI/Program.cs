@@ -1,5 +1,6 @@
 using AESMovilAPI.Filters;
 using AESMovilAPI.Models;
+using AESMovilAPI.Utilities;
 using ivraes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -159,8 +160,11 @@ try
     // Register memory cache service
     builder.Services.AddMemoryCache();
 
-    var app = builder.Build();
+    // Registrar ImageCache como servicio
+    builder.Services.AddSingleton<FilesCache>();
+    builder.Services.AddTransient<PDFBuilder>();
 
+    var app = builder.Build();
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
@@ -177,6 +181,13 @@ try
                 c.DocumentTitle = "AESMovil API Doc";
                 //c.RoutePrefix = string.Empty; // Serve Swagger UI at application root
             });
+    }
+
+    // Precargar las imágenes después de construir el contenedor
+    using (var scope = app.Services.CreateScope())
+    {
+        var imageCache = scope.ServiceProvider.GetRequiredService<FilesCache>();
+        imageCache.PreloadResources();
     }
 
     app.UseHttpsRedirection();
