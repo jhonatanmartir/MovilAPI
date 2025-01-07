@@ -62,22 +62,22 @@
         public const int TIP_REG2_TARIFA_APLICADA = 2;
         public const int TIP_REG3_TIPO_MED_LECTURAS = 3;
         public const int TIP_REG4_CONCEPTOS = 4;
-        public const int TIP_REG5_CARG_VARIOS_OTROS_INGRESOS = 5;
+        public const int TIP_REG5_OTROS_CONCEPTOS = 5;
         public const int TIP_REG6_VENTAS_EXENTAS = 6;
         public const int TIP_REG7_ALCALDIA = 7;
         public const int TIP_REG8_OTROS_SERVICIOS = 8;
-        public const int TIP_REG9_RETENCIONES = 9;
+        public const int TIP_REG9_COMPENSACIONES = 9;
         public const int TIP_REG10_MEDIDOR_LEVANTADO = 10;
 
         public const string TIP_REG1_DATOS_SUMINISTRO_STR = "01";
         public const string TIP_REG2_TARIFA_APLICADA_STR = "02";
         public const string TIP_REG3_TIPO_MED_LECTURAS_STR = "03";
         public const string TIP_REG4_CONCEPTOS_STR = "04";
-        public const string TIP_REG5_CARG_VARIOS_OTROS_INGRESOS_STR = "05";
+        public const string TIP_REG5_OTROS_CONCEPTOS_STR = "05";
         public const string TIP_REG6_VENTAS_EXENTAS_STR = "06";
         public const string TIP_REG7_ALCALDIA_STR = "07";
         public const string TIP_REG8_OTROS_SERVICIOS_STR = "08";
-        public const string TIP_REG9_RETENCIONES_STR = "09";
+        public const string TIP_REG9_COMPENSACIONES_STR = "09";
         public const string TIP_REG10_MEDIDOR_LEVANTADO_STR = "10";
         #endregion
 
