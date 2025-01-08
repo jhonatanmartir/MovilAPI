@@ -11,7 +11,7 @@ using SkiaSharp;
 
 namespace AESMovilAPI.Utilities
 {
-    public class Graphic
+    public static class Graphic
     {
         public static byte[]? GenerateSimpleQRByte(string text, string name, int pixelSize = 2)
         {
@@ -55,17 +55,6 @@ namespace AESMovilAPI.Utilities
                 // Extraer las etiquetas del eje X (fechas)
                 var labels = data.Select(d => d.Id).ToList();
 
-                // Serie configurada con los valores numéricos
-                //var series = new ISeries[]
-                //{
-                //    new LineSeries<double>
-                //    {
-                //        Values = numericValues, // Valores numéricos
-                //        Stroke = new SolidColorPaint(SKColors.Blue, 2), // Línea azul
-                //        Fill = null // Sin relleno
-                //    }
-                //};
-
                 // Crear serie de datos de barras
                 var series = new ISeries[]
                 {
@@ -75,39 +64,63 @@ namespace AESMovilAPI.Utilities
                         Fill = new SolidColorPaint(SKColors.Black),  // Color de las barras
                         DataLabelsPosition = DataLabelsPosition.Top, // Posición encima de las barras
                         DataLabelsPaint = new SolidColorPaint(SKColors.Black), // Color de las etiquetas
-                        DataLabelsSize = 28
+                        DataLabelsSize = 28,
+                        MaxBarWidth = 32
                     }
                 };
 
                 // Configuración del eje X con etiquetas personalizadas
                 var xAxis = new Axis
                 {
-                    Labels = labels, // Etiquetas del eje X extraídas de la lista
-                    //LabelsRotation = 8,
-                    Name = "Fecha de lectura",
+                    Labels = labels,                            // Etiquetas del eje X extraídas de la lista
+                    Name = "FECHA DE LECTURA",
                     NameTextSize = 28,
-                    TextSize = 28,
-                    MinStep = 1, // Asegura que cada etiqueta sea visible
-
+                    NamePaint = new SolidColorPaint             // Personalización del texto del nombre del eje
+                    {
+                        Color = SKColors.Black,                 // Color del texto del nombre
+                        SKTypeface = SKTypeface.FromFamilyName(
+                            "Helvetica", SKFontStyle.Normal)      // Fuente en negrita para el nombre
+                    },
+                    TextSize = 24,                              // Texto de las etiquetas
+                    MinStep = 1,                                // Asegura que cada etiqueta sea visible
+                    LabelsPaint = new SolidColorPaint           // Personalización del texto de las etiquetas
+                    {
+                        Color = SKColors.Black,
+                        SKTypeface = SKTypeface.FromFamilyName(
+                            "Helvetica", SKFontStyle.Bold)      // Tipo de letra en negrita
+                    },
+                    SeparatorsPaint = new SolidColorPaint
+                    {
+                        Color = SKColors.LightGray,             // Color de las líneas verticales
+                        StrokeThickness = 1
+                    }
                 };
 
                 var yAxis = new Axis
                 {
-                    Name = "kWh",
+                    Name = "KWH",
                     NameTextSize = 28,
-                    MinLimit = 0, // Asegura que el eje Y comience desde cero
-                    TextSize = 28
+                    NamePaint = new SolidColorPaint             // Personalización del texto del nombre del eje
+                    {
+                        Color = SKColors.Black,                 // Color del texto del nombre
+                        SKTypeface = SKTypeface.FromFamilyName(
+                            "Helvetica", SKFontStyle.Normal)      // Fuente en negrita para el nombre
+                    },
+                    MinLimit = 0,                               // Asegura que el eje Y comience desde cero
+                    TextSize = 28,
+                    LabelsPaint = new SolidColorPaint           // Personalización del texto de las etiquetas
+                    {
+                        Color = SKColors.Black,
+                        SKTypeface = SKTypeface.FromFamilyName(
+                            "Helvetica", SKFontStyle.Bold)      // Tipo de letra en negrita
+                    },
+                    SeparatorsPaint = new SolidColorPaint
+                    {
+                        Color = SKColors.LightGray,             // Color de las líneas horizontales
+                        StrokeThickness = 1
+                    }
                 };
 
-                // Crear el gráfico utilizando SKCartesianChart
-                //var chart = new SKCartesianChart
-                //{
-                //    Series = series,
-                //    XAxes = new[] { xAxis },
-                //    YAxes = new[] { yAxis },
-                //    Width = 800,
-                //    Height = 400
-                //};
                 var chart = new SKCartesianChart
                 {
                     Series = series,

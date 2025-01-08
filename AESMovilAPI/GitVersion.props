@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <Tag>1.2.0</Tag>
-    <Message>Geracion pdf QA</Message>
+    <Tag>1.2.1</Tag>
+    <Message>Version de PDF QA</Message>
   </PropertyGroup>
 </Project>
