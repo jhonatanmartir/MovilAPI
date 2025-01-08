@@ -1,7 +1,6 @@
 ﻿using AESMovilAPI.DTOs;
 using AESMovilAPI.Responses;
 using AESMovilAPI.Utilities;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Dynamic;
@@ -15,9 +14,9 @@ namespace AESMovilAPI.Controllers
     public class PaymentController : BaseController
     {
         private readonly HttpClient _client;
-        public PaymentController(IConfiguration config, HttpClient httpClient) : base(config, httpClient)
+        public PaymentController(IConfiguration config, IHttpClientFactory httpClientFactory) : base(config, httpClientFactory)
         {
-            _client = httpClient;
+            _client = httpClientFactory.CreateClient(Constants.HTTP_CLIENT_NAME);
         }
 
         /// <summary>

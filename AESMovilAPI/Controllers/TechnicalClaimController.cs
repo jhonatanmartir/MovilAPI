@@ -17,7 +17,7 @@ namespace AESMovilAPI.Controllers
     {
         private readonly VRAESELSALVADORSoapClient _ivrClient;
 
-        public TechnicalClaimController(IConfiguration config, HttpClient client, VRAESELSALVADORSoapClient ivr) : base(config, client)
+        public TechnicalClaimController(IConfiguration config, IHttpClientFactory httpClientFactory, VRAESELSALVADORSoapClient ivr) : base(config, httpClientFactory)
         {
             _ivrClient = ivr;
         }

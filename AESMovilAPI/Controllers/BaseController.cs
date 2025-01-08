@@ -39,12 +39,12 @@ namespace AESMovilAPI.Controllers
 
         private static readonly Logger _logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public BaseController(IConfiguration config, HttpClient? client = null, IMemoryCache cache = null)
+        public BaseController(IConfiguration config, IHttpClientFactory? httpClientFactory = null, IMemoryCache cache = null)
         {
             _config = config;
             _token = string.Empty;
             _statusCode = BAD_REQUEST_400;
-            _client = client;
+            _client = httpClientFactory != null ? httpClientFactory.CreateClient(Constants.HTTP_CLIENT_NAME) : null;
             _memory = cache;
         }
 

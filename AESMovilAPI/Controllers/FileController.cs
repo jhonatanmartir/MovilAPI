@@ -30,10 +30,10 @@ namespace AESMovilAPI.Controllers
         private readonly PdfFont _fontSemiBold;
         private readonly PdfFont _fontBold;
 
-        private readonly string _baseEBillinApi;
+        private readonly string? _baseEBillinApi;
         private readonly PDFBuilder _builder;
 
-        public FileController(IConfiguration config, HttpClient client, IWebHostEnvironment webHostEnvironment, IMemoryCache cache, PDFBuilder builder) : base(config, client, cache)
+        public FileController(IConfiguration config, IHttpClientFactory httpClientFactory, IWebHostEnvironment webHostEnvironment, IMemoryCache cache, PDFBuilder builder) : base(config, httpClientFactory, cache)
         {
             _webHostEnvironment = webHostEnvironment;
 

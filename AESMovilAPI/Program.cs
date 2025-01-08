@@ -8,6 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NLog;
 using NLog.Web;
+using Polly;
+using Polly.Extensions.Http;
 using Swashbuckle.AspNetCore.Filters;
 using System.Globalization;
 using System.ServiceModel;
@@ -140,11 +142,21 @@ try
     // Make sure the configuration from appsettings.json is added.
     builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
     // Register the HttpClientFactory
-    builder.Services.AddHttpClient();
+    // builder.Services.AddHttpClient();
+    builder.Services.AddHttpClient(Constants.HTTP_CLIENT_NAME)
+        .AddPolicyHandler(Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(10))) // Timeout
+        .AddPolicyHandler(HttpPolicyExtensions
+                      .HandleTransientHttpError()
+                      .RetryAsync(3)) // Retry en errores transitorios
+        .AddPolicyHandler(HttpPolicyExtensions
+                      .HandleTransientHttpError()
+                      .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30))); // Circuit Breaker
+
     //builder.Services.AddSingleton(new HttpClient(new HttpClientHandler
     //{
     //    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
     //}));
+
     // Registrar los filtros de ejemplos
     builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
 
@@ -163,6 +175,16 @@ try
     // Registrar ImageCache como servicio
     builder.Services.AddSingleton<FilesCache>();
     builder.Services.AddTransient<PDFBuilder>();
+
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.Limits.MaxConcurrentConnections = 5000;
+        options.Limits.MaxConcurrentUpgradedConnections = 5000;
+        options.Limits.MaxRequestBodySize = 50 * 1024 * 1024; // 50 MB
+    });
+
+    // Configuración del Pool de Hilos
+    //ThreadPool.SetMinThreads(workerThreads: 256, completionPortThreads: 256);
 
     var app = builder.Build();
 

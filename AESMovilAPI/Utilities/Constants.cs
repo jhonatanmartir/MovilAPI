@@ -89,5 +89,7 @@
         public const string EXT_ZIP = ".zip";
         public const string EXT_JSON = ".json";
         #endregion
+
+        public const string HTTP_CLIENT_NAME = "DefaultClient";
     }
 }

@@ -11,7 +11,7 @@ namespace AESMovilAPI.Controllers
     [Route("api/v1/[controller]")]
     public class ReplacementController : BaseController
     {
-        public ReplacementController(IConfiguration config, HttpClient httpClient, IMemoryCache cache) : base(config, httpClient, cache)
+        public ReplacementController(IConfiguration config, IHttpClientFactory httpClientFactory, IMemoryCache cache) : base(config, httpClientFactory, cache)
         {
         }
 
