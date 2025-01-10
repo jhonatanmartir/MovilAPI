@@ -64,7 +64,7 @@ namespace AESMovilAPI.Utilities
                         Fill = new SolidColorPaint(SKColors.Black),  // Color de las barras
                         DataLabelsPosition = DataLabelsPosition.Top, // Posición encima de las barras
                         DataLabelsPaint = new SolidColorPaint(SKColors.Black), // Color de las etiquetas
-                        DataLabelsSize = 28,
+                        DataLabelsSize = 20,
                         MaxBarWidth = 32
                     }
                 };
@@ -81,7 +81,7 @@ namespace AESMovilAPI.Utilities
                         SKTypeface = SKTypeface.FromFamilyName(
                             "Helvetica", SKFontStyle.Normal)      // Fuente en negrita para el nombre
                     },
-                    TextSize = 24,                              // Texto de las etiquetas
+                    TextSize = 20,                              // Texto de las etiquetas
                     MinStep = 1,                                // Asegura que cada etiqueta sea visible
                     LabelsPaint = new SolidColorPaint           // Personalización del texto de las etiquetas
                     {

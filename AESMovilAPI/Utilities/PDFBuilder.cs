@@ -355,9 +355,10 @@ namespace AESMovilAPI.Utilities
                         foreach (var row in rowsDetail)
                         {
                             stringDetail = GetValueFromDR(row, "DATO_PRINT");
-                            words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
-
-                            if (words.Length > 0)
+                            //words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+                            words = Regex.Split(stringDetail, @"\s*;\s*|\s{2,}"); //Dividir el string usando Regex
+                            
+                            if (words.Length > 0 && counterTipDatosSuministro < words.Length)
                             {
                                 try
                                 {
@@ -396,6 +397,17 @@ namespace AESMovilAPI.Utilities
                         {
                             stringDetail = GetValueFromDR(row, "DATO_PRINT");
                             words = stringDetail.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);       // Separar por espacios (incluye múltiples espacios)
+                            
+                            if(words.Length < 3)
+                            {
+                                words = Regex.Split(stringDetail, @"\s*;\s*|\s{2,}"); //Dividir el string usando Regex
+                            }
+
+                            // Crear un nuevo array sin el elemento vacio
+                            if(string.IsNullOrWhiteSpace(words[1].Trim()))
+                            {
+                                words = words.Where(item => !string.IsNullOrWhiteSpace(item)).ToArray();
+                            }
 
                             if (words.Length > 0)
                             {
@@ -496,7 +508,8 @@ namespace AESMovilAPI.Utilities
                         foreach (var row in rowsDetail)
                         {
                             stringDetail = GetValueFromDR(row, "DATO_PRINT");
-                            words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+                            //words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+                            words = Regex.Split(stringDetail, @"\s*;\s*|\s{2,}"); //Dividir el string usando Regex
 
                             if (words.Length > 0)
                             {
