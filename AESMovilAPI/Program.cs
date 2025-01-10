@@ -184,7 +184,7 @@ try
     });
 
     // Configuración del Pool de Hilos
-    //ThreadPool.SetMinThreads(workerThreads: 256, completionPortThreads: 256);
+    ThreadPool.SetMinThreads(workerThreads: 32, completionPortThreads: 32);
 
     var app = builder.Build();
 
