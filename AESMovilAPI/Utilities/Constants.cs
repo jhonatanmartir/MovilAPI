@@ -48,6 +48,7 @@
         public const string CONF_OMS_BASE = "OMS:Base";
         public const string CONF_OMS_USER = "OMS:Usr";
         public const string CONF_OMS_PASSWORD = "OMS:Pwd";
+        public const string CONF_OMS_IVRADMS = "OMS:ivradms";
         #endregion
 
         #region "Security"

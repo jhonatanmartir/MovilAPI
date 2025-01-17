@@ -16,10 +16,12 @@ namespace AESMovilAPI.Controllers
     public class TechnicalClaimController : BaseController
     {
         private readonly VRAESELSALVADORSoapClient _ivrClient;
+        private readonly ivradms.VRAESELSALVADORSoapClient _ivradmsClient;
 
-        public TechnicalClaimController(IConfiguration config, IHttpClientFactory httpClientFactory, VRAESELSALVADORSoapClient ivr) : base(config, httpClientFactory)
+        public TechnicalClaimController(IConfiguration config, IHttpClientFactory httpClientFactory, VRAESELSALVADORSoapClient ivr, ivradms.VRAESELSALVADORSoapClient ivradms) : base(config, httpClientFactory)
         {
             _ivrClient = ivr;
+            _ivradmsClient = ivradms;
         }
 
         /// <summary>
@@ -68,38 +70,72 @@ namespace AESMovilAPI.Controllers
         public async Task<IActionResult> Create(Claim claim)
         {
             Response<ClaimResponse> response = new Response<ClaimResponse>();
+            var isIVRADMS = _config.GetValue<bool>(Constants.CONF_OMS_IVRADMS);
 
             if (claim != null && ModelState.IsValid)
             {
                 try
                 {
                     _statusCode = CREATED_201;
-                    CrearReclamoResponse ivResponse = await _ivrClient.CrearReclamoAsync(
-                    claim.Contrato.ToString(),
-                    claim.OrigenReclamo,
-                    claim.TipoReclamo,
-                    claim.ComentarioReclamo,
-                    claim.ComentarioDireccion,
-                    claim.Peligro,
-                    claim.VecinosAfectados ? "1" : "0",
-                    claim.Empresa,
-                    claim.Departamento,
-                    claim.Municipio,
-                    claim.Usuario,
-                    claim.Usuario,
-                    claim.Telefono);
-
-                    response.Message = ivResponse.Body.CrearReclamoResult.MENSAJE_ERROR;
-                    response.Data = new ClaimResponse
+                    if(!isIVRADMS)
                     {
-                        ClaimNumber = ivResponse.Body.CrearReclamoResult.NUMERO_RECLAMO,
-                        Reiterations = ivResponse.Body.CrearReclamoResult.REITERACIONES
-                    };
+                        ivraes.CrearReclamoResponse ivResponse = await _ivrClient.CrearReclamoAsync(
+                        claim.Contrato.ToString(),
+                        claim.OrigenReclamo,
+                        claim.TipoReclamo,
+                        claim.ComentarioReclamo,
+                        claim.ComentarioDireccion,
+                        claim.Peligro,
+                        claim.VecinosAfectados ? "1" : "0",
+                        claim.Empresa,
+                        claim.Departamento,
+                        claim.Municipio,
+                        claim.Usuario,
+                        claim.Usuario,
+                        claim.Telefono);
 
-                    if (string.IsNullOrEmpty(ivResponse.Body.CrearReclamoResult.NUMERO_RECLAMO))
-                    {
-                        _statusCode = SERVICE_UNAVAILABLE_503;
+                        response.Message = ivResponse.Body.CrearReclamoResult.MENSAJE_ERROR;
+                        response.Data = new ClaimResponse
+                        {
+                            ClaimNumber = ivResponse.Body.CrearReclamoResult.NUMERO_RECLAMO,
+                            Reiterations = ivResponse.Body.CrearReclamoResult.REITERACIONES
+                        };
+
+                        if (string.IsNullOrEmpty(ivResponse.Body.CrearReclamoResult.NUMERO_RECLAMO))
+                        {
+                            _statusCode = SERVICE_UNAVAILABLE_503;
+                        }
                     }
+                    else
+                    {
+                        ivradms.CrearReclamoResponse ivResponse = await _ivradmsClient.CrearReclamoAsync(
+                        claim.Contrato.ToString(),
+                        claim.OrigenReclamo,
+                        claim.TipoReclamo,
+                        claim.ComentarioReclamo,
+                        claim.ComentarioDireccion,
+                        claim.Peligro,
+                        claim.VecinosAfectados ? "1" : "0",
+                        claim.Empresa,
+                        claim.Departamento,
+                        claim.Municipio,
+                        claim.Usuario,
+                        claim.Usuario,
+                        claim.Telefono);
+
+                        response.Message = ivResponse.Body.CrearReclamoResult.MENSAJE_ERROR;
+                        response.Data = new ClaimResponse
+                        {
+                            ClaimNumber = ivResponse.Body.CrearReclamoResult.NUMERO_RECLAMO,
+                            Reiterations = ivResponse.Body.CrearReclamoResult.REITERACIONES
+                        };
+
+                        if (string.IsNullOrEmpty(ivResponse.Body.CrearReclamoResult.NUMERO_RECLAMO))
+                        {
+                            _statusCode = SERVICE_UNAVAILABLE_503;
+                        }
+                    }
+                    
                 }
                 catch (Exception ex)
                 {

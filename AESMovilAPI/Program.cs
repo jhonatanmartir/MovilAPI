@@ -1,6 +1,7 @@
 using AESMovilAPI.Filters;
 using AESMovilAPI.Models;
 using AESMovilAPI.Utilities;
+using ivradms;
 using ivraes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -48,6 +49,14 @@ try
     var endpointUrls = connectedServiceConfig.GetSection("ExtendedData:inputs").Get<string[]>();
     // Use the first endpoint for simplicity, or apply your own logic to select the desired endpoint
     var endpointUrl = endpointUrls?.FirstOrDefault() ?? "";
+
+    // Load ConnectedService.json IVRADMS
+    var connectedServiceConfigIVRADMS = new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("Connected Services/ivradms/ConnectedService.json", false, true)
+        .Build();
+    var endpointUrlsIVRADMS = connectedServiceConfigIVRADMS.GetSection("ExtendedData:inputs").Get<string[]>();
+    var endpointUrlIVRADMS = endpointUrlsIVRADMS?.FirstOrDefault() ?? "";
 
     // Configurar autenticación JWT
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -132,11 +141,19 @@ try
     });
 
     // Registrar el servicio con una vida útil específica (Singleton, Scoped, Transient)
-    builder.Services.AddSingleton<VRAESELSALVADORSoapClient>(provider =>
+    builder.Services.AddSingleton<ivraes.VRAESELSALVADORSoapClient>(provider =>
     {
         var binding = new BasicHttpBinding();
         var endpoint = new EndpointAddress(endpointUrl);
-        return new VRAESELSALVADORSoapClient(binding, endpoint);
+        return new ivraes.VRAESELSALVADORSoapClient(binding, endpoint);
+    });
+
+    // Registrar el servicio con una vida útil específica (Singleton, Scoped, Transient) IVRADMS
+    builder.Services.AddSingleton<ivradms.VRAESELSALVADORSoapClient>(provider =>
+    {
+        var binding = new BasicHttpBinding();
+        var endpoint = new EndpointAddress(endpointUrlIVRADMS);
+        return new ivradms.VRAESELSALVADORSoapClient(binding, endpoint);
     });
 
     // Make sure the configuration from appsettings.json is added.
