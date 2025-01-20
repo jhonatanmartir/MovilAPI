@@ -123,28 +123,6 @@ namespace AESMovilAPI.Utilities
             }
         }
 
-        public static string CleanXml(string xmlString, string namespaceValue)
-        {
-            // Cargar el XML en un XDocument
-            XDocument doc = XDocument.Parse(xmlString);
-
-            // Remover los prefijos, pero manteniendo el namespace correcto
-            XNamespace sapNamespace = namespaceValue;
-            if (string.IsNullOrEmpty(namespaceValue))
-            {
-                sapNamespace = "http://sap.com/xi/SAPGlobal/Global";
-            }
-
-            var elements = doc.Descendants().ToList();
-
-            foreach (var element in elements)
-            {
-                element.Name = sapNamespace + element.Name.LocalName; // Remover el prefijo y mantener el namespace
-            }
-
-            // Convertir de nuevo el documento a string limpio
-            return doc.ToString();
-        }
         public static string CleanXml(string? xmlString)
         {
             if (string.IsNullOrEmpty(xmlString))
@@ -158,7 +136,6 @@ namespace AESMovilAPI.Utilities
             // Crear un diccionario para los espacios de nombres
             var namespaceMappings = new Dictionary<string, XNamespace>
             {
-                { "global", "http://sap.com/xi/SAPGlobal/Global" },
                 { "atom", "http://www.w3.org/2005/Atom" },
                 { "m", "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" },
                 { "d", "http://schemas.microsoft.com/ado/2007/08/dataservices" }
@@ -181,6 +158,40 @@ namespace AESMovilAPI.Utilities
             // Convertir de nuevo el documento a string limpio
             return doc.ToString();
         }
+
+        public static string CleanXml(string xml, string namespaceUri)
+        {
+            if (string.IsNullOrWhiteSpace(xml))
+                throw new ArgumentException("The XML string cannot be null or empty.");
+
+            // Cargar el XML en un XDocument
+            XDocument doc = XDocument.Parse(xml);
+
+            // Obtener el espacio de nombres
+            XNamespace ns = namespaceUri;
+
+            // Función para ajustar los nombres de los elementos
+            void AddNamespaceToElement(XElement element)
+            {
+                if (string.IsNullOrEmpty(element.Name.NamespaceName))
+                {
+                    element.Name = ns + element.Name.LocalName;
+                }
+
+                foreach (var child in element.Elements())
+                {
+                    AddNamespaceToElement(child);
+                }
+            }
+
+            // Agregar el espacio de nombres al elemento raíz y a sus descendientes
+            XElement root = doc.Root ?? throw new InvalidOperationException("The XML does not have a root element.");
+            AddNamespaceToElement(root);
+
+            // Convertir de vuelta a cadena
+            return doc.ToString();
+        }
+
 
         public static double ParseToNegative(string value)
         {

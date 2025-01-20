@@ -240,19 +240,19 @@ namespace AESMovilAPI.Controllers
                     string name = "";
                     long documentNumber = 0;
 
-                    if (values.CashPointOpenItemSummary.CashPointOpenItems.Count > 0)
+                    if (values.CashPointOpenItemSummary?.CashPointOpenItems != null)
                     {
                         foreach (var item in values.CashPointOpenItemSummary.CashPointOpenItems)
                         {
                             try
                             {
-                                amount += item.OpenAmount.Amount;
+                                amount += item.OpenAmount.Value;
 
-                                if (item.OpenItemTransactionDescription.Description == "ALCA")
+                                if (item.OpenItemTransactionDescription.Value == "ALCA")
                                 {
                                     mayoral = true;
                                 }
-                                if (item.OpenItemTransactionDescription.Description == "RECO")
+                                if (item.OpenItemTransactionDescription.Value == "RECO")
                                 {
                                     reconnection = true;
                                 }
@@ -278,7 +278,7 @@ namespace AESMovilAPI.Controllers
                         MayoralPayment = mayoral,
                         ReconnectionPayment = reconnection,
                         Company = company,
-                        BP = values.CashPointOpenItemSummary.PartyReference.InternalID
+                        BP = values.CashPointOpenItemSummary?.PartyReference?.InternalID
                     };
                 }
             }

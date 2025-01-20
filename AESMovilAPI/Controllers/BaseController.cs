@@ -289,8 +289,8 @@ namespace AESMovilAPI.Controllers
 
                     // Read the response content as a string
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    responseContent = Helper.CleanXml(responseContent);
-                    var responseObject = Helper.DeserializeXml<CashPointOpenItemSummaryByElementsResponseMessage>(responseContent)!;
+                    responseContent = Helper.CleanXml(responseContent, "http://sap.com/xi/SAPGlobal/Global");
+                    var responseObject = Helper.DeserializeXml<CashPointOpenItemSummaryByElementsResponseMessage>(responseContent);
 
                     return responseObject;
                 }
