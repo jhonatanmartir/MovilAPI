@@ -81,6 +81,7 @@ namespace AESMovilAPI.Utilities
                     string promedio = string.Empty;
                     decimal suma = 0;
                     string npeValid = string.Empty;
+                    decimal totalConSeguro = 0;
 
                     //Campos
                     if (_header != null)
@@ -125,6 +126,7 @@ namespace AESMovilAPI.Utilities
                                         field.SetValue(fielValue);
                                         //field.SetValue(fielValue, fontBold, Constants.FONT_SIZE_FORM);
                                         suma = suma + Helper.ToDecimal(fielValue);
+                                        totalConSeguro = totalConSeguro + Helper.ToDecimal(fielValue);
                                     }
 
                                     if (fieldName.Equals("SUBTOTAL_ALCALDIA"))
@@ -147,6 +149,7 @@ namespace AESMovilAPI.Utilities
                                         field.SetValue(fielValue);
                                         //field.SetValue(fielValue, fontBold, Constants.FONT_SIZE_FORM);
                                         suma = suma + Helper.ToDecimal(fielValue);
+                                        totalConSeguro = totalConSeguro + Helper.ToDecimal(fielValue);
                                     }
 
                                     if (fieldName.Equals("PAIS"))
@@ -160,7 +163,7 @@ namespace AESMovilAPI.Utilities
 
                                     if (fieldName.Equals("TOTAL_SEGURO_DOL"))
                                     {
-                                        field.SetValue(fielValue);
+                                        field.SetValue(totalConSeguro.ToString());
                                         //field.SetValue(fielValue, fontBold, Constants.FONT_SIZE_FORM);
                                     }
 
@@ -196,6 +199,26 @@ namespace AESMovilAPI.Utilities
                                                 break;
                                             case "C":   // FC540, FC550, FC570
                                                 field.SetValue("CREDITO FISCAL");
+                                                //field.SetValue("CREDITO FISCAL", fontBold, Constants.FONT_SIZE_FORM);
+                                                break;
+                                            case "FC":   // FC540, FC550, FC570
+                                                field.SetValue("FACTURA ELECTRONICA");
+                                                //field.SetValue("CREDITO FISCAL", fontBold, Constants.FONT_SIZE_FORM);
+                                                break;
+                                            case "FF":   // FC540, FC550, FC570
+                                                field.SetValue("CRÉDITO FISCAL ELECTRONICO");
+                                                //field.SetValue("CREDITO FISCAL", fontBold, Constants.FONT_SIZE_FORM);
+                                                break;
+                                            case "NC":   // FC540, FC550, FC570
+                                                field.SetValue("NOTA DE CRÉDITO ELECTRONICA");
+                                                //field.SetValue("CREDITO FISCAL", fontBold, Constants.FONT_SIZE_FORM);
+                                                break;
+                                            case "ND":   // FC540, FC550, FC570
+                                                field.SetValue("NOTA DE DÉBITO ELECTRONICA");
+                                                //field.SetValue("CREDITO FISCAL", fontBold, Constants.FONT_SIZE_FORM);
+                                                break;
+                                            case "FE":   // FC540, FC550, FC570
+                                                field.SetValue("FACTURA EXPORTACIÓN ELECTRONICA");
                                                 //field.SetValue("CREDITO FISCAL", fontBold, Constants.FONT_SIZE_FORM);
                                                 break;
                                             default: break;
@@ -241,6 +264,11 @@ namespace AESMovilAPI.Utilities
                                             }
                                         }
                                     }
+
+                                    if (fieldName.Equals("POTENCIA"))
+                                    {
+                                        field.SetValue($"{fielValue} KW");
+                                    }
                                 }
 
                                 //Custom fields
@@ -260,7 +288,8 @@ namespace AESMovilAPI.Utilities
                                                 "Edificio Corporativo CAESS Col. San Antonio,Calle El Bambú\n" +
                                                 "Ayutuxtepeque, San Salvador\n" +
                                                 "Registro: 321-2\n" +
-                                                "NIT 0614-171190-001-3 / Giro: Distribución de Energía Eléctrica";
+                                                "NIT 0614-171190-001-3 \n" +
+                                                "Giro: Distribución de Energía Eléctrica";
                                             break;
                                         case "3":   //EEO
                                             Company = "EEO";
@@ -268,7 +297,8 @@ namespace AESMovilAPI.Utilities
                                                 "Final 8a. Calle Pte., calle a C. Pacifica, Edif. Jalacatal\n" +
                                                 "San Miguel\n" +
                                                 "Registro: 90597-6\n" +
-                                                "NIT 0614-161195-103-0 / Giro: Distribución de Energía Eléctrica";
+                                                "NIT 0614-161195-103-0 \n" +
+                                                "Giro: Distribución de Energía Eléctrica";
                                             break;
                                         case "4":   //DEUSEM
                                             Company = "DEUSEM";
@@ -276,7 +306,8 @@ namespace AESMovilAPI.Utilities
                                                 "Centro Comercial Puerta de Oriente\n" +
                                                 "Usulutan, local 2\n" +
                                                 "Registro: 3267-0\n" +
-                                                "NIT 1123-260757-001-0 / Giro: Distribución de Energía Eléctrica";
+                                                "NIT 1123-260757-001-0 \n" +
+                                                "Giro: Distribución de Energía Eléctrica";
                                             break;
                                         case "5":   //CLESA
                                             Company = "CLESA";
@@ -284,7 +315,8 @@ namespace AESMovilAPI.Utilities
                                                 "23 Av. Sur y 5a. Calle Ote., Barrio San Rafael\n" +
                                                 "Santa Ana\n" +
                                                 "Registro: 2023-0\n" +
-                                                "NIT 0210-120792-0015 / Giro: Distribución de Energía Eléctrica";
+                                                "NIT 0210-120792-0015 \n" +
+                                                "Giro: Distribución de Energía Eléctrica";
                                             break;
                                         default:
                                             break;
@@ -357,8 +389,8 @@ namespace AESMovilAPI.Utilities
                             stringDetail = GetValueFromDR(row, "DATO_PRINT");
                             //words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
                             words = Regex.Split(stringDetail, @"\s*;\s*|\s{2,}"); //Dividir el string usando Regex
-                            
-                            if (words.Length > 0 && counterTipDatosSuministro < words.Length)
+
+                            if (words.Length > 0)
                             {
                                 try
                                 {
@@ -397,14 +429,14 @@ namespace AESMovilAPI.Utilities
                         {
                             stringDetail = GetValueFromDR(row, "DATO_PRINT");
                             words = stringDetail.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);       // Separar por espacios (incluye múltiples espacios)
-                            
-                            if(words.Length < 3)
+
+                            if (words.Length < 3)
                             {
                                 words = Regex.Split(stringDetail, @"\s*;\s*|\s{2,}"); //Dividir el string usando Regex
                             }
 
                             // Crear un nuevo array sin el elemento vacio
-                            if(string.IsNullOrWhiteSpace(words[1].Trim()))
+                            if (string.IsNullOrWhiteSpace(words[1].Trim()))
                             {
                                 words = words.Where(item => !string.IsNullOrWhiteSpace(item)).ToArray();
                             }
@@ -518,10 +550,10 @@ namespace AESMovilAPI.Utilities
                                     field = form.GetField("FD_TIPO_LECT_" + counterTipLecMed);
                                     field.SetValue(words[1]);
                                     //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM_MEDIUM);
-                                    field = form.GetField("FD_LECT_ACT_" + counterTipLecMed);
+                                    field = form.GetField("FD_LECT_ANT_" + counterTipLecMed);
                                     field.SetValue(words[2]);
                                     //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM_MEDIUM);
-                                    field = form.GetField("FD_LECT_ANT_" + counterTipLecMed);
+                                    field = form.GetField("FD_LECT_ACT_" + counterTipLecMed);
                                     field.SetValue(words[3]);
                                     //field.SetValue(words[2], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                     field = form.GetField("FD_CONSUMO_" + counterTipLecMed);
@@ -851,7 +883,7 @@ namespace AESMovilAPI.Utilities
                             // Create layout image object and provide parameters. 
                             Image image = new Image(imageData);
                             image.ScaleToFit(80, 80);
-                            image.SetFixedPosition(526, 696);
+                            image.SetFixedPosition(526, 690);
                             // This adds the image to the page
                             document.Add(image);
                         }

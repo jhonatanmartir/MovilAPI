@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <Tag>1.2.2</Tag>
-    <Message>Mejoras de rendimiento version QA</Message>
+    <Tag>1.2.3</Tag>
+    <Message>Version para QA IVR</Message>
   </PropertyGroup>
 </Project>
