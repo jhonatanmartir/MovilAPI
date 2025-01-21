@@ -123,42 +123,6 @@ namespace AESMovilAPI.Utilities
             }
         }
 
-        public static string CleanXml(string? xmlString)
-        {
-            if (string.IsNullOrEmpty(xmlString))
-            {
-                return string.Empty;
-            }
-
-            // Cargar el XML en un XDocument
-            XDocument doc = XDocument.Parse(xmlString);
-
-            // Crear un diccionario para los espacios de nombres
-            var namespaceMappings = new Dictionary<string, XNamespace>
-            {
-                { "atom", "http://www.w3.org/2005/Atom" },
-                { "m", "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" },
-                { "d", "http://schemas.microsoft.com/ado/2007/08/dataservices" }
-            };
-
-            // Quitar los prefijos pero respetar los namespaces originales
-            foreach (var element in doc.Descendants())
-            {
-                // Identificar el namespace actual
-                XNamespace currentNamespace = element.Name.Namespace;
-
-                // Reasignar el nombre del elemento sin prefijo
-                string localName = element.Name.LocalName;
-                if (namespaceMappings.ContainsValue(currentNamespace))
-                {
-                    element.Name = currentNamespace + localName;
-                }
-            }
-
-            // Convertir de nuevo el documento a string limpio
-            return doc.ToString();
-        }
-
         public static string CleanXml(string xml, string namespaceUri)
         {
             if (string.IsNullOrWhiteSpace(xml))

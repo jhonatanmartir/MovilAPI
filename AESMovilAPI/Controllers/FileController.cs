@@ -846,7 +846,7 @@ namespace AESMovilAPI.Controllers
             stopwatch.Stop();
 
             var elapsedMillisecondsRequest = stopwatch.ElapsedMilliseconds;
-            string xmlString = Helper.CleanXml(response);
+            string xmlString = Helper.CleanXml(response, "http://www.w3.org/2005/Atom");
             var entry = Helper.DeserializeXml<Entry>(xmlString)!;
             JObject jsonObject = JObject.Parse(entry.Content.Properties.Json);
 

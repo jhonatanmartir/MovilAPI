@@ -72,7 +72,7 @@ namespace AESMovilAPI.Controllers
                         endpoint = baseUrl + "/gw/odata/SAP/CIS_" + mandante + $"_ACC_GETINVOICEFORMJSON_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetInvoiceToJsonSet('{documentNumber}')";
 
                         result = await ExecuteGetRequest(endpoint, true, null, false, false);
-                        string xmlString = Helper.CleanXml(result);
+                        string xmlString = Helper.CleanXml(result, "http://www.w3.org/2005/Atom");
                         var entry = Helper.DeserializeXml<Entry>(xmlString)!;
 
                         if (!string.IsNullOrEmpty(entry.Content.Properties.Json) && documentNumber == entry.Content.Properties.Opbel)
