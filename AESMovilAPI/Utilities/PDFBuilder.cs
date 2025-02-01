@@ -169,56 +169,33 @@ namespace AESMovilAPI.Utilities
 
                                     if (fieldName.Equals("RUTA"))
                                     {
-                                        string ruta = GetValueFromDT("COD_UNICOM") + "  " + fielValue + "  " +
-                                            GetValueFromDT("NUM_ITIN") + "  " + GetValueFromDT("AOL_FIN");
-                                        field.SetValue(ruta);
+                                        field.SetValue(fielValue);
                                         //field.SetValue(ruta, font, Constants.FONT_SIZE_FORM);
                                     }
 
-                                    if (fieldName.Equals("MESES_PEND") && fielValue == "1" ||
-                                        fieldName.Equals("MESES_PEND") && fielValue == "01")
-                                    {
-                                        field = form.GetField("FH_MENSAJE_1");
-                                        string mensaje = "ESTIMADO CLIENTE USTED TIENE 2 FACTURAS PENDIENTES DE PAGO, SI SU CONSUMO ES HASTA 300KWH EN TARIFA RESIDENCIAL, A PARTIR DE LA FECHA DE VENCIMIENTO CUENTA CON 72 HORAS ADICIONALES PARA EFECTUAR SU PAGO, DE NO REALIZARLO SU SERVICIO SERÁ SUSPENDIDO; SI SU CONUSMO ES MAYOR A 300KWH SU SERVICIO SERÁ SUSPENDIDO AL DIA SIGUIENTE.";
-                                        field.SetValue(mensaje);
-                                        //field.SetValue(mensaje, fontBold, Constants.FONT_SIZE_FORM);
-                                    }
-
                                     //Tipo de factura
-                                    if (fieldName.Equals("TIPO_DOC"))   // TODO cambio nombre
+                                    if (fieldName.Equals("DOC_TYPE"))
                                     {
                                         switch (fielValue)
                                         {
-                                            case "E":   // FC560
-                                                field.SetValue("FACTURA DE EXPORTACION");
-                                                //field.SetValue("FACTURA DE EXPORTACION", fontBold, Constants.FONT_SIZE_FORM);
-                                                break;
-                                            case "F":   // FC500, FC580
-                                                field.SetValue("FACTURA");
-                                                //field.SetValue("FACTURA", fontBold, Constants.FONT_SIZE_FORM);
-                                                break;
-                                            case "C":   // FC540, FC550, FC570
-                                                field.SetValue("CREDITO FISCAL");
-                                                //field.SetValue("CREDITO FISCAL", fontBold, Constants.FONT_SIZE_FORM);
-                                                break;
-                                            case "FC":   // FC540, FC550, FC570
+                                            case "FE":
                                                 field.SetValue("FACTURA ELECTRONICA");
                                                 //field.SetValue("CREDITO FISCAL", fontBold, Constants.FONT_SIZE_FORM);
                                                 break;
-                                            case "FF":   // FC540, FC550, FC570
+                                            case "CCFE":
                                                 field.SetValue("CRÉDITO FISCAL ELECTRONICO");
                                                 //field.SetValue("CREDITO FISCAL", fontBold, Constants.FONT_SIZE_FORM);
                                                 break;
-                                            case "NC":   // FC540, FC550, FC570
+                                            case "NCE":
                                                 field.SetValue("NOTA DE CRÉDITO ELECTRONICA");
                                                 //field.SetValue("CREDITO FISCAL", fontBold, Constants.FONT_SIZE_FORM);
                                                 break;
-                                            case "ND":   // FC540, FC550, FC570
+                                            case "NDE":
                                                 field.SetValue("NOTA DE DÉBITO ELECTRONICA");
                                                 //field.SetValue("CREDITO FISCAL", fontBold, Constants.FONT_SIZE_FORM);
                                                 break;
-                                            case "FE":   // FC540, FC550, FC570
-                                                field.SetValue("FACTURA EXPORTACIÓN ELECTRONICA");
+                                            case "FEXE":
+                                                field.SetValue("FACTURA DE EXPORTACIÓN ELECTRONICA");
                                                 //field.SetValue("CREDITO FISCAL", fontBold, Constants.FONT_SIZE_FORM);
                                                 break;
                                             default: break;
@@ -265,9 +242,14 @@ namespace AESMovilAPI.Utilities
                                         }
                                     }
 
+                                    if (fieldName.Equals("CSMO_FACT2"))
+                                    {
+                                        field.SetValue($"{fielValue}.00 KW");
+                                    }
+
                                     if (fieldName.Equals("POTENCIA"))
                                     {
-                                        field.SetValue($"{fielValue} KW");
+                                        field.SetValue($"{fielValue}.00 KW");
                                     }
                                 }
 
@@ -335,17 +317,17 @@ namespace AESMovilAPI.Utilities
                         }
 
                         //Totales
-                        field = form.GetField("X_TOTAL_DOL");
-                        field.SetValue(suma.ToString());
+                        //field = form.GetField("X_TOTAL_DOL");
+                        //field.SetValue(suma.ToString());
                         //field.SetValue(suma.ToString(), fontBold, Constants.FONT_SIZE_FORM);
 
                         // Datos para grafica
-                        dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA6_F_LECT"), "yyyy-MM-dd", "dd MMM").ToUpper(), Value = GetValueFromDT("BARRA6_CSMO", true) });
-                        dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA5_F_LECT"), "yyyy-MM-dd", "dd MMM").ToUpper(), Value = GetValueFromDT("BARRA5_CSMO", true) });
-                        dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA4_F_LECT"), "yyyy-MM-dd", "dd MMM").ToUpper(), Value = GetValueFromDT("BARRA4_CSMO", true) });
-                        dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA3_F_LECT"), "yyyy-MM-dd", "dd MMM").ToUpper(), Value = GetValueFromDT("BARRA3_CSMO", true) });
-                        dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA2_F_LECT"), "yyyy-MM-dd", "dd MMM").ToUpper(), Value = GetValueFromDT("BARRA2_CSMO", true) });
-                        dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA1_F_LECT"), "yyyy-MM-dd", "dd MMM").ToUpper(), Value = GetValueFromDT("BARRA1_CSMO", true) });
+                        dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA6_F_LECT"), "yyyy-MM-dd", "MM/yyyy").ToUpper(), Value = GetValueFromDT("BARRA6_CSMO", true) });
+                        dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA5_F_LECT"), "yyyy-MM-dd", "MM/yyyy").ToUpper(), Value = GetValueFromDT("BARRA5_CSMO", true) });
+                        dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA4_F_LECT"), "yyyy-MM-dd", "MM/yyyy").ToUpper(), Value = GetValueFromDT("BARRA4_CSMO", true) });
+                        dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA3_F_LECT"), "yyyy-MM-dd", "MM/yyyy").ToUpper(), Value = GetValueFromDT("BARRA3_CSMO", true) });
+                        dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA2_F_LECT"), "yyyy-MM-dd", "MM/yyyy").ToUpper(), Value = GetValueFromDT("BARRA2_CSMO", true) });
+                        dataList.Add(new IdValueDto() { Id = Helper.ParseStrDate(GetValueFromDT("BARRA1_F_LECT"), "yyyy-MM-dd", "MM/yyyy").ToUpper(), Value = GetValueFromDT("BARRA1_CSMO", true) });
                         promedio = GetValueFromDT("CONSUMO_PRO_MES");
 
                         // Creacion de codigo de barras
@@ -551,10 +533,10 @@ namespace AESMovilAPI.Utilities
                                     field.SetValue(words[1]);
                                     //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                     field = form.GetField("FD_LECT_ANT_" + counterTipLecMed);
-                                    field.SetValue(words[2]);
+                                    field.SetValue(words[3]);
                                     //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                     field = form.GetField("FD_LECT_ACT_" + counterTipLecMed);
-                                    field.SetValue(words[3]);
+                                    field.SetValue(words[2]);
                                     //field.SetValue(words[2], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                     field = form.GetField("FD_CONSUMO_" + counterTipLecMed);
                                     field.SetValue(words[4]);
@@ -572,7 +554,7 @@ namespace AESMovilAPI.Utilities
 
                         #region "TIP_REG7_ALCALDIA OK"
                         rowsDetail = _detail.AsEnumerable()
-                          .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG7_ALCALDIA_STR)
+                          .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG8_ALCALDIA_STR)
                           .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
                           .ToList();
 
@@ -823,7 +805,7 @@ namespace AESMovilAPI.Utilities
 
                         #region "TIP_REG8_OTROS_SERVICIOS 5"
                         rowsDetail = _detail.AsEnumerable()
-                          .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG8_OTROS_SERVICIOS_STR)
+                          .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG7_OTROS_SERVICIOS_STR)
                           .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
                           .ToList();
 

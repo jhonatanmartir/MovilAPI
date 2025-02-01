@@ -65,8 +65,8 @@
         public const int TIP_REG4_CONCEPTOS = 4;
         public const int TIP_REG5_OTROS_CONCEPTOS = 5;
         public const int TIP_REG6_VENTAS_EXENTAS = 6;
-        public const int TIP_REG7_ALCALDIA = 7;
-        public const int TIP_REG8_OTROS_SERVICIOS = 8;
+        public const int TIP_REG7_OTROS_SERVICIOS = 7;
+        public const int TIP_REG8_ALCALDIA = 8;
         public const int TIP_REG9_COMPENSACIONES = 9;
         public const int TIP_REG10_MEDIDOR_LEVANTADO = 10;
 
@@ -76,8 +76,8 @@
         public const string TIP_REG4_CONCEPTOS_STR = "04";
         public const string TIP_REG5_OTROS_CONCEPTOS_STR = "05";
         public const string TIP_REG6_VENTAS_EXENTAS_STR = "06";
-        public const string TIP_REG7_ALCALDIA_STR = "07";
-        public const string TIP_REG8_OTROS_SERVICIOS_STR = "08";
+        public const string TIP_REG7_OTROS_SERVICIOS_STR = "07";
+        public const string TIP_REG8_ALCALDIA_STR = "08";
         public const string TIP_REG9_COMPENSACIONES_STR = "09";
         public const string TIP_REG10_MEDIDOR_LEVANTADO_STR = "10";
         #endregion
