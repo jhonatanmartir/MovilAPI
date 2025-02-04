@@ -471,7 +471,7 @@ namespace AESMovilAPI.Controllers
                                 //Cell cell4 = new Cell(1, 1)
                                 //    .SetBorder(Border.NO_BORDER)
                                 //    .SetTextAlignment(TextAlignment.LEFT)
-                                //    .Add(new Paragraph(Helper.ParseStrDate(item.FechaCobro)).SetFontSize(8));
+                                //    .Add(new Paragraph(Helper.ParseStrDate2(item.FechaCobro)).SetFontSize(8));
                                 Cell cell5 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.CENTER)
@@ -745,7 +745,7 @@ namespace AESMovilAPI.Controllers
                                 //Cell cell4 = new Cell(1, 1)
                                 //    .SetBorder(Border.NO_BORDER)
                                 //    .SetTextAlignment(TextAlignment.LEFT)
-                                //    .Add(new Paragraph(Helper.ParseStrDate(item.FechaCobro)).SetFontSize(8));
+                                //    .Add(new Paragraph(Helper.ParseStrDate2(item.FechaCobro)).SetFontSize(8));
                                 Cell cell5 = new Cell(1, 1)
                                     .SetBorder(Border.NO_BORDER)
                                     .SetTextAlignment(TextAlignment.RIGHT)
@@ -836,7 +836,6 @@ namespace AESMovilAPI.Controllers
         {
             string rootPath = _webHostEnvironment.ContentRootPath;
             string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
-            //string baseUrl = "https://aes-cf-gcp-1kg8o7mu.it-cpi017-rt.cfapps.us30.hana.ondemand.com";
             string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
             string endpoint = baseUrl + "/gw/odata/SAP/CIS" + mandante + $"_ACC_GETINVOICEFORMJSON_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetInvoiceToJsonSet('{id}')";
 

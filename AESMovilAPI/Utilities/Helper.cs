@@ -11,16 +11,16 @@ namespace AESMovilAPI.Utilities
         {
             return DateTime.ParseExact(date, format, null);
         }
-        public static string ParseStrDate(string date, string format = "yyyyMMdd")
+        public static string ParseStrDate(string date, string format = "yyyyMMdd", string outFormat = "dd/MM/yyyy")
         {
             string result = string.Empty;
             try
             {
-                result = DateTime.ParseExact(date, format, null).ToString("dd/MM/yyyy");
+                result = DateTime.ParseExact(date, format, null).ToString(outFormat);
             }
             catch
             {
-                result = "--/--/----";
+                result = "//";
             }
             return result;
         }
@@ -34,20 +34,6 @@ namespace AESMovilAPI.Utilities
             catch
             {
                 result = "--/--/----";
-            }
-            return result;
-        }
-
-        public static string ParseStrDate(string date, string format = "yyyyMMdd", string outFormat = "dd/MM/yyyy")
-        {
-            string result = string.Empty;
-            try
-            {
-                result = DateTime.ParseExact(date, format, null).ToString(outFormat);
-            }
-            catch
-            {
-                result = "--";
             }
             return result;
         }

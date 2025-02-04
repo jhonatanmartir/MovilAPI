@@ -133,7 +133,7 @@ namespace AESMovilAPI.Controllers
                 _client.DefaultRequestHeaders.Authorization = authHeader;
 
                 // Set custom headers
-                request.Headers.Add("x-csfr-token", _config.GetValue<string>(Constants.CONF_SAP_TOKEN));
+                //request.Headers.Add("x-csfr-token", _config.GetValue<string>(Constants.CONF_SAP_TOKEN));
 
                 try
                 {

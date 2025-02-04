@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <Tag>2.2.4</Tag>
-    <Message>Correciones QA</Message>
+    <Tag>2.2.5</Tag>
+    <Message>Release PRD</Message>
   </PropertyGroup>
 </Project>
