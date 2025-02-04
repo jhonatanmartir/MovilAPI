@@ -69,7 +69,7 @@ namespace AESMovilAPI.Controllers
 
                         string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
                         string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
-                        endpoint = baseUrl + "/gw/odata/SAP/CIS_" + mandante + $"_ACC_GETINVOICEFORMJSON_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetInvoiceToJsonSet('{documentNumber}')";
+                        endpoint = baseUrl + "/gw/odata/SAP/CIS" + mandante + $"_ACC_GETINVOICEFORMJSON_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetInvoiceToJsonSet('{documentNumber}')";
 
                         result = await ExecuteGetRequest(endpoint, true, null, false, false);
                         string xmlString = Helper.CleanXml(result, "http://www.w3.org/2005/Atom");

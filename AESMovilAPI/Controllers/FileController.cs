@@ -836,8 +836,9 @@ namespace AESMovilAPI.Controllers
         {
             string rootPath = _webHostEnvironment.ContentRootPath;
             string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
+            //string baseUrl = "https://aes-cf-gcp-1kg8o7mu.it-cpi017-rt.cfapps.us30.hana.ondemand.com";
             string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
-            string endpoint = baseUrl + "/gw/odata/SAP/CIS_" + mandante + $"_ACC_GETINVOICEFORMJSON_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetInvoiceToJsonSet('{id}')";
+            string endpoint = baseUrl + "/gw/odata/SAP/CIS" + mandante + $"_ACC_GETINVOICEFORMJSON_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetInvoiceToJsonSet('{id}')";
 
             // Inicia el temporizador
             var stopwatch = Stopwatch.StartNew();

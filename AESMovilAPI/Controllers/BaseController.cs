@@ -99,7 +99,7 @@ namespace AESMovilAPI.Controllers
             {
                 string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
                 string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
-                string link = baseUrl + "/gw/odata/SAP/CIS_" + mandante + "_" + endpoint;
+                string link = baseUrl + "/gw/odata/SAP/CIS" + mandante + "_" + endpoint;
 
                 if (overrideUrl)
                 {
