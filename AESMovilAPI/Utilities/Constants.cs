@@ -69,6 +69,7 @@
         public const int TIP_REG8_ALCALDIA = 8;
         public const int TIP_REG9_COMPENSACIONES = 9;
         public const int TIP_REG10_MEDIDOR_LEVANTADO = 10;
+        public const int TIP_REG90_IVA = 90;
 
         public const string TIP_REG1_DATOS_SUMINISTRO_STR = "01";
         public const string TIP_REG2_TARIFA_APLICADA_STR = "02";
@@ -80,6 +81,7 @@
         public const string TIP_REG8_ALCALDIA_STR = "08";
         public const string TIP_REG9_COMPENSACIONES_STR = "09";
         public const string TIP_REG10_MEDIDOR_LEVANTADO_STR = "10";
+        public const string TIP_REG90_IVA_STR = "90";
         #endregion
 
         public const string FILLER = "0.000000";

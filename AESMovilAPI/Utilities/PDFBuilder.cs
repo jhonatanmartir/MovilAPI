@@ -628,44 +628,99 @@ namespace AESMovilAPI.Utilities
                           .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
                           .ToList();
 
-                        //  Titulo  de seccion
-                        field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                        field.SetValue("CONCEPTOS GRAVADOS", boldFont, 7);
-                        counterDetail++;
-
-                        foreach (var row in rowsDetail)
+                        if (rowsDetail.Count > 0)
                         {
-                            stringDetail = GetValueFromDR(row, "DATO_PRINT");
-                            words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+                            //  Titulo  de seccion
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue("CONCEPTOS GRAVADOS", boldFont, 7);
+                            counterDetail++;
 
-                            if (words.Length > 0)
+                            foreach (var row in rowsDetail)
                             {
-                                try
-                                {
-                                    field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                                    field.SetValue(words[0]);
-                                    //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
-                                    field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
-                                    field.SetValue(words[1]);
-                                    //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
-                                }
-                                catch (Exception ex)
-                                {
-                                    //Log.Ex(ex);
-                                }
+                                stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
 
-                                counterDetail++;
+                                if (words.Length > 0)
+                                {
+                                    try
+                                    {
+                                        field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                                        field.SetValue(words[0]);
+                                        //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
+                                        field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
+                                        field.SetValue(words[1]);
+                                        //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        //Log.Ex(ex);
+                                    }
+
+                                    counterDetail++;
+                                }
                             }
-                        }
 
-                        // Subtotal cargos gravados
-                        counterDetail += 2;
-                        field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                        field.SetValue("SUB-TOTAL", boldFont, 7);
-                        field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
-                        field.SetValue(GetValueFromDT("SUBTOTAL_CON_GRA"), boldFont, 7);
-                        positionSubTotalCG = counterDetail;
-                        counterDetail++;
+                            // Subtotal cargos gravados
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue("SUB-TOTAL", boldFont, 7);
+                            field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
+                            field.SetValue(GetValueFromDT("SUBTOTAL_CON_GRA"), boldFont, 7);
+                            counterDetail += 2;
+                            positionSubTotalCG = counterDetail;
+                        }
+                        else
+                        {
+                            //  Titulo  de seccion
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue("CONCEPTOS GRAVADOS", boldFont, 7);
+                            counterDetail += 2;
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue("SUB-TOTAL", boldFont, 7);
+                            field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
+                            field.SetValue(GetValueFromDT("SUBTOTAL_CON_GRA"), boldFont, 7);
+                            counterDetail += 2;
+                            positionSubTotalCG = counterDetail;
+                        }
+                        #endregion
+
+                        #region "TIP_REG90_IVA 1.1"
+                        rowsDetail = _detail.AsEnumerable()
+                          .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG90_IVA_STR)
+                          .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                          .ToList();
+
+                        if (rowsDetail.Count > 0)
+                        {
+                            //  Titulo  de seccion
+                            counterDetail = positionSubTotalCG;
+
+                            foreach (var row in rowsDetail)
+                            {
+                                stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+
+                                if (words.Length > 0)
+                                {
+                                    try
+                                    {
+                                        field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                                        field.SetValue(words[0]);
+                                        //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
+                                        field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
+                                        field.SetValue(words[1]);
+                                        //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                    }
+
+                                    counterDetail++;
+                                }
+                            }
+
+                            counterDetail++;
+                            positionSubTotalCG = counterDetail;
+                        }
                         #endregion
 
                         #region "TIP_REG6_VENTAS_EXENTAS 2"
@@ -674,46 +729,63 @@ namespace AESMovilAPI.Utilities
                           .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
                           .ToList();
 
-                        // Titulo de seccion
-                        counterDetail = positionSubTotalCG;
-                        counterDetail += 3;
-                        field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                        field.SetValue("Ventas Exentas", boldFont, 7);
-                        counterDetail++;
-
-                        foreach (var row in rowsDetail)
+                        if (rowsDetail.Count > 0)
                         {
-                            stringDetail = GetValueFromDR(row, "DATO_PRINT");
-                            words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+                            // Titulo de seccion
+                            counterDetail = positionSubTotalCG;
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue("Ventas Exentas", boldFont, 7);
 
-                            if (words.Length > 0)
+                            foreach (var row in rowsDetail)
                             {
-                                try
-                                {
-                                    field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                                    field.SetValue(words[0]);
-                                    //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
-                                    field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
-                                    field.SetValue(words[1]);
-                                    //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
-                                }
-                                catch (Exception ex)
-                                {
-                                    //Log.Ex(ex);
-                                }
+                                stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
 
-                                counterDetail++;
+                                if (words.Length > 0)
+                                {
+                                    try
+                                    {
+                                        field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                                        field.SetValue(words[0]);
+                                        //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
+                                        field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
+                                        field.SetValue(words[1]);
+                                        //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        //Log.Ex(ex);
+                                    }
+
+                                    counterDetail++;
+                                }
                             }
-                        }
 
-                        // Subtotal ventas exentas
-                        counterDetail += 2;
-                        field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                        field.SetValue("SUB-TOTAL", boldFont, 7);
-                        field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
-                        field.SetValue(GetValueFromDT("SUBTOTAL_CV_EXE"), boldFont, 7);
-                        positionSubTotalVE = counterDetail;
-                        counterDetail++;
+                            // Subtotal ventas exentas
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue("SUB-TOTAL", boldFont, 7);
+                            field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
+                            field.SetValue(GetValueFromDT("SUBTOTAL_CV_EXE"), boldFont, 7);
+                            counterDetail += 2;
+                            positionSubTotalVE = counterDetail;
+                        }
+                        else
+                        {
+                            // Titulo de seccion
+                            counterDetail = positionSubTotalCG;
+                            counterDetail++;
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue("Ventas Exentas", boldFont, 7);
+
+                            // Subtotal ventas exentas
+                            counterDetail += 2;
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue("SUB-TOTAL", boldFont, 7);
+                            field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
+                            field.SetValue(GetValueFromDT("SUBTOTAL_CV_EXE"), boldFont, 7);
+                            counterDetail += 2;
+                            positionSubTotalVE = counterDetail;
+                        }
                         #endregion
 
                         #region "TIP_REG9_COMPENSACIONES 3"
@@ -722,37 +794,46 @@ namespace AESMovilAPI.Utilities
                           .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
                           .ToList();
 
-                        // Titulo de seccion
-                        counterDetail = positionSubTotalVE;
-                        counterDetail += 3;
-                        field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                        field.SetValue("Compensaciones", boldFont, 7);
-                        counterDetail++;
-
-                        foreach (var row in rowsDetail)
+                        if (rowsDetail.Count > 0)
                         {
-                            stringDetail = GetValueFromDR(row, "DATO_PRINT");
-                            words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+                            // Titulo de seccion
+                            counterDetail = positionSubTotalVE;
+                            counterDetail++;
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue("Compensaciones", boldFont, 7);
+                            counterDetail++;
 
-                            if (words.Length > 0)
+                            foreach (var row in rowsDetail)
                             {
-                                try
+                                stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+
+                                if (words.Length > 0)
                                 {
-                                    field = form.GetField($"FD_CONCEPTO_{counterDetail}");
-                                    field.SetValue(words[0]);
-                                    //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
-                                    field = form.GetField($"FD_CONCEPTO_VAL_{counterDetail}");
-                                    field.SetValue(words[1]);
-                                    //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
+                                    try
+                                    {
+                                        field = form.GetField($"FD_CONCEPTO_{counterDetail}");
+                                        field.SetValue(words[0]);
+                                        //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
+                                        field = form.GetField($"FD_CONCEPTO_VAL_{counterDetail}");
+                                        field.SetValue(words[1]);
+                                        //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        //Log.Ex(ex);
+                                    }
                                 }
-                                catch (Exception ex)
-                                {
-                                    //Log.Ex(ex);
-                                }
+                                counterDetail++;
                             }
                             counterDetail++;
+                            positionCompensations = counterDetail;
                         }
-                        positionCompensations = counterDetail;
+                        else
+                        {
+                            positionSubTotalVE += 2;
+                            positionCompensations = positionSubTotalVE;
+                        }
                         #endregion                                      
 
                         #region "TIP_REG5_OTROS_CONCEPTOS 4"
@@ -761,46 +842,63 @@ namespace AESMovilAPI.Utilities
                           .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
                           .ToList();
 
-                        // Titulo de seccion
-                        counterDetail = positionCompensations;
-                        counterDetail += 2;
-                        field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                        field.SetValue("Otros Conceptos", boldFont, 7);
-                        counterDetail++;
-
-                        foreach (var row in rowsDetail)
+                        if (rowsDetail.Count > 0)
                         {
-                            stringDetail = GetValueFromDR(row, "DATO_PRINT");
-                            words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+                            // Titulo de seccion
+                            counterDetail = positionCompensations;
+                            counterDetail++;
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue("Otros Conceptos", boldFont, 7);
+                            counterDetail++;
 
-                            if (words.Length > 0)
+                            foreach (var row in rowsDetail)
                             {
-                                try
-                                {
-                                    field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                                    field.SetValue(words[0]);
-                                    //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
-                                    field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
-                                    field.SetValue(words[1]);
-                                    //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
-                                }
-                                catch (Exception ex)
-                                {
-                                    //Log.Ex(ex);
-                                }
+                                stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
 
-                                counterDetail++;
+                                if (words.Length > 0)
+                                {
+                                    try
+                                    {
+                                        field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                                        field.SetValue(words[0]);
+                                        //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
+                                        field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
+                                        field.SetValue(words[1]);
+                                        //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        //Log.Ex(ex);
+                                    }
+
+                                    counterDetail++;
+                                }
                             }
-                        }
 
-                        // Total empresa
-                        counterDetail += 4;
-                        field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                        field.SetValue($"TOTAL AES {Company}", boldFont, 7);
-                        field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
-                        field.SetValue(GetValueFromDT("TOTAL_ELECT_DOL"), boldFont, 7);
-                        positionSubTotalCompany = counterDetail;
-                        counterDetail++;
+                            // Total empresa
+                            counterDetail += 2;
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue($"TOTAL AES {Company}", boldFont, 7);
+                            field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
+                            field.SetValue(GetValueFromDT("TOTAL_ELECT_DOL"), boldFont, 7);
+                            counterDetail++;
+                            positionSubTotalCompany = counterDetail;
+                        }
+                        else
+                        {
+                            counterDetail = positionCompensations;
+                            counterDetail++;
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue("Otros Conceptos", boldFont, 7);
+                            counterDetail += 2;
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue($"TOTAL AES {Company}", boldFont, 7);
+                            field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
+                            field.SetValue(GetValueFromDT("TOTAL_ELECT_DOL"), boldFont, 7);
+                            counterDetail++;
+                            positionSubTotalCompany = counterDetail;
+                        }
                         #endregion
 
                         #region "TIP_REG8_OTROS_SERVICIOS 5"
@@ -809,45 +907,63 @@ namespace AESMovilAPI.Utilities
                           .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
                           .ToList();
 
-                        // Titulo de seccion
-                        counterDetail = positionSubTotalCompany;
-                        counterDetail += 3;
-                        field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                        field.SetValue("Otros Servicios", boldFont, 7);
-                        counterDetail++;
-
-                        foreach (var row in rowsDetail)
+                        if (rowsDetail.Count > 0)
                         {
-                            stringDetail = GetValueFromDR(row, "DATO_PRINT");
-                            words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
+                            // Titulo de seccion
+                            counterDetail = positionSubTotalCompany;
+                            counterDetail++;
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue("Otros Servicios", boldFont, 7);
+                            counterDetail++;
 
-                            if (words.Length > 0)
+                            foreach (var row in rowsDetail)
                             {
-                                try
-                                {
-                                    field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                                    field.SetValue(words[0]);
-                                    //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
-                                    field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
-                                    field.SetValue(words[1]);
-                                    //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
-                                }
-                                catch (Exception ex)
-                                {
-                                    //Log.Ex(ex);
-                                }
+                                stringDetail = GetValueFromDR(row, "DATO_PRINT");
+                                words = Regex.Split(stringDetail, @"\s{2,}"); //ER dividirá la cadena siempre que aparezcan dos o más espacios consecutivos
 
-                                counterDetail++;
+                                if (words.Length > 0)
+                                {
+                                    try
+                                    {
+                                        field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                                        field.SetValue(words[0]);
+                                        //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
+                                        field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
+                                        field.SetValue(words[1]);
+                                        //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        //Log.Ex(ex);
+                                    }
+
+                                    counterDetail++;
+                                }
                             }
-                        }
 
-                        // Total otros servicios
-                        counterDetail += 3;
-                        field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                        field.SetValue("TOTAL OTROS SERVICIOS", boldFont, 7);
-                        field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
-                        field.SetValue(GetValueFromDT("SUBTOTAL_SEGURO"), boldFont, 7);
-                        counterDetail++;
+                            // Total otros servicios
+                            counterDetail++;
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue("TOTAL OTROS SERVICIOS", boldFont, 7);
+                            field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
+                            field.SetValue(GetValueFromDT("SUBTOTAL_SEGURO"), boldFont, 7);
+                            counterDetail++;
+                        }
+                        else
+                        {
+                            // Titulo de seccion
+                            counterDetail = positionSubTotalCompany;
+                            counterDetail += 2;
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue("Otros Servicios", boldFont, 7);
+
+                            // Total otros servicios
+                            counterDetail += 2;
+                            field = form.GetField("FD_CONCEPTO_" + counterDetail);
+                            field.SetValue("TOTAL OTROS SERVICIOS", boldFont, 7);
+                            field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
+                            field.SetValue(GetValueFromDT("SUBTOTAL_SEGURO"), boldFont, 7);
+                        }
                         #endregion
                     }
 

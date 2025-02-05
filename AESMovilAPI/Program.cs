@@ -1,8 +1,6 @@
 using AESMovilAPI.Filters;
 using AESMovilAPI.Models;
 using AESMovilAPI.Utilities;
-using ivradms;
-using ivraes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
