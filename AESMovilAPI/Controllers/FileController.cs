@@ -212,6 +212,7 @@ namespace AESMovilAPI.Controllers
 
             if (!string.IsNullOrEmpty(id))
             {
+                // Ref. NS-12674
                 string endpoint = "ACC_GETHISTORICOCARGOSALCALDIA_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetHistoricoAlcaldiaSet(Nic='" + id + "',Fechainicio='" + fromDate + "',Fechafin='" + toDate + "')";
                 dynamic? result = await ExecuteGetRequestSAP(endpoint);
                 if (result != null)

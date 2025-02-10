@@ -16,7 +16,7 @@ namespace AESMovilAPI.Controllers
         }
 
         /// <summary>
-        /// Obtener links para descargar PDF de factura y DTE certificado por el Ministerio de Hacienda
+        /// Obtener links mediante Cuenta Contrato para descargar PDF de factura y DTE certificado por el Ministerio de Hacienda
         /// </summary>
         /// <param name="id">Cuenta contrato</param>
         /// <returns>Links para descargar PDF y JSON</returns>
@@ -101,6 +101,102 @@ namespace AESMovilAPI.Controllers
                 if (!response.Success)
                 {
                     var url = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/v1/search/{id}";
+                    string? token = GetToken(Constants.AESMOVIL_BEARER);
+
+                    if (token == null)
+                    {
+                        token = await GetBearer();
+                    }
+
+                    result = await ExecuteGetRequest(url, true, token);
+
+                    if (result is int numero && numero == UNAUTHORIZED_401)
+                    {
+                        token = await GetBearer();
+                        result = await ExecuteGetRequest(url, true, token);
+                    }
+
+                    if (result != null)
+                    {
+                        var nic = result.data[0].nic;
+
+                        url = _config.GetValue<string>("Legacy:Base") + $"/GetHistoricofact/{nic}";
+                        result = await ExecuteGetRequest(url, false);
+
+                        if (result != null && result.data != null && result.data.Count > 0)
+                        {
+                            ReplacementResponse replacementResponse = new ReplacementResponse()
+                            {
+                                Dte = result.data[0].dte,
+                                Pdf = result.data[0].url_recibo
+                            };
+
+                            response.Data = replacementResponse;
+                            response.Success = true;
+                            _statusCode = OK_200;
+                        }
+                    }
+                    else
+                    {
+                        _statusCode = NOT_FOUND_404;
+                    }
+                }
+            }
+
+            return GetResponse(response);
+        }
+
+        /// <summary>
+        /// Obtener links mediante Numero de documento para descargar PDF de factura y DTE certificado por el Ministerio de Hacienda
+        /// </summary>
+        /// <param name="id">Número de documento</param>
+        /// <returns>Links para descargar PDF y JSON</returns>
+        /// <response code="200">Correcto.</response>
+        /// <response code="401">Error por token de autorización.</response>
+        /// <response code="404">No se encontro información.</response>
+        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
+        /// <response code="502">Incidente en el servicio.</response>
+        [HttpGet("Document/{id}")]
+        public async Task<IActionResult> Document(string id)
+        {
+            Response<ReplacementResponse> response = new Response<ReplacementResponse>();
+
+            if (!string.IsNullOrEmpty(id))
+            {
+                string url = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/v1/file/";
+
+                string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
+                string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
+                string endpoint = baseUrl + "/gw/odata/SAP/CIS" + mandante + $"_ACC_GETINVOICEFORMJSON_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetInvoiceToJsonSet('{id}')";
+
+                dynamic? result = await ExecuteGetRequest(endpoint, true, null, false, false);
+                string xmlString = Helper.CleanXml(result, "http://www.w3.org/2005/Atom");
+                var entry = Helper.DeserializeXml<Entry>(xmlString)!;
+
+                if (!string.IsNullOrEmpty(entry.Content.Properties.Json) && id == entry.Content.Properties.Opbel)
+                {
+                    FileInfoDto dteInfo = new FileInfoDto() { Type = "dte", DocumentNumber = id };
+                    FileInfoDto pdfInfo = new FileInfoDto() { Type = "invoice", DocumentNumber = id };
+                    string dteData = JsonConvert.SerializeObject(dteInfo);
+                    string pdfData = JsonConvert.SerializeObject(pdfInfo);
+
+                    dteData = AESEncryption.AES.SetEncrypt(dteData, Constants.ENCRYPT_KEY, Constants.SECRECT_KEY_IV);
+                    pdfData = AESEncryption.AES.SetEncrypt(pdfData, Constants.ENCRYPT_KEY, Constants.SECRECT_KEY_IV);
+
+                    ReplacementResponse replacementResponse = new ReplacementResponse()
+                    {
+                        Dte = url + dteData,
+                        Pdf = url + pdfData
+                    };
+
+                    response.Data = replacementResponse;
+                    response.Success = true;
+                    _statusCode = OK_200;
+                }
+
+                if (!response.Success)
+                {
+                    url = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/v1/search/{id}";
                     string? token = GetToken(Constants.AESMOVIL_BEARER);
 
                     if (token == null)
