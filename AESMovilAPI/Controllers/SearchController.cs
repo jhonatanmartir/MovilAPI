@@ -2,6 +2,7 @@
 using AESMovilAPI.Examples;
 using AESMovilAPI.Models;
 using AESMovilAPI.Responses;
+using AESMovilAPI.Services;
 using AESMovilAPI.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +12,10 @@ using System.Numerics;
 
 namespace AESMovilAPI.Controllers
 {
-    public class SearchController : BaseController
+    public class SearchController : BaseController<SearchController>
     {
         private readonly SAPSGCDbContext _db;
-        public SearchController(IConfiguration config, SAPSGCDbContext db) : base(config)
+        public SearchController(IConfiguration config, LoggerService<SearchController> logger, SAPSGCDbContext db) : base(config, logger)
         {
             _db = db;
         }

@@ -1,5 +1,6 @@
 ﻿using AESMovilAPI.DTOs;
 using AESMovilAPI.Responses;
+using AESMovilAPI.Services;
 using AESMovilAPI.Utilities;
 using iText.IO.Image;
 using iText.Kernel.Colors;
@@ -20,7 +21,7 @@ using System.Text;
 namespace AESMovilAPI.Controllers
 {
     [Route("api/v1/[controller]")]
-    public class FileController : BaseController
+    public class FileController : BaseController<FileController>
     {
         private const int _PREVIUS_YEARS = 2;
 
@@ -33,7 +34,7 @@ namespace AESMovilAPI.Controllers
         private readonly string? _baseEBillinApi;
         private readonly PDFBuilder _builder;
 
-        public FileController(IConfiguration config, IHttpClientFactory httpClientFactory, IWebHostEnvironment webHostEnvironment, IMemoryCache cache, PDFBuilder builder) : base(config, httpClientFactory, cache)
+        public FileController(IConfiguration config, LoggerService<FileController> logger, IHttpClientFactory httpClientFactory, IWebHostEnvironment webHostEnvironment, IMemoryCache cache, PDFBuilder builder) : base(config, logger, httpClientFactory, cache)
         {
             _webHostEnvironment = webHostEnvironment;
 
@@ -88,7 +89,7 @@ namespace AESMovilAPI.Controllers
                 }
                 catch (Exception ex)
                 {
-
+                    _log.Err(ex);
                 }
             }
             _statusCode = NOT_FOUND_404;

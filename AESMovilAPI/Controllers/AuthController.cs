@@ -1,6 +1,7 @@
 ﻿using AESMovilAPI.DTOs;
 using AESMovilAPI.Examples;
 using AESMovilAPI.Responses;
+using AESMovilAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -14,9 +15,9 @@ using System.Text;
 namespace AESMovilAPI.Controllers
 {
     [Route("api/v1/[controller]")]
-    public class AuthController : BaseController
+    public class AuthController : BaseController<AuthController>
     {
-        public AuthController(IConfiguration config) : base(config)
+        public AuthController(IConfiguration config, LoggerService<AuthController> logger) : base(config, logger)
         {
         }
 
@@ -69,6 +70,7 @@ namespace AESMovilAPI.Controllers
                         }
 
                         response.Data = token;
+                        _log.Info("Correcto");
                     }
                 }
             }

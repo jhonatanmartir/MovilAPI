@@ -1,20 +1,23 @@
-﻿using Microsoft.AspNetCore.Mvc.Filters;
-using Newtonsoft.Json;
-using NLog;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
+﻿using AESMovilAPI.Services;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace AESMovilAPI.Filters
 {
     public class ActionExecutionFilter : IActionFilter
     {
-        private static readonly Logger _logger = NLog.LogManager.GetCurrentClassLogger();
+        protected readonly LoggerService<ActionExecutionFilter> _log;
+
+        public ActionExecutionFilter(LoggerService<ActionExecutionFilter> log)
+        {
+            _log = log;
+        }
 
         // Se ejecuta antes de que la acción sea llamada
         public void OnActionExecuting(ActionExecutingContext context)
         {
             string actionName = context.ActionDescriptor.DisplayName;
-            Info(data: context.ActionArguments, message: "IN", caller: actionName);
+
+            _log.Info(message: "IN", data: context.ActionArguments, methodName: actionName);
         }
 
         // Se ejecuta después de que la acción ha sido ejecutada
@@ -23,39 +26,7 @@ namespace AESMovilAPI.Filters
             var actionName = context.ActionDescriptor.DisplayName;
             var result = context.Result;
 
-            if (context.Exception == null)
-            {
-                // Si no hay excepción, se loguea el resultado
-                Info(data: result, message: "LEFT", caller: actionName);
-            }
-            else
-            {
-                // Si hay una excepción, se loguea el error
-                Info(message: "Error", caller: actionName);
-            }
-        }
-
-        protected static void Info(object? data = null, string message = "", bool isAsync = true, [CallerMemberName] string caller = "")
-        {
-            string info;
-            if (isAsync)
-            {
-                info = caller;
-            }
-            else
-            {
-                var stackFrame = new StackFrame(1, true);
-                info = "line " + stackFrame.GetFileLineNumber() + "::" + stackFrame.GetMethod().Name;
-            }
-
-            if (data != null)
-            {
-                _logger.Info("{method} result: {result} | {data}", info, message, JsonConvert.SerializeObject(data));
-            }
-            else
-            {
-                _logger.Info("{method} result: {result}", info, message);
-            }
+            _log.Info(message: "LEFT", data: result, methodName: actionName);
         }
     }
 }

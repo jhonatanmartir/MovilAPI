@@ -1,5 +1,6 @@
 ﻿using AESMovilAPI.Filters;
 using AESMovilAPI.Responses;
+using AESMovilAPI.Services;
 using AESMovilAPI.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,11 +8,8 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
-using NLog;
-using System.Diagnostics;
 using System.Dynamic;
 using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace AESMovilAPI.Controllers
@@ -20,7 +18,7 @@ namespace AESMovilAPI.Controllers
     [ApiController]
     [RequireHttps]
     [ServiceFilter(typeof(ActionExecutionFilter))]
-    public class BaseController : ControllerBase
+    public class BaseController<T> : ControllerBase
     {
         protected const int OK_200 = StatusCodes.Status200OK;
         protected const int CREATED_201 = StatusCodes.Status201Created;
@@ -37,15 +35,16 @@ namespace AESMovilAPI.Controllers
         protected int _statusCode;
         protected IMemoryCache _memory;
 
-        private static readonly Logger _logger = NLog.LogManager.GetCurrentClassLogger();
+        protected readonly LoggerService<T> _log;
 
-        public BaseController(IConfiguration config, IHttpClientFactory? httpClientFactory = null, IMemoryCache cache = null)
+        public BaseController(IConfiguration config, LoggerService<T> logger, IHttpClientFactory? httpClientFactory = null, IMemoryCache cache = null)
         {
             _config = config;
             _token = string.Empty;
             _statusCode = BAD_REQUEST_400;
             _client = httpClientFactory != null ? httpClientFactory.CreateClient(Constants.HTTP_CLIENT_NAME) : null;
             _memory = cache;
+            _log = logger;
         }
 
         /// <summary>
@@ -483,60 +482,5 @@ namespace AESMovilAPI.Controllers
         }
         #endregion
 
-        #region "Logger"
-        protected static void Info(object? data = null, string message = "", bool isAsync = true, [CallerMemberName] string caller = "")
-        {
-            string info;
-            if (isAsync)
-            {
-                info = caller;
-            }
-            else
-            {
-                var stackFrame = new StackFrame(1, true);
-                info = "line " + stackFrame.GetFileLineNumber() + "::" + stackFrame.GetMethod().Name;
-            }
-
-            if (data != null)
-            {
-                _logger.Info("{method} result: {result} | {data}", info, message, JsonConvert.SerializeObject(data));
-            }
-            else
-            {
-                _logger.Info("{method} result: {result}", info, message);
-            }
-        }
-
-        protected static void Err(string message, bool isAsync = true, [CallerMemberName] string caller = "")
-        {
-            string info;
-            if (isAsync)
-            {
-                info = caller;
-            }
-            else
-            {
-                var stackFrame = new StackFrame(1, true);
-                info = "line " + stackFrame.GetFileLineNumber() + "::" + stackFrame.GetMethod().Name;
-            }
-
-            _logger.Error("{method} result: {result}", info, message);
-        }
-
-        public static void Ex(Exception ex, string message = "", bool isAsync = true, [CallerMemberName] string caller = "")
-        {
-            string info;
-            if (isAsync)
-            {
-                info = caller;
-            }
-            else
-            {
-                var stackFrame = new StackFrame(1, true);
-                info = "line " + stackFrame.GetFileLineNumber() + "::" + stackFrame.GetMethod().Name;
-            }
-            _logger.Fatal(ex, "{method} result: {result}", info, message);
-        }
-        #endregion
     }
 }

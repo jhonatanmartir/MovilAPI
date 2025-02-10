@@ -1,5 +1,6 @@
 using AESMovilAPI.Filters;
 using AESMovilAPI.Models;
+using AESMovilAPI.Services;
 using AESMovilAPI.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +30,7 @@ try
 
     // Configurar NLog como el proveedor de logging
     builder.Logging.ClearProviders();
-    builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+    builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
     builder.Host.UseNLog();
 
     // Configurar el pool de DbContext
@@ -76,6 +77,8 @@ try
     // Add services to the container.
     // Registrar el filtro en el contenedor de servicios
     builder.Services.AddScoped<ActionExecutionFilter>();
+    // Agregar LoggerService como servicio genérico
+    builder.Services.AddScoped(typeof(LoggerService<>));
 
     builder.Services.AddControllers();
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -232,10 +235,53 @@ try
     app.UseStaticFiles();
     app.UseCors("AllowAll");    // Aplicar la política de CORS
 
+    app.UseRouting();
     app.UseAuthentication();
     app.UseAuthorization();
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapControllers();
 
-    app.MapControllers();
+        // Endpoint para ver logs de un día específico (por defecto el de hoy)
+        endpoints.MapGet("/logs/{date?}", async (context) =>
+        {
+            // Obtener el parámetro de fecha (si se envía)
+            var dateParam = context.Request.RouteValues["date"]?.ToString();
+            DateTime date;
+
+            // Si no se envía una fecha, usar la fecha actual
+            if (string.IsNullOrEmpty(dateParam) || !DateTime.TryParseExact(dateParam, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
+            {
+                date = DateTime.UtcNow;
+            }
+
+            // Obtener la ruta absoluta de logs
+            var logDirectory = Path.Combine(AppContext.BaseDirectory, "Logs");
+            var logFilePath = Path.Combine(logDirectory, $"{date:yyyy-MM-dd}.log");
+
+            if (!File.Exists(logFilePath))
+            {
+                await context.Response.WriteAsync($"No hay logs para {date:yyyy-MM-dd}.");
+                return;
+            }
+
+            try
+            {
+                // Leer el archivo sin bloquearlo
+                using (var fileStream = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var reader = new StreamReader(fileStream))
+                {
+                    var logs = await reader.ReadToEndAsync();
+                    await context.Response.WriteAsync(logs);
+                }
+            }
+            catch (Exception ex)
+            {
+                await context.Response.WriteAsync($"Error al leer el log: {ex.Message}");
+            }
+        })
+        .RequireAuthorization(); // Protege el endpoint con JWT;
+    });
 
     app.Run();
 }

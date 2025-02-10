@@ -1,5 +1,6 @@
 ﻿using AESMovilAPI.DTOs;
 using AESMovilAPI.Responses;
+using AESMovilAPI.Services;
 using AESMovilAPI.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -11,12 +12,12 @@ using System.Text;
 namespace AESMovilAPI.Controllers
 {
     [Route("api/v1/[controller]")]
-    public class PaymentController : BaseController
+    public class PaymentController : BaseController<PaymentController>
     {
-        private readonly HttpClient _client;
-        public PaymentController(IConfiguration config, IHttpClientFactory httpClientFactory) : base(config, httpClientFactory)
+        //private readonly HttpClient _client;
+        public PaymentController(IConfiguration config, LoggerService<PaymentController> logger, IHttpClientFactory httpClientFactory) : base(config, logger, httpClientFactory)
         {
-            _client = httpClientFactory.CreateClient(Constants.HTTP_CLIENT_NAME);
+            //_client = httpClientFactory.CreateClient(Constants.HTTP_CLIENT_NAME);
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿using AESMovilAPI.DTOs;
 using AESMovilAPI.Responses;
+using AESMovilAPI.Services;
 using AESMovilAPI.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -9,9 +10,9 @@ using System.Text;
 namespace AESMovilAPI.Controllers
 {
     [Route("api/v1/[controller]")]
-    public class ReplacementController : BaseController
+    public class ReplacementController : BaseController<ReplacementController>
     {
-        public ReplacementController(IConfiguration config, IHttpClientFactory httpClientFactory, IMemoryCache cache) : base(config, httpClientFactory, cache)
+        public ReplacementController(IConfiguration config, LoggerService<ReplacementController> logger, IHttpClientFactory httpClientFactory, IMemoryCache cache) : base(config, logger, httpClientFactory, cache)
         {
         }
 

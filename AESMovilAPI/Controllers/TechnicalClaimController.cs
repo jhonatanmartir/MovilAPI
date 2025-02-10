@@ -1,6 +1,7 @@
 ﻿using AESMovilAPI.DTOs;
 using AESMovilAPI.Examples;
 using AESMovilAPI.Responses;
+using AESMovilAPI.Services;
 using AESMovilAPI.Utilities;
 using ivraes;
 using Microsoft.AspNetCore.Authorization;
@@ -13,12 +14,12 @@ using System.Text;
 namespace AESMovilAPI.Controllers
 {
     [Route("api/v1/[controller]")]
-    public class TechnicalClaimController : BaseController
+    public class TechnicalClaimController : BaseController<TechnicalClaimController>
     {
         private readonly VRAESELSALVADORSoapClient _ivrClient;
         private readonly ivradms.VRAESELSALVADORSoapClient _ivradmsClient;
 
-        public TechnicalClaimController(IConfiguration config, IHttpClientFactory httpClientFactory, VRAESELSALVADORSoapClient ivr, ivradms.VRAESELSALVADORSoapClient ivradms) : base(config, httpClientFactory)
+        public TechnicalClaimController(IConfiguration config, LoggerService<TechnicalClaimController> logger, IHttpClientFactory httpClientFactory, VRAESELSALVADORSoapClient ivr, ivradms.VRAESELSALVADORSoapClient ivradms) : base(config, logger, httpClientFactory)
         {
             _ivrClient = ivr;
             _ivradmsClient = ivradms;
@@ -77,7 +78,7 @@ namespace AESMovilAPI.Controllers
                 try
                 {
                     _statusCode = CREATED_201;
-                    if(!isIVRADMS)
+                    if (!isIVRADMS)
                     {
                         ivraes.CrearReclamoResponse ivResponse = await _ivrClient.CrearReclamoAsync(
                         claim.Contrato.ToString(),
@@ -135,7 +136,7 @@ namespace AESMovilAPI.Controllers
                             _statusCode = SERVICE_UNAVAILABLE_503;
                         }
                     }
-                    
+
                 }
                 catch (Exception ex)
                 {
