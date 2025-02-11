@@ -1,4 +1,5 @@
-﻿using AESMovilAPI.Filters;
+﻿using AESMovilAPI.DTOs;
+using AESMovilAPI.Filters;
 using AESMovilAPI.Responses;
 using AESMovilAPI.Services;
 using AESMovilAPI.Utilities;
@@ -92,6 +93,7 @@ namespace AESMovilAPI.Controllers
             }
         }
 
+        #region "Client"
         protected async Task<object?> ExecuteGetRequestSAP(string endpoint, Dictionary<string, string>? queryParams = null, bool overrideUrl = false)
         {
             if (_client != null)
@@ -347,7 +349,6 @@ namespace AESMovilAPI.Controllers
 
             return null;
         }
-
         protected async Task<object?> ExecutePostRequestInsecure(object postData, string url, bool auth = true, string token = "", bool bearer = true)
         {
             var jsonContent = JsonConvert.SerializeObject(postData);
@@ -398,68 +399,127 @@ namespace AESMovilAPI.Controllers
             return null;
         }
 
-        protected async Task<object?> ExecuteGetRequest(string url, bool auth = true, string? token = "", bool bearer = true, bool returnJson = true)
+        #endregion
+        #region "Commons"
+        protected async Task<BillDto?> GetInvoiceData(string nc)
         {
-            string result = string.Empty;
-
-            if (_client != null)
+            var data = new
             {
-                // Create HttpRequestMessage
-                var request = new HttpRequestMessage(HttpMethod.Get, new Uri(url));
-
-                if (!bearer)
+                Header = "",
+                Body = new
                 {
-                    if (string.IsNullOrEmpty(token))
+                    CashPointOpenItemSummaryByElementsQueryMessage = new
                     {
-                        byte[] textoBytes = Encoding.UTF8.GetBytes(_config.GetValue<string>("SAP:Usr") + ":" + _config.GetValue<string>("SAP:Pwd"));
-                        token = Convert.ToBase64String(textoBytes);
+                        MessageHeader = new
+                        {
+                            CreationDateTime = "",
+                            ID = new
+                            {
+                                text = ""
+                            },
+                            ReferenceID = new
+                            {
+                                text = ""
+                            },
+                            SenderParty = new
+                            {
+                                InternalID = new
+                                {
+                                    text = ""
+                                }
+                            },
+                            RecipientParty = new
+                            {
+                                InternalID = new
+                                {
+                                    text = ""
+                                }
+                            }
+                        },
+                        CashPointOpenItemSummaryByElementsQuery = new
+                        {
+                            CashPointReferenceID = new
+                            {
+                                text = _config.GetValue<string>(Constants.CONF_REAL_PAYMENT_CASH_POINT)
+                            },
+                            CashPointOfficeReferenceID = new
+                            {
+                                text = _config.GetValue<string>(Constants.CONF_REAL_PAYMENT_CASH_POINT_OFFICE)
+                            },
+                            ReportingCurrency = "USD",
+                            SelectionByContractAccountID = nc
+                        }
                     }
                 }
+            };
 
-                if (auth && !string.IsNullOrEmpty(token))
+            BillDto? result = null;
+
+            try
+            {
+                CashPointOpenItemSummaryByElementsResponseMessage values = (CashPointOpenItemSummaryByElementsResponseMessage)await ExecutePostRequestRP(data, "OpenItemSummaryByElements");
+
+                if (values != null)
                 {
-                    AuthenticationHeaderValue authHeader;
-                    if (bearer)
+                    bool mayoral = false;
+                    bool reconnection = false;
+                    decimal amount = 0;
+                    DateTime dueDate = DateTime.Now;
+                    string company = "";
+                    string name = "";
+                    long documentNumber = 0;
+
+                    if (values.CashPointOpenItemSummary?.CashPointOpenItems != null)
                     {
-                        authHeader = new AuthenticationHeaderValue("Bearer", token);
+                        foreach (var item in values.CashPointOpenItemSummary.CashPointOpenItems)
+                        {
+                            try
+                            {
+                                amount += item.OpenAmount.Value;
+
+                                if (item.OpenItemTransactionDescription.Value == "ALCA")
+                                {
+                                    mayoral = true;
+                                }
+                                if (item.OpenItemTransactionDescription.Value == "RECO")
+                                {
+                                    reconnection = true;
+                                }
+
+                                dueDate = item.DueDate;
+                                company = item.PaymentFormID.Split("|")[0];
+                                name = item.PaymentFormID.Split("|")[1];
+                                documentNumber = string.IsNullOrEmpty(item.InvoiceID) ? 0 : long.Parse(item.InvoiceID);
+                            }
+                            catch (Exception ex)
+                            {
+
+                            }
+                        }
                     }
-                    else
+
+                    result = new BillDto()
                     {
-                        authHeader = new AuthenticationHeaderValue("Basic", token);
-                    }
-
-                    // Set the authorization header
-                    _client.DefaultRequestHeaders.Authorization = authHeader;
-                }
-
-                try
-                {
-                    // Send the GET request
-                    var response = await _client.SendAsync(request);
-
-                    // Ensure the request was successful
-                    response.EnsureSuccessStatusCode();
-
-                    // Read the response content as a string
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    if (returnJson)
-                    {
-                        return JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
-                    }
-                    else
-                    {
-                        return responseContent;
-                    }
-
-                }
-                catch (HttpRequestException e)
-                {
-                    _log.Err(e);
+                        Client = name,
+                        Amount = amount.ToString(),
+                        ExpirationDate = dueDate,
+                        IssueDate = new DateTime(),
+                        MayoralPayment = mayoral,
+                        ReconnectionPayment = reconnection,
+                        Company = company,
+                        BP = values.CashPointOpenItemSummary?.PartyReference?.InternalID
+                    };
                 }
             }
+            catch (HttpRequestException e)
+            {
 
-            return null;
+            }
+
+            return result;
         }
+        #endregion
+
         #region "Cache"
         protected void SaveToken(string key, string token)
         {
