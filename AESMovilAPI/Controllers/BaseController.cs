@@ -65,7 +65,7 @@ namespace AESMovilAPI.Controllers
                     }
                     catch (Exception ex)
                     {
-
+                        _log.Err(ex);
                     }
                     return StatusCode(_statusCode, response);
                 case BAD_REQUEST_400:   //POST, GET, Default
@@ -86,7 +86,7 @@ namespace AESMovilAPI.Controllers
                     }
                     catch (Exception ex)
                     {
-
+                        _log.Err(ex);
                     }
                     return Ok(response);
             }
@@ -179,13 +179,14 @@ namespace AESMovilAPI.Controllers
                         }
                         catch (Exception e)
                         {
-
+                            _log.Err(e);
                         }
+                        _log.Err(ex);
                     }
                 }
                 catch (HttpRequestException e)
                 {
-
+                    _log.Err(e);
                 }
             }
 
@@ -226,7 +227,7 @@ namespace AESMovilAPI.Controllers
                 }
                 catch (HttpRequestException e)
                 {
-
+                    _log.Err(e);
                 }
             }
 
@@ -284,6 +285,7 @@ namespace AESMovilAPI.Controllers
 
                         // Ensure the request was successful
                         response.EnsureSuccessStatusCode();
+                        _log.Err(ex);
                     }
 
                     // Read the response content as a string
@@ -295,7 +297,7 @@ namespace AESMovilAPI.Controllers
                 }
                 catch (HttpRequestException e)
                 {
-
+                    _log.Err(e);
                 }
             }
 
@@ -340,7 +342,7 @@ namespace AESMovilAPI.Controllers
             }
             catch (HttpRequestException e)
             {
-
+                _log.Err(e);
             }
 
             return null;
@@ -390,7 +392,7 @@ namespace AESMovilAPI.Controllers
             }
             catch (HttpRequestException e)
             {
-
+                _log.Err(e);
             }
 
             return null;
@@ -452,31 +454,31 @@ namespace AESMovilAPI.Controllers
                 }
                 catch (HttpRequestException e)
                 {
-
+                    _log.Err(e);
                 }
             }
 
             return null;
         }
         #region "Cache"
-        protected void SaveToken(string clave, string token)
+        protected void SaveToken(string key, string token)
         {
             if (_memory != null)
             {
                 // Almacena el token en la caché con una expiración de 60 minutos
-                var opcionesDeCache = new MemoryCacheEntryOptions()
+                var cacheOptions = new MemoryCacheEntryOptions()
                     .SetSlidingExpiration(TimeSpan.FromHours(24));
 
-                _memory.Set(clave, token, opcionesDeCache);
+                _memory.Set(key, token, cacheOptions);
             }
         }
 
-        protected string? GetToken(string clave)
+        protected string? GetToken(string key)
         {
             string? token = null;
             if (_memory != null)
             {
-                _memory.TryGetValue(clave, out token);
+                _memory.TryGetValue(key, out token);
             }
             return token;
         }
