@@ -202,7 +202,7 @@ namespace AESMovilAPI.Controllers
             {
                 string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
                 string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
-                string link = baseUrl + "/http/" + mandante + endpoint;
+                string link = baseUrl + "/http/" + mandante.TrimStart('_') + endpoint;
 
                 // Create HttpRequestMessage
                 var request = new HttpRequestMessage(HttpMethod.Get, new Uri(link));
@@ -241,7 +241,7 @@ namespace AESMovilAPI.Controllers
             {
                 string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
                 string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
-                string link = baseUrl + "/http/" + mandante + endpoint;
+                string link = baseUrl + "/http/" + mandante.TrimStart('_') + endpoint;
                 var jsonContent = JsonConvert.SerializeObject(postData);
                 var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
@@ -296,6 +296,68 @@ namespace AESMovilAPI.Controllers
                     var responseObject = Helper.DeserializeXml<CashPointOpenItemSummaryByElementsResponseMessage>(responseContent);
 
                     return responseObject;
+                }
+                catch (HttpRequestException e)
+                {
+                    _log.Err(e);
+                }
+            }
+
+            return null;
+        }
+        protected async Task<object?> ExecuteGetRequest(string url, bool auth = true, string? token = "", bool bearer = true, bool returnJson = true)
+        {
+            string result = string.Empty;
+
+            if (_client != null)
+            {
+                // Create HttpRequestMessage
+                var request = new HttpRequestMessage(HttpMethod.Get, new Uri(url));
+
+                if (!bearer)
+                {
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        byte[] textoBytes = Encoding.UTF8.GetBytes(_config.GetValue<string>("SAP:Usr") + ":" + _config.GetValue<string>("SAP:Pwd"));
+                        token = Convert.ToBase64String(textoBytes);
+                    }
+                }
+
+                if (auth && !string.IsNullOrEmpty(token))
+                {
+                    AuthenticationHeaderValue authHeader;
+                    if (bearer)
+                    {
+                        authHeader = new AuthenticationHeaderValue("Bearer", token);
+                    }
+                    else
+                    {
+                        authHeader = new AuthenticationHeaderValue("Basic", token);
+                    }
+
+                    // Set the authorization header
+                    _client.DefaultRequestHeaders.Authorization = authHeader;
+                }
+
+                try
+                {
+                    // Send the GET request
+                    var response = await _client.SendAsync(request);
+
+                    // Ensure the request was successful
+                    response.EnsureSuccessStatusCode();
+
+                    // Read the response content as a string
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    if (returnJson)
+                    {
+                        return JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
+                    }
+                    else
+                    {
+                        return responseContent;
+                    }
+
                 }
                 catch (HttpRequestException e)
                 {
@@ -401,6 +463,11 @@ namespace AESMovilAPI.Controllers
 
         #endregion
         #region "Commons"
+        /// <summary>
+        /// Consulta de saldo en RealPayment SAP
+        /// </summary>
+        /// <param name="nc">Cuenta Contrato para consultar</param>
+        /// <returns></returns>
         protected async Task<BillDto?> GetInvoiceData(string nc)
         {
             var data = new
@@ -468,6 +535,8 @@ namespace AESMovilAPI.Controllers
                     string company = "";
                     string name = "";
                     long documentNumber = 0;
+                    decimal mayoralAmount = 0;
+                    decimal reconnectionAmount = 0;
 
                     if (values.CashPointOpenItemSummary?.CashPointOpenItems != null)
                     {
@@ -480,10 +549,13 @@ namespace AESMovilAPI.Controllers
                                 if (item.OpenItemTransactionDescription.Value == "ALCA")
                                 {
                                     mayoral = true;
+                                    mayoralAmount += item.OpenAmount.Value;
                                 }
+
                                 if (item.OpenItemTransactionDescription.Value == "RECO")
                                 {
                                     reconnection = true;
+                                    reconnectionAmount += item.OpenAmount.Value;
                                 }
 
                                 dueDate = item.DueDate;
@@ -493,7 +565,7 @@ namespace AESMovilAPI.Controllers
                             }
                             catch (Exception ex)
                             {
-
+                                _log.Err(ex);
                             }
                         }
                     }
@@ -501,19 +573,22 @@ namespace AESMovilAPI.Controllers
                     result = new BillDto()
                     {
                         Client = name,
-                        Amount = amount.ToString(),
+                        Amount = amount,
                         ExpirationDate = dueDate,
-                        IssueDate = new DateTime(),
+                        IssueDate = new DateTime(),     // TODO
                         MayoralPayment = mayoral,
                         ReconnectionPayment = reconnection,
                         Company = company,
-                        BP = values.CashPointOpenItemSummary?.PartyReference?.InternalID
+                        BP = values.CashPointOpenItemSummary?.PartyReference?.InternalID,
+                        MayoralAmount = mayoralAmount,
+                        ReconnectionAmount = reconnectionAmount,
+                        DocumentNumber = documentNumber
                     };
                 }
             }
             catch (HttpRequestException e)
             {
-
+                _log.Err(e);
             }
 
             return result;

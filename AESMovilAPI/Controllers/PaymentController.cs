@@ -73,7 +73,7 @@ namespace AESMovilAPI.Controllers
                     colectorId = colectorId,                                                // Req. dinamic
                     clienteNombre = bill.Client,                                            // Dinamic
                     concepto = "Pago de factura",                                           // Dinamic
-                    monto = bill.Amount,                                                    // Dinamic
+                    monto = bill.Amount.ToString(),                                         // Dinamic
                     datosAuxiliares = new
                     {
                         datoAuxiliar1 = nc,                                                 // NC
@@ -106,7 +106,7 @@ namespace AESMovilAPI.Controllers
                 }
                 catch (HttpRequestException e)
                 {
-
+                    _log.Err(e);
                 }
             }
 
@@ -132,7 +132,7 @@ namespace AESMovilAPI.Controllers
                         {
                             quantity = 1,
                             description = "Pago de factura",
-                            price = bill.Amount,
+                            price = bill.Amount.ToString(),
                             url_product = ""
                         }
                     }
@@ -168,124 +168,6 @@ namespace AESMovilAPI.Controllers
                 {
 
                 }
-            }
-
-            return result;
-        }
-
-        private async Task<BillDto?> GetInvoiceData(string nc)
-        {
-            var data = new
-            {
-                Header = "",
-                Body = new
-                {
-                    CashPointOpenItemSummaryByElementsQueryMessage = new
-                    {
-                        MessageHeader = new
-                        {
-                            CreationDateTime = "",
-                            ID = new
-                            {
-                                text = ""
-                            },
-                            ReferenceID = new
-                            {
-                                text = ""
-                            },
-                            SenderParty = new
-                            {
-                                InternalID = new
-                                {
-                                    text = ""
-                                }
-                            },
-                            RecipientParty = new
-                            {
-                                InternalID = new
-                                {
-                                    text = ""
-                                }
-                            }
-                        },
-                        CashPointOpenItemSummaryByElementsQuery = new
-                        {
-                            CashPointReferenceID = new
-                            {
-                                text = _config.GetValue<string>(Constants.CONF_REAL_PAYMENT_CASH_POINT)
-                            },
-                            CashPointOfficeReferenceID = new
-                            {
-                                text = _config.GetValue<string>(Constants.CONF_REAL_PAYMENT_CASH_POINT_OFFICE)
-                            },
-                            ReportingCurrency = "USD",
-                            SelectionByContractAccountID = nc
-                        }
-                    }
-                }
-            };
-
-            BillDto? result = null;
-
-            try
-            {
-                CashPointOpenItemSummaryByElementsResponseMessage values = (CashPointOpenItemSummaryByElementsResponseMessage)await ExecutePostRequestRP(data, "OpenItemSummaryByElements");
-
-                if (values != null)
-                {
-                    bool mayoral = false;
-                    bool reconnection = false;
-                    decimal amount = 0;
-                    DateTime dueDate = DateTime.Now;
-                    string company = "";
-                    string name = "";
-                    long documentNumber = 0;
-
-                    if (values.CashPointOpenItemSummary?.CashPointOpenItems != null)
-                    {
-                        foreach (var item in values.CashPointOpenItemSummary.CashPointOpenItems)
-                        {
-                            try
-                            {
-                                amount += item.OpenAmount.Value;
-
-                                if (item.OpenItemTransactionDescription.Value == "ALCA")
-                                {
-                                    mayoral = true;
-                                }
-                                if (item.OpenItemTransactionDescription.Value == "RECO")
-                                {
-                                    reconnection = true;
-                                }
-
-                                dueDate = item.DueDate;
-                                company = item.PaymentFormID.Split("|")[0];
-                                name = item.PaymentFormID.Split("|")[1];
-                                documentNumber = string.IsNullOrEmpty(item.InvoiceID) ? 0 : long.Parse(item.InvoiceID);
-                            }
-                            catch (Exception ex)
-                            {
-
-                            }
-                        }
-                    }
-
-                    result = new BillDto()
-                    {
-                        Client = name,
-                        Amount = amount.ToString(),
-                        ExpirationDate = dueDate,
-                        IssueDate = new DateTime(),
-                        MayoralPayment = mayoral,
-                        ReconnectionPayment = reconnection,
-                        Company = company,
-                        BP = values.CashPointOpenItemSummary?.PartyReference?.InternalID
-                    };
-                }
-            }
-            catch (HttpRequestException e)
-            {
-
             }
 
             return result;
