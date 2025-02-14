@@ -26,12 +26,11 @@ namespace AESMovilAPI.Controllers
         /// </summary>
         /// <param name="auth">Key proporcionada por TI AES El Salvador.</param>
         /// <returns>Token</returns>
-        /// <response code="201">Correcto</response>
-        /// <response code="400">Incorrecto</response>
+        /// <response code="201">Solicitud completada con éxito.</response>
+        /// <response code="400">Consulta con datos incorrectos.</response>
         /// <response code="401">Error por key de autenticación</response>
-        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
-        /// <response code="502">Incidente en el servicio.</response>
-        /// <response code="503">Error interno en el proceso.</response>
+        /// <response code="500">Error inesperado en el servicio. Intente nuevamente en unos minutos.</response>
+        /// <response code="503">Servicio no disponible en este momento.</response>
         // POST: api/v1/auth/login
         [AllowAnonymous]
         [HttpPost]
@@ -44,12 +43,11 @@ namespace AESMovilAPI.Controllers
 
             if (auth != null && ModelState.IsValid)
             {
-                _statusCode = UNAUTHORIZED_401;
-
                 var authKey = AuthenticationHeaderValue.Parse(auth.Auth);
 
                 if (authKey.Scheme == "Basic")
                 {
+                    _statusCode = UNAUTHORIZED_401;
                     var credentials = Encoding.UTF8.GetString(Convert.FromBase64String(authKey.Parameter)).Split(':');
                     var username = credentials[0];
                     var password = credentials[1];
@@ -65,7 +63,7 @@ namespace AESMovilAPI.Controllers
                         }
                         catch (Exception ex)
                         {
-                            _statusCode = SERVICE_UNAVAILABLE_503;
+                            _statusCode = INTERNAL_ERROR_500;
                             response.Message = ex.Message;
                         }
 
@@ -92,7 +90,8 @@ namespace AESMovilAPI.Controllers
             }
             catch (Exception ex)
             {
-
+                _statusCode = INTERNAL_ERROR_500;
+                _log.Err(ex);
             }
 
             return exist;

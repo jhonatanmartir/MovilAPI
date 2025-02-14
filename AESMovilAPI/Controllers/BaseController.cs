@@ -27,6 +27,8 @@ namespace AESMovilAPI.Controllers
         protected const int UNAUTHORIZED_401 = StatusCodes.Status401Unauthorized;
         protected const int FORBIDDEN_403 = StatusCodes.Status403Forbidden;
         protected const int NOT_FOUND_404 = StatusCodes.Status404NotFound;
+        protected const int INTERNAL_ERROR_500 = StatusCodes.Status500InternalServerError;
+        protected const int BAD_GATEWAY_502 = StatusCodes.Status502BadGateway;
         protected const int SERVICE_UNAVAILABLE_503 = StatusCodes.Status503ServiceUnavailable;
 
         protected readonly IConfiguration _config;
@@ -299,6 +301,7 @@ namespace AESMovilAPI.Controllers
                 }
                 catch (HttpRequestException e)
                 {
+                    _statusCode = INTERNAL_ERROR_500;
                     _log.Err(e);
                 }
             }
@@ -467,7 +470,7 @@ namespace AESMovilAPI.Controllers
         /// Consulta de saldo en RealPayment SAP
         /// </summary>
         /// <param name="nc">Cuenta Contrato para consultar</param>
-        /// <returns></returns>
+        /// <returns>Detalle del saldo</returns>
         protected async Task<BillDto?> GetInvoiceData(string nc)
         {
             var data = new
@@ -565,6 +568,7 @@ namespace AESMovilAPI.Controllers
                             }
                             catch (Exception ex)
                             {
+                                _statusCode = INTERNAL_ERROR_500;
                                 _log.Err(ex);
                             }
                         }

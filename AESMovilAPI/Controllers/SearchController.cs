@@ -76,13 +76,13 @@ namespace AESMovilAPI.Controllers
         /// **Recomendado usar.**
         /// </remarks>
         /// <returns>Información del cliente</returns>
-        /// <response code="200">Correcto</response>
-        /// <response code="400">El dato a consultar no es correcto.</response>
+        /// <response code="200">Solicitud completada con éxito.</response>
+        /// <response code="400">Consulta con datos incorrectos.</response>
         /// <response code="401">Error por token de autorización.</response>
-        /// <response code="404">No existe información de Cuenta contrato o NIC.</response>
-        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
-        /// <response code="502">Incidente en el servicio.</response>
-        /// <response code="503">Error interno en el proceso de consulta.</response>
+        /// <response code="404">No se encontraron datos de Cuenta Contrato o NIC.</response>
+        /// <response code="500">Error inesperado en el servicio. Intente nuevamente en unos minutos.</response>
+        /// <response code="502">Servicio dependiente no respondió correctamente.</response>
+        /// <response code="503">Servicio no disponible en este momento.</response>
         // GET: api/Search
         [HttpGet("api/v1/Search/{id}")]
         public async Task<IActionResult> Get(string id)
@@ -98,8 +98,6 @@ namespace AESMovilAPI.Controllers
                 id != null && id.Length == 12 && BigInteger.TryParse(id, out number) ||
                 id != null && id.Length == 24 && BigInteger.TryParse(id, out number))
             {
-                _statusCode = NOT_FOUND_404;
-
                 var data = await GetData(id);
 
                 if (data != null)
@@ -186,7 +184,8 @@ namespace AESMovilAPI.Controllers
                 }
                 catch (Exception ex)
                 {
-
+                    _statusCode = INTERNAL_ERROR_500;
+                    _log.Err(ex);
                 }
             }
 

@@ -21,17 +21,19 @@ namespace AESMovilAPI.Controllers
         /// </summary>
         /// <param name="id">Cuenta contrato</param>
         /// <returns>Links para descargar PDF y JSON</returns>
-        /// <response code="200">Correcto.</response>
+        /// <response code="200">Solicitud completada con éxito.</response>
+        /// <response code="400">Consulta con datos incorrectos.</response>
         /// <response code="401">Error por token de autorización.</response>
-        /// <response code="404">No se encontro información.</response>
-        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
-        /// <response code="502">Incidente en el servicio.</response>
+        /// <response code="404">No se encontraron datos.</response>
+        /// <response code="500">Error inesperado en el servicio. Intente nuevamente en unos minutos.</response>
+        /// <response code="502">Servicio dependiente no respondió correctamente.</response>
+        /// <response code="503">Servicio no disponible en este momento.</response>
         [HttpGet("{id}")]
         public async Task<IActionResult> Index(string id)
         {
             Response<ReplacementResponse> response = new Response<ReplacementResponse>();
 
-            if (!string.IsNullOrEmpty(id) && Helper.IsCuentaContrato(id))
+            if (Helper.IsCuentaContrato(id))
             {
                 string fromDate = DateTime.Now.AddMonths(-6).ToString("yyyyMMdd");
                 string toDate = DateTime.Now.ToString("yyyyMMdd");
@@ -54,7 +56,8 @@ namespace AESMovilAPI.Controllers
                     }
                     catch (Exception ex)
                     {
-
+                        _log.Err(ex);
+                        _statusCode = INTERNAL_ERROR_500;
                     }
 
                     if (data != null)
@@ -148,15 +151,17 @@ namespace AESMovilAPI.Controllers
         }
 
         /// <summary>
-        /// Obtener links mediante Numero de documento para descargar PDF de factura y DTE certificado por el Ministerio de Hacienda
+        /// Obtener links mediante Número de documento para descargar PDF de factura y JSON certificado por el Ministerio de Hacienda.
         /// </summary>
         /// <param name="id">Número de documento</param>
         /// <returns>Links para descargar PDF y JSON</returns>
-        /// <response code="200">Correcto.</response>
+        /// <response code="200">Solicitud completada con éxito.</response>
+        /// <response code="400">Consulta con datos incorrectos.</response>
         /// <response code="401">Error por token de autorización.</response>
-        /// <response code="404">No se encontro información.</response>
-        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
-        /// <response code="502">Incidente en el servicio.</response>
+        /// <response code="404">No se encontraron datos.</response>
+        /// <response code="500">Error inesperado en el servicio. Intente nuevamente en unos minutos.</response>
+        /// <response code="502">Servicio dependiente no respondió correctamente.</response>
+        /// <response code="503">Servicio no disponible en este momento.</response>
         [HttpGet("Document/{id}")]
         public async Task<IActionResult> Document(string id)
         {
@@ -193,6 +198,10 @@ namespace AESMovilAPI.Controllers
                     response.Data = replacementResponse;
                     response.Success = true;
                     _statusCode = OK_200;
+                }
+                else
+                {
+                    _statusCode = NOT_FOUND_404;
                 }
 
                 if (!response.Success)
@@ -238,6 +247,10 @@ namespace AESMovilAPI.Controllers
                         _statusCode = NOT_FOUND_404;
                     }
                 }
+            }
+            else
+            {
+                _statusCode = BAD_REQUEST_400;
             }
 
             return GetResponse(response);

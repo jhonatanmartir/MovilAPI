@@ -1,6 +1,7 @@
 ﻿using AESMovilAPI.DTOs;
 using AESMovilAPI.Responses;
 using AESMovilAPI.Services;
+using AESMovilAPI.Utilities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AESMovilAPI.Controllers
@@ -16,20 +17,21 @@ namespace AESMovilAPI.Controllers
         /// <summary>
         /// Consulta de saldo.
         /// </summary>
-        /// <param name="id">Numero de Cuenta contrato</param>
-        /// <returns>Saldo actual del cliente.</returns>
-        /// <response code="200">Correcto.</response>
-        /// <response code="400">Consulta no corresponde.</response>
+        /// <param name="id">Número de Cuenta Contrato</param>
+        /// <returns>Detalle del saldo actual del cliente.</returns>
+        /// <response code="200">Solicitud completada con éxito.</response>
+        /// <response code="400">Consulta con datos incorrectos.</response>
         /// <response code="401">Error por token de autorización.</response>
-        /// <response code="404">No se encontró deuda.</response>
-        /// <response code="500">Ha ocurrido un error critico en el servicio.</response>
-        /// <response code="502">Incidente en el servicio.</response>
+        /// <response code="404">No se encontraron datos.</response>
+        /// <response code="500">Error inesperado en el servicio. Intente nuevamente en unos minutos.</response>
+        /// <response code="502">Servicio dependiente no respondió correctamente.</response>
+        /// <response code="503">Servicio no disponible en este momento.</response>
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
             var response = new Response<BalanceResponse>();
 
-            if (!string.IsNullOrEmpty(id.Trim()))
+            if (Helper.IsCuentaContrato(id))
             {
                 BillDto? bill = await GetInvoiceData(id);
 

@@ -173,9 +173,9 @@ namespace AESMovilAPI.Utilities
             return result;
         }
 
-        public static bool IsCuentaContrato(string value)
+        public static bool IsCuentaContrato(string? value)
         {
-            if (value.Length == 12)
+            if (!string.IsNullOrEmpty(value) && value.Trim().Length == 12)
             {
                 bool isNumber = BigInteger.TryParse(value, out BigInteger numeroEntero);
                 if (isNumber)

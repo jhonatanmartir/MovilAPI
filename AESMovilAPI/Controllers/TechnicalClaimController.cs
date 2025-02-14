@@ -4,7 +4,6 @@ using AESMovilAPI.Responses;
 using AESMovilAPI.Services;
 using AESMovilAPI.Utilities;
 using ivraes;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Filters;
@@ -26,46 +25,16 @@ namespace AESMovilAPI.Controllers
         }
 
         /// <summary>
-        /// Verifica que el servicio se encuentre funcionando.
-        /// </summary>
-        /// <returns>Texto</returns>
-        /// <response code="200">El servicio esta funcionando.</response>
-        /// <response code="202">El servicio esta en pruebas.</response>
-        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
-        /// <response code="502">Incidente en el servicio.</response>
-        // GET: api/v1/technicalclaims/verifier
-        [AllowAnonymous]
-        [HttpGet]
-        [Route("[action]")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status202Accepted)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [NonAction]
-        public IActionResult Verifier()
-        {
-            string result = "Keep calm We good over here!";
-
-            if (true)
-            {
-                return Accepted(result);
-            }
-            else
-            {
-                return Ok(result);
-            }
-        }
-
-        /// <summary>
         /// Creación de reclamos técnicos.
         /// </summary>
         /// <param name="claim">Datos del reaclamo representado por el objeto <see cref="Claim">Claim</see>. Reclamo por falta de suministro.</param>
         /// <returns>Número de reclamo</returns>
-        /// <response code="201">Se creó el reclamo.</response>
-        /// <response code="400">Error en datos para crear reclamo.</response>
+        /// <response code="201">Se creó el reclamo con éxito.</response>
+        /// <response code="400">Datos incorrectos para crear reclamo.</response>
         /// <response code="401">Error por token de autorización.</response>
-        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
-        /// <response code="502">Incidente en el servicio.</response>
-        /// <response code="503">Error interno en el proceso de creación del reclamo.</response>
+        /// <response code="500">Error inesperado en el servicio. Intente nuevamente en unos minutos.</response>
+        /// <response code="502">Servicio dependiente no respondió correctamente.</response>
+        /// <response code="503">Servicio no disponible en este momento.</response>
         // POST: api/v1/technicalclaims
         [HttpPost]
         public async Task<IActionResult> Create(Claim claim)
@@ -104,7 +73,7 @@ namespace AESMovilAPI.Controllers
 
                         if (string.IsNullOrEmpty(ivResponse.Body.CrearReclamoResult.NUMERO_RECLAMO))
                         {
-                            _statusCode = SERVICE_UNAVAILABLE_503;
+                            _statusCode = BAD_GATEWAY_502;
                         }
                     }
                     else
@@ -133,15 +102,16 @@ namespace AESMovilAPI.Controllers
 
                         if (string.IsNullOrEmpty(ivResponse.Body.CrearReclamoResult.NUMERO_RECLAMO))
                         {
-                            _statusCode = SERVICE_UNAVAILABLE_503;
+                            _statusCode = BAD_GATEWAY_502;
                         }
                     }
 
                 }
                 catch (Exception ex)
                 {
-                    _statusCode = BAD_REQUEST_400;
+                    _statusCode = INTERNAL_ERROR_500;
                     response.Message = ex.Message;
+                    _log.Err(ex);
                 }
             }
 
@@ -153,12 +123,12 @@ namespace AESMovilAPI.Controllers
         /// </summary>
         /// <param name="customer">Confirmacion del cliente representado por el objeto <see cref="Callback">Callback</see>.</param>
         /// <returns>Correcto o Incorrecto.</returns>
-        /// <response code="200">Correcto.</response>
-        /// <response code="400">Incorrecto.</response>
+        /// <response code="200">Solicitud completada con éxito.</response>
+        /// <response code="400">Consulta con datos incorrectos.</response>
         /// <response code="401">Error por token de autorización.</response>
-        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
-        /// <response code="502">Incidente en el servicio.</response>
-        /// <response code="503">Error interno.</response>
+        /// <response code="500">Error inesperado en el servicio. Intente nuevamente en unos minutos.</response>
+        /// <response code="502">Servicio dependiente no respondió correctamente.</response>
+        /// <response code="503">Servicio no disponible en este momento.</response>
         // POST: api/v1/ivrcallback
         [SwaggerRequestExample(typeof(Callback), typeof(CallbackExample))]
         [HttpPost]
@@ -194,13 +164,15 @@ namespace AESMovilAPI.Controllers
                     }
                     catch (HttpRequestException e)
                     {
-
+                        _statusCode = BAD_GATEWAY_502;
+                        _log.Err(e);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _statusCode = BAD_REQUEST_400;
+                    _statusCode = INTERNAL_ERROR_500;
                     response.Message = ex.Message;
+                    _log.Err(ex);
                 }
             }
 

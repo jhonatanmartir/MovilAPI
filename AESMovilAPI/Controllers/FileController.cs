@@ -52,6 +52,17 @@ namespace AESMovilAPI.Controllers
             _builder = builder;
         }
 
+        /// <summary>
+        /// Archivo
+        /// </summary>
+        /// <param name="id">Id</param>
+        /// <returns>Archivo</returns>
+        /// <response code="200">Solicitud completada con éxito.</response>
+        /// <response code="400">Solicitud con datos incorrectos.</response>
+        /// <response code="404">No se encontró archivo.</response>
+        /// <response code="500">Error inesperado en el servicio. Intente nuevamente en unos minutos.</response>
+        /// <response code="502">Servicio dependiente no respondió correctamente.</response>
+        /// <response code="503">Servicio no disponible en este momento.</response>
         [HttpGet("{id}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetFile(string id)
@@ -86,50 +97,22 @@ namespace AESMovilAPI.Controllers
                             break;
                         default: break;
                     }
+                    _statusCode = NOT_FOUND_404;
                 }
                 catch (Exception ex)
                 {
+                    _statusCode = INTERNAL_ERROR_500;
                     _log.Err(ex);
                 }
             }
-            _statusCode = NOT_FOUND_404;
-
-            return GetResponse(new Response<string>());
-        }
-
-        [NonAction]
-        [HttpGet("Bill/{id}")]
-        public IActionResult GetBill(string id)
-        {
-            return NotFound();
-        }
-
-        /// <summary>
-        /// Obtener Json DTE certificado por el Ministerio de Hacienda
-        /// </summary>
-        /// <param name="id">Número de documento</param>
-        /// <returns>Archivo Json</returns>
-        /// <response code="200">Correcto.</response>
-        /// <response code="401">Error por token de autorización.</response>
-        /// <response code="404">No se encontró certificación.</response>
-        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
-        /// <response code="502">Incidente en el servicio.</response>
-        [NonAction]
-        [HttpGet("Dte/{id}")]
-        public async Task<IActionResult> GetDte(string id)
-        {
-            if (!string.IsNullOrEmpty(id))
+            else
             {
-                var dataResult = await BuildDteFile(id);
-                if (dataResult.DataByte != null)
-                {
-                    return File(dataResult.DataByte, "application/json", dataResult.Name);
-                }
+                _statusCode = BAD_REQUEST_400;
             }
-            _statusCode = NOT_FOUND_404;
 
             return GetResponse(new Response<string>());
         }
+
         /// <summary>
         /// Obtener reporte PDF de historico de facturación
         /// </summary>
@@ -137,15 +120,17 @@ namespace AESMovilAPI.Controllers
         /// <param name="fromDate">Desde que fecha se consulta el historico en formato <c>yyyyMMdd</c> por ejemplo <c>20200101</c>. Sino se especifica se tomará 2 años atras, a partir de la fecha actual.</param>
         /// <param name="toDate">Hasta que fecha se consulta el historico en formato <c>yyyyMMdd</c> por ejemplo <c>202400606</c>. Sino se especifica se tomará la fecha actual.</param>
         /// <returns>Archivo PDF</returns>
-        /// <response code="200">Correcto.</response>
-        /// <response code="400">Parametros incorrectos.</response>
+        /// <response code="200">Solicitud completada con éxito.</response>
+        /// <response code="400">Solicitud con datos incorrectos.</response>
         /// <response code="401">Error por token de autorización.</response>
         /// <response code="404">No se encontró historico de facturación.</response>
-        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
-        /// <response code="502">Incidente en el servicio.</response>
+        /// <response code="500">Error inesperado en el servicio. Intente nuevamente en unos minutos.</response>
+        /// <response code="502">Servicio dependiente no respondió correctamente.</response>
+        /// <response code="503">Servicio no disponible en este momento.</response>
         [HttpGet("BillingHistory/{id}/{fromDate=}/{toDate=}")]
         public async Task<IActionResult> GetBillingHistory(string id, string? fromDate = null, string? toDate = null)
         {
+            var response = new Response<string>();
             if (string.IsNullOrEmpty(fromDate) || string.IsNullOrEmpty(fromDate.Trim(',')))
             {
                 fromDate = DateTime.Now.AddYears(-_PREVIUS_YEARS).ToString("yyyyMMdd");
@@ -156,7 +141,7 @@ namespace AESMovilAPI.Controllers
                 toDate = DateTime.Now.ToString("yyyyMMdd");
             }
 
-            if (!string.IsNullOrEmpty(id))
+            if (Helper.IsCuentaContrato(id))
             {
                 string endpoint = "BIL_BILLIMAGEPREVIEWES_AZUREAPPSERVICES_TO_SAPCIS;v=1/InvHistSummarySet(Nic='" + id + "',Ab='" + fromDate + "',Bis='" + toDate + "')";
                 dynamic? result = await ExecuteGetRequestSAP(endpoint);
@@ -176,13 +161,15 @@ namespace AESMovilAPI.Controllers
                 }
                 else
                 {
-                    return NotFound();
+                    _statusCode = NOT_FOUND_404;
                 }
             }
             else
             {
-                return BadRequest();
+                _statusCode = BAD_REQUEST_400;
             }
+
+            return GetResponse(response);
         }
 
         /// <summary>
@@ -192,15 +179,18 @@ namespace AESMovilAPI.Controllers
         /// <param name="fromDate">Desde que fecha se consulta el historico en formato <c>yyyyMMdd</c> por ejemplo <c>20200101</c>. Sino se especifica se tomará 2 años atras, a partir de la fecha actual.</param>
         /// <param name="toDate">Hasta que fecha se consulta el historico en formato <c>yyyyMMdd</c> por ejemplo <c>20240606</c>. Sino se especifica se tomará la fecha actual.</param>
         /// <returns>Archivo PDF</returns>
-        /// <response code="200">Correcto.</response>
-        /// <response code="400">Parametros incorrectos.</response>
+        /// <response code="200">Solicitud completada con éxito.</response>
+        /// <response code="400">Solicitud con datos incorrectos.</response>
         /// <response code="401">Error por token de autorización.</response>
         /// <response code="404">No se encontró historico de alcaldía.</response>
-        /// <response code="500">Ha ocurrido un error faltal en el servicio.</response>
-        /// <response code="502">Incidente en el servicio.</response>
+        /// <response code="500">Error inesperado en el servicio. Intente nuevamente en unos minutos.</response>
+        /// <response code="502">Servicio dependiente no respondió correctamente.</response>
+        /// <response code="503">Servicio no disponible en este momento.</response>
         [HttpGet("MayoralHistory/{id}/{fromDate=}/{toDate=}")]
         public async Task<IActionResult> GetMayoralHistory(string id, string? fromDate = null, string? toDate = null)
         {
+            var response = new Response<string>();
+
             if (string.IsNullOrEmpty(fromDate) || string.IsNullOrEmpty(fromDate.Trim(',')))
             {
                 fromDate = DateTime.Now.AddYears(-_PREVIUS_YEARS).ToString("yyyyMMdd");
@@ -211,7 +201,7 @@ namespace AESMovilAPI.Controllers
                 toDate = DateTime.Now.ToString("yyyyMMdd");
             }
 
-            if (!string.IsNullOrEmpty(id))
+            if (Helper.IsCuentaContrato(id))
             {
                 // Ref. NS-12674
                 string endpoint = "ACC_GETHISTORICOCARGOSALCALDIA_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetHistoricoAlcaldiaSet(Nic='" + id + "',Fechainicio='" + fromDate + "',Fechafin='" + toDate + "')";
@@ -231,13 +221,14 @@ namespace AESMovilAPI.Controllers
                 }
                 else
                 {
-                    return NotFound();
+                    _statusCode = NOT_FOUND_404;
                 }
             }
             else
             {
-                return BadRequest();
+                _statusCode = BAD_REQUEST_400;
             }
+            return GetResponse(response);
         }
 
         #region "MayoralHistory"
