@@ -206,9 +206,15 @@ namespace AESMovilAPI.Controllers
                 string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
                 string link = baseUrl + "/http/" + mandante.TrimStart('_') + endpoint;
 
+                // Define the username and password for Basic Authentication
+                var username = _config.GetValue<string>(Constants.CONF_SAP_USER);
+                var password = _config.GetValue<string>(Constants.CONF_SAP_PASSWORD);
+
                 // Create HttpRequestMessage
                 var request = new HttpRequestMessage(HttpMethod.Get, new Uri(link));
-                var authHeader = new AuthenticationHeaderValue("Basic", _config.GetValue<string>(Constants.CONF_SAP_REAL_PAYMENT_TOKEN));
+                // Create the authentication header value
+                var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
+                var authHeader = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
 
                 // Set the authorization header
                 _client.DefaultRequestHeaders.Authorization = authHeader;
@@ -247,12 +253,19 @@ namespace AESMovilAPI.Controllers
                 var jsonContent = JsonConvert.SerializeObject(postData);
                 var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
+                // Define the username and password for Basic Authentication
+                var username = _config.GetValue<string>(Constants.CONF_SAP_USER);
+                var password = _config.GetValue<string>(Constants.CONF_SAP_PASSWORD);
+
+                // Create the authentication header value
+                var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
+
                 // Create HttpRequestMessage
                 var request = new HttpRequestMessage(HttpMethod.Post, new Uri(link))
                 {
                     Content = httpContent
                 };
-                var authHeader = new AuthenticationHeaderValue("Basic", _config.GetValue<string>(Constants.CONF_SAP_REAL_PAYMENT_TOKEN));
+                var authHeader = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
 
                 // Set the authorization header
                 _client.DefaultRequestHeaders.Authorization = authHeader;

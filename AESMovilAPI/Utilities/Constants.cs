@@ -46,7 +46,6 @@
         public const string CONF_PAYWAY_ID_DEUSEM = "PaywayParams:IdDEUSEM";
         public const string CONF_PAYWAY_ID_CLESA = "PaywayParams:IdCLESA";
 
-        public const string CONF_SAP_REAL_PAYMENT_TOKEN = "RealPayment:Token";
         public const string CONF_REAL_PAYMENT_CASH_POINT = "RealPayment:CashPoint";
         public const string CONF_REAL_PAYMENT_CASH_POINT_OFFICE = "RealPayment:CashPointOffice";
 
