@@ -15,6 +15,11 @@
         public const string EEO_NAME = "EEO";
         public const string CLESA_NAME = "CLESA";
 
+        public const string SV10_CAESS_UNICOM = "2199";
+        public const string SV20_DEUSEM_UNICOM = "3199";
+        public const string SV30_EEO_UNICOM = "4199";
+        public const string SV40_CLESA_UNICOM = "5199";
+
         public const string EBILLAPI_BEARER = "EBillAPI_Bearer";
         public const string RP_TOKEN = "RP_TOKEN";
         public const string AESMOVIL_BEARER = "AM_TOKEN";

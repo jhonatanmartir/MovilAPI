@@ -118,7 +118,8 @@ namespace AESMovilAPI.Utilities
                     {
                         Color = SKColors.LightGray,             // Color de las líneas horizontales
                         StrokeThickness = 1
-                    }
+                    },
+                    ZeroPaint = new SolidColorPaint { Color = SKColors.Black, StrokeThickness = 4, } // Linea base horizontal
                 };
 
                 var chart = new SKCartesianChart

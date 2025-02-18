@@ -89,21 +89,19 @@ try
         {
             Title = "AESMovil API",
             Version = "v1",
-            Description = @"Documentación para realizar integraciones con los <strong>Canales Digitales</strong> de AES El Salvador.<br/><br/>
+            Description = @$"Documentación para realizar integraciones con los <strong>Canales Digitales</strong> de AES El Salvador.<br/><br/>
                             Contactar a TI AES El Salvador para obtener Key de autenticación.<br/>
                             Con el Key proporcionada utilice en endpoint de <code>Auth</code> para generar el token de autorización.<br/><br/>
-                            Los endpoints que aparecen en este documento estan disponibles para pruebas y no seran modificados a excepción en caso de hacer correciones o mejoras.<br/>
+                            Solamente puede utilizar este API si ha recibido un KEY aprobado por TI AES El Salvador<br/>
                             <h4>Consideraciones</h4>
                             <ul>
-                                <li>A medida que se desarrolla el servicio se iran habilitando mas endpoints.</li>
-                                <li>En ambiente desarrollo los token de autorización tienen validez por 48 horas.</li>
-                                <li>El texto de este documento puede ir cambiando para dar mas claridad en las especificaciones del API.</li>
+                                <li>Cada token de autorización tienen validez por {builder.Configuration.GetValue<int>("Security:Exp") * 24} horas.</li>
                                 <li>No se recomienda utilizar los endpoints legacy, revisar la descripción.</li>
                             </ul>",
             Contact = new Microsoft.OpenApi.Models.OpenApiContact
             {
                 Name = "Jhonatan Mártir",
-                Email = "creativa.jmartir.c@aes.com?subject=Me%20gustaría%20solicitar%20una%20API%20key%20para%AESMovil%20API"
+                Email = "creativa.jmartir.c@aes.com?subject=Solicitando%20una%20API%20key%20para%AESMovil%20API"
             }
         });
         // Remover status code 200 by default
@@ -214,12 +212,15 @@ try
             c =>
             {
                 //c.SwaggerEndpoint("/swagger/v1/swagger.json", "AESMovil API V1");
+                var pathBase = app.Services.GetRequiredService<IHttpContextAccessor>().HttpContext?.Request.PathBase.ToString() ?? string.Empty;
 
                 // Custom UI settings
-                c.InjectStylesheet("/swagger-ui/custom.css");
+                //c.InjectStylesheet(Path.Combine(AppContext.BaseDirectory, "/swagger-ui/custom.css"));
+                c.InjectStylesheet($"{pathBase}/swagger-ui/custom.css");
                 c.InjectJavascript("/swagger-ui/custom.js");
                 c.DocumentTitle = "AESMovil API Doc";
                 //c.RoutePrefix = string.Empty; // Serve Swagger UI at application root
+                app.UsePathBase(pathBase);
             });
     }
 

@@ -363,7 +363,7 @@ namespace AESMovilAPI.Utilities
                         #region "TIP_REG1_DATOS_SUMINISTRO OK"
                         var rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG1_DATOS_SUMINISTRO_STR)
-                          .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                          .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
                           .ToList();
 
                         foreach (var row in rowsDetail)
@@ -404,7 +404,7 @@ namespace AESMovilAPI.Utilities
                         #region "TIP_REG2_TARIFA_APLICADA OK"
                         rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG2_TARIFA_APLICADA_STR)
-                          .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                          .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
                           .ToList();
 
                         foreach (var row in rowsDetail)
@@ -427,32 +427,32 @@ namespace AESMovilAPI.Utilities
                             {
                                 try
                                 {
+                                    int index = 0;
                                     field = form.GetField($"FD_INICIO_{counterTarifa}");
                                     if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
                                     {
-                                        field.SetValue(words[0].Trim());
+                                        field.SetValue(words[index].Trim());
+                                        index++;
                                         //field.SetValue(words[0].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
                                     }
 
-                                    //field = form.GetField("FD_FINAL");
-                                    //if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
-                                    //{
-                                    //    field.SetValue(words[1].Trim());
-                                    //    //field.SetValue(words[1].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
-                                    //}
+                                    if (words.Length == 9)
+                                    {
+                                        field = form.GetField($"FD_FINAL_{counterTarifa}");
+                                        if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
+                                        {
+                                            field.SetValue(words[index].Trim());
+                                            index++;
+                                            //field.SetValue(words[1].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                        }
+                                    }
 
                                     field = form.GetField($"FD_CARGO_COM_{counterTarifa}");
                                     if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
                                     {
-                                        field.SetValue(words[1].Trim());
+                                        field.SetValue(words[index].Trim());
+                                        index++;
                                         //field.SetValue(words[2].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
-                                    }
-
-                                    field = form.GetField($"FD_BLOQUE_{counterTarifa}");
-                                    if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
-                                    {
-                                        field.SetValue(words[3].Trim());
-                                        //field.SetValue(words[3].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
                                     }
 
                                     try
@@ -460,7 +460,8 @@ namespace AESMovilAPI.Utilities
                                         field = form.GetField($"FD_UPR_{counterTarifa}");
                                         if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
                                         {
-                                            field.SetValue(words[2].Trim());
+                                            field.SetValue(words[index].Trim());
+                                            index++;
                                             //field.SetValue(words[2].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
                                         }
                                     }
@@ -469,33 +470,45 @@ namespace AESMovilAPI.Utilities
 
                                     }
 
+                                    field = form.GetField($"FD_BLOQUE_{counterTarifa}");
+                                    if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
+                                    {
+                                        field.SetValue(words[index].Trim());
+                                        index++;
+                                        //field.SetValue(words[3].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                    }
+
                                     try
                                     {
                                         field = form.GetField($"FD_PUNTA_{counterTarifa}");
                                         if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
                                         {
-                                            field.SetValue(words[4].Trim());
+                                            field.SetValue(words[index].Trim());
+                                            index++;
                                             //field.SetValue(words[4].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
-                                        }
-
-                                        field = form.GetField($"FD_VALLE_{counterTarifa}");
-                                        if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
-                                        {
-                                            field.SetValue(words[6].Trim());
-                                            //field.SetValue(words[6].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
                                         }
 
                                         field = form.GetField($"FD_RESTO_{counterTarifa}");
                                         if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
                                         {
-                                            field.SetValue(words[5].Trim());
+                                            field.SetValue(words[index].Trim());
+                                            index++;
                                             //field.SetValue(words[5].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
+                                        }
+
+                                        field = form.GetField($"FD_VALLE_{counterTarifa}");
+                                        if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
+                                        {
+                                            field.SetValue(words[index].Trim());
+                                            index++;
+                                            //field.SetValue(words[6].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
                                         }
 
                                         field = form.GetField($"FD_DISTRIBUCION_{counterTarifa}");
                                         if (field.GetValue() == null || field.GetValue().ToString() == Constants.FILLER)
                                         {
-                                            field.SetValue(words[7].Trim());
+                                            field.SetValue(words[index].Trim());
+                                            index++;
                                             //field.SetValue(words[7].Trim(), font, Constants.FONT_SIZE_FORM_MEDIUM);
                                         }
                                     }
@@ -516,7 +529,7 @@ namespace AESMovilAPI.Utilities
                         #region "TIP_REG3_TIPO_MED_LECTURAS OK"
                         rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG3_TIPO_MED_LECTURAS_STR)
-                          .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                          .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
                           .ToList();
 
                         foreach (var row in rowsDetail)
@@ -555,7 +568,7 @@ namespace AESMovilAPI.Utilities
                         #region "TIP_REG7_ALCALDIA OK"
                         rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG8_ALCALDIA_STR)
-                          .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                          .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
                           .ToList();
 
                         foreach (var row in rowsDetail)
@@ -590,7 +603,7 @@ namespace AESMovilAPI.Utilities
                         #region "TIP_REG10_MEDIDOR_LEVANTADO OK"
                         rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG10_MEDIDOR_LEVANTADO_STR)
-                          .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                          .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
                           .ToList();
 
                         foreach (var row in rowsDetail)
@@ -625,7 +638,7 @@ namespace AESMovilAPI.Utilities
                         #region "TIP_REG4_CONCEPTOS 1"
                         rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG4_CONCEPTOS_STR)
-                          .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                          .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
                           .ToList();
 
                         if (rowsDetail.Count > 0)
@@ -686,7 +699,7 @@ namespace AESMovilAPI.Utilities
                         #region "TIP_REG90_IVA 1.1"
                         rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG90_IVA_STR)
-                          .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                          .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
                           .ToList();
 
                         if (rowsDetail.Count > 0)
@@ -726,7 +739,7 @@ namespace AESMovilAPI.Utilities
                         #region "TIP_REG6_VENTAS_EXENTAS 2"
                         rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG6_VENTAS_EXENTAS_STR)
-                          .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                          .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
                           .ToList();
 
                         if (rowsDetail.Count > 0)
@@ -791,7 +804,7 @@ namespace AESMovilAPI.Utilities
                         #region "TIP_REG9_COMPENSACIONES 3"
                         rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG9_COMPENSACIONES_STR)
-                          .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                          .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
                           .ToList();
 
                         if (rowsDetail.Count > 0)
@@ -839,7 +852,7 @@ namespace AESMovilAPI.Utilities
                         #region "TIP_REG5_OTROS_CONCEPTOS 4"
                         rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG5_OTROS_CONCEPTOS_STR)
-                          .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                          .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
                           .ToList();
 
                         if (rowsDetail.Count > 0)
@@ -904,7 +917,7 @@ namespace AESMovilAPI.Utilities
                         #region "TIP_REG8_OTROS_SERVICIOS 5"
                         rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG7_OTROS_SERVICIOS_STR)
-                          .OrderBy(row => row.Field<string>("ORDEN_IMPRESION"))
+                          .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
                           .ToList();
 
                         if (rowsDetail.Count > 0)
