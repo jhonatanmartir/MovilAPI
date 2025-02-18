@@ -242,14 +242,14 @@ namespace AESMovilAPI.Utilities
                                         }
                                     }
 
-                                    if (fieldName.Equals("CSMO_FACT2"))
+                                    if (fieldName.Equals("CSMO_FACT2") || fieldName.Equals("DEM_FACT") || fieldName.Equals("POT_LEIDA"))
                                     {
-                                        field.SetValue($"{fielValue}.00");
+                                        field.SetValue(Helper.ToDecimal(fielValue).ToString("0.00"));
                                     }
 
                                     if (fieldName.Equals("POTENCIA"))
                                     {
-                                        field.SetValue($"{fielValue}.00");
+                                        field.SetValue(Helper.ToDecimal(fielValue).ToString("0.00"));
                                     }
 
                                     if (fieldName.Equals("MESES_PEND"))
@@ -365,7 +365,7 @@ namespace AESMovilAPI.Utilities
                         int positionCompensations = 1;
                         PdfFont boldFont = PdfFontFactory.CreateFont(iText.IO.Font.Constants.StandardFonts.HELVETICA_BOLD);
 
-                        #region "TIP_REG1_DATOS_SUMINISTRO OK"
+                        #region "TIP_REG1_DATOS_SUMINISTRO"
                         var rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG1_DATOS_SUMINISTRO_STR)
                           .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
@@ -406,7 +406,7 @@ namespace AESMovilAPI.Utilities
                         }
                         #endregion
 
-                        #region "TIP_REG2_TARIFA_APLICADA OK"
+                        #region "TIP_REG2_TARIFA_APLICADA"
                         rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG2_TARIFA_APLICADA_STR)
                           .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
@@ -531,7 +531,7 @@ namespace AESMovilAPI.Utilities
                         }
                         #endregion
 
-                        #region "TIP_REG3_TIPO_MED_LECTURAS OK"
+                        #region "TIP_REG3_TIPO_MED_LECTURAS"
                         rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG3_TIPO_MED_LECTURAS_STR)
                           .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
@@ -570,7 +570,7 @@ namespace AESMovilAPI.Utilities
                         }
                         #endregion
 
-                        #region "TIP_REG7_ALCALDIA OK"
+                        #region "TIP_REG7_ALCALDIA"
                         rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG8_ALCALDIA_STR)
                           .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
@@ -605,7 +605,7 @@ namespace AESMovilAPI.Utilities
                         }
                         #endregion
 
-                        #region "TIP_REG10_MEDIDOR_LEVANTADO OK"
+                        #region "TIP_REG10_MEDIDOR_LEVANTADO"
                         rowsDetail = _detail.AsEnumerable()
                           .Where(row => row.Field<string>("TIP_REG") == Constants.TIP_REG10_MEDIDOR_LEVANTADO_STR)
                           .OrderBy(row => int.TryParse(row.Field<string>("ORDEN_IMPRESION"), out int orden) ? orden : int.MaxValue)
