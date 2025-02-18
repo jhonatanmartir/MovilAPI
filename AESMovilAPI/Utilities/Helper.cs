@@ -198,6 +198,10 @@ namespace AESMovilAPI.Utilities
                 return 0;
             }
         }
+        public static int ToInteger(string value)
+        {
+            return (int)ToDecimal(value);
+        }
 
         public static string GetStyledNPE(string npe)
         {

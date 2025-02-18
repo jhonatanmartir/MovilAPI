@@ -244,12 +244,17 @@ namespace AESMovilAPI.Utilities
 
                                     if (fieldName.Equals("CSMO_FACT2"))
                                     {
-                                        field.SetValue($"{fielValue}.00 KW");
+                                        field.SetValue($"{fielValue}.00");
                                     }
 
                                     if (fieldName.Equals("POTENCIA"))
                                     {
-                                        field.SetValue($"{fielValue}.00 KW");
+                                        field.SetValue($"{fielValue}.00");
+                                    }
+
+                                    if (fieldName.Equals("MESES_PEND"))
+                                    {
+                                        field.SetValue(Helper.ToInteger(fielValue.Trim()).ToString());
                                     }
                                 }
 
@@ -377,19 +382,19 @@ namespace AESMovilAPI.Utilities
                                 try
                                 {
                                     field = form.GetField("FD_CALC_CONSUMO_" + counterTipDatosSuministro);
-                                    field.SetValue(words[0]);
+                                    field.SetValue(words[0].Trim());
                                     //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                     field = form.GetField("FD_MEDIDOR_" + counterTipDatosSuministro);
-                                    field.SetValue(words[1]);
+                                    field.SetValue(words[1].Trim());
                                     //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                     field = form.GetField("FD_MULT_" + counterTipDatosSuministro);
-                                    field.SetValue(words[2]);
+                                    field.SetValue(words[2].Trim());
                                     //field.SetValue(words[2], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                     field = form.GetField("FD_TIPO_" + counterTipDatosSuministro);
-                                    field.SetValue(words[3]);
+                                    field.SetValue(words[3].Trim());
                                     //field.SetValue(words[3], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                     field = form.GetField("FD_MEDI_" + counterTipDatosSuministro);
-                                    field.SetValue(words[4]);
+                                    field.SetValue(words[4].Trim());
                                     //field.SetValue(words[4], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                 }
                                 catch (Exception ex)
@@ -543,16 +548,16 @@ namespace AESMovilAPI.Utilities
                                 try
                                 {
                                     field = form.GetField("FD_TIPO_LECT_" + counterTipLecMed);
-                                    field.SetValue(words[1]);
+                                    field.SetValue(words[1].Trim());
                                     //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                     field = form.GetField("FD_LECT_ANT_" + counterTipLecMed);
-                                    field.SetValue(words[3]);
+                                    field.SetValue(words[3].Trim());
                                     //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                     field = form.GetField("FD_LECT_ACT_" + counterTipLecMed);
-                                    field.SetValue(words[2]);
+                                    field.SetValue(words[2].Trim());
                                     //field.SetValue(words[2], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                     field = form.GetField("FD_CONSUMO_" + counterTipLecMed);
-                                    field.SetValue(words[4]);
+                                    field.SetValue(words[4].Trim());
                                     //field.SetValue(words[3], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                 }
                                 catch (Exception ex)
@@ -583,10 +588,10 @@ namespace AESMovilAPI.Utilities
                                     if (anulados == null)
                                     {
                                         field = form.GetField("FD_CONCEPTO_ALCA_" + counterTipRegAlcaldia);
-                                        field.SetValue(words[0]);
+                                        field.SetValue(words[0].Trim());
                                         //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
                                         field = form.GetField("FD_CONCEPTO_ALCA_VAL_" + counterTipRegAlcaldia);
-                                        field.SetValue(words[1]);
+                                        field.SetValue(words[1].Trim());
                                         //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
                                     }
                                 }
@@ -616,13 +621,13 @@ namespace AESMovilAPI.Utilities
                                 try
                                 {
                                     field = form.GetField("FD_LECT_ACT_ML_" + counterTipLecMedLev);
-                                    field.SetValue(words[1]);
+                                    field.SetValue(words[1].Trim());
                                     //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                     field = form.GetField("FD_LECT_ANT_ML_" + counterTipLecMedLev);
-                                    field.SetValue(words[2]);
+                                    field.SetValue(words[2].Trim());
                                     //field.SetValue(words[2], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                     field = form.GetField("FD_CONSUMO_ML_" + counterTipLecMedLev);
-                                    field.SetValue(words[3]);
+                                    field.SetValue(words[3].Trim());
                                     //field.SetValue(words[3], font, Constants.FONT_SIZE_FORM_MEDIUM);
                                 }
                                 catch (Exception ex)
@@ -658,10 +663,10 @@ namespace AESMovilAPI.Utilities
                                     try
                                     {
                                         field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                                        field.SetValue(words[0]);
+                                        field.SetValue(words[0].Trim());
                                         //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
                                         field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
-                                        field.SetValue(words[1]);
+                                        field.SetValue(words[1].Trim());
                                         //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
                                     }
                                     catch (Exception ex)
@@ -717,10 +722,10 @@ namespace AESMovilAPI.Utilities
                                     try
                                     {
                                         field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                                        field.SetValue(words[0]);
+                                        field.SetValue(words[0].Trim());
                                         //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
                                         field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
-                                        field.SetValue(words[1]);
+                                        field.SetValue(words[1].Trim());
                                         //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
                                     }
                                     catch (Exception ex)
@@ -759,10 +764,10 @@ namespace AESMovilAPI.Utilities
                                     try
                                     {
                                         field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                                        field.SetValue(words[0]);
+                                        field.SetValue(words[0].Trim());
                                         //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
                                         field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
-                                        field.SetValue(words[1]);
+                                        field.SetValue(words[1].Trim());
                                         //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
                                     }
                                     catch (Exception ex)
@@ -826,10 +831,10 @@ namespace AESMovilAPI.Utilities
                                     try
                                     {
                                         field = form.GetField($"FD_CONCEPTO_{counterDetail}");
-                                        field.SetValue(words[0]);
+                                        field.SetValue(words[0].Trim());
                                         //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
                                         field = form.GetField($"FD_CONCEPTO_VAL_{counterDetail}");
-                                        field.SetValue(words[1]);
+                                        field.SetValue(words[1].Trim());
                                         //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
                                     }
                                     catch (Exception ex)
@@ -874,10 +879,10 @@ namespace AESMovilAPI.Utilities
                                     try
                                     {
                                         field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                                        field.SetValue(words[0]);
+                                        field.SetValue(words[0].Trim());
                                         //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
                                         field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
-                                        field.SetValue(words[1]);
+                                        field.SetValue(words[1].Trim());
                                         //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
                                     }
                                     catch (Exception ex)
@@ -939,10 +944,10 @@ namespace AESMovilAPI.Utilities
                                     try
                                     {
                                         field = form.GetField("FD_CONCEPTO_" + counterDetail);
-                                        field.SetValue(words[0]);
+                                        field.SetValue(words[0].Trim());
                                         //field.SetValue(words[0], font, Constants.FONT_SIZE_FORM);
                                         field = form.GetField("FD_CONCEPTO_VAL_" + counterDetail);
-                                        field.SetValue(words[1]);
+                                        field.SetValue(words[1].Trim());
                                         //field.SetValue(words[1], font, Constants.FONT_SIZE_FORM);
                                     }
                                     catch (Exception ex)
