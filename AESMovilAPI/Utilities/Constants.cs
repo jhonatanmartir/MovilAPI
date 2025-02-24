@@ -29,7 +29,6 @@
         public const string CONF_SAP_ENVIRONMENT = "SAP:ID";
         public const string CONF_SAP_USER = "SAP:Usr";
         public const string CONF_SAP_PASSWORD = "SAP:Pwd";
-        public const string CONF_SAP_TOKEN = "SAP:Token";
 
         public const string CONF_PAGADITO_ENDPOINT = "PagaditoParams:Endpoint";
         public const string CONF_PAGADITO_USER = "PagaditoParams:Usr";
@@ -58,6 +57,8 @@
         #region "Security"
         public const string ENCRYPT_KEY = "DdAWpGHUnLbvmGhkbydMp4qJNySZ98VAYUgXewR6trs=";
         public const string SECRECT_KEY_IV = "qJBO+FfIMogaSgmdPAZNFg==";
+        public const string HEADER_CSFR = "x-csrf-token";
+        public const string TOKEN_FETCH = "fetch";
         #endregion
 
         public const string SUCCESS = "success";
@@ -98,5 +99,6 @@
         #endregion
 
         public const string HTTP_CLIENT_NAME = "DefaultClient";
+
     }
 }

@@ -95,13 +95,13 @@ try
                             Solamente puede utilizar este API si ha recibido un KEY aprobado por TI AES El Salvador<br/>
                             <h4>Consideraciones</h4>
                             <ul>
-                                <li>Cada token de autorización tienen validez por {builder.Configuration.GetValue<int>("Security:Exp") * 24} horas.</li>
+                                <li>Cada token de autorización tiene validez por {builder.Configuration.GetValue<int>("Security:Exp") * 24} horas.</li>
                                 <li>No se recomienda utilizar los endpoints legacy, revisar la descripción.</li>
                             </ul>",
             Contact = new Microsoft.OpenApi.Models.OpenApiContact
             {
                 Name = "Jhonatan Mártir",
-                Email = "creativa.jmartir.c@aes.com?subject=Solicitando%20una%20API%20key%20para%AESMovil%20API"
+                Email = "creativa.jmartir.c@aes.com?subject=Solicitando%20una%20API%20KEY%20para%20AESMovilAPI"
             }
         });
         // Remover status code 200 by default

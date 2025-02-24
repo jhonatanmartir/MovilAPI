@@ -96,7 +96,7 @@ namespace AESMovilAPI.Controllers
         }
 
         #region "Client"
-        protected async Task<object?> ExecuteGetRequestSAP(string endpoint, Dictionary<string, string>? queryParams = null, bool overrideUrl = false)
+        protected async Task<object?> ExecuteGetRequestSAP(string endpoint, Dictionary<string, string>? queryParams = null, bool overrideUrl = false, bool tokenRequest = false)
         {
             if (_client != null)
             {
@@ -109,7 +109,7 @@ namespace AESMovilAPI.Controllers
                     link = endpoint;
                 }
 
-                if (queryParams == null)
+                if (!tokenRequest && queryParams == null)
                 {
                     queryParams = new Dictionary<string, string>
                     {
@@ -118,11 +118,22 @@ namespace AESMovilAPI.Controllers
                     };
                 }
 
+                HttpRequestMessage request;
+                if (tokenRequest)
+                {
+                    // Create HttpRequestMessage
+                    request = new HttpRequestMessage(HttpMethod.Get, new Uri(link));
 
-                // Build the URL with query parameters
-                var urlWithParams = QueryHelpers.AddQueryString(link, queryParams);
-                // Create HttpRequestMessage
-                var request = new HttpRequestMessage(HttpMethod.Get, urlWithParams);
+                    // Set custom headers
+                    request.Headers.Add(Constants.HEADER_CSFR, Constants.TOKEN_FETCH);
+                }
+                else
+                {
+                    // Build the URL with query parameters
+                    var urlWithParams = QueryHelpers.AddQueryString(link, queryParams!);
+                    // Create HttpRequestMessage
+                    request = new HttpRequestMessage(HttpMethod.Get, urlWithParams);
+                }
 
                 // Define the username and password for Basic Authentication
                 var username = _config.GetValue<string>(Constants.CONF_SAP_USER);
@@ -134,9 +145,6 @@ namespace AESMovilAPI.Controllers
 
                 // Set the authorization header
                 _client.DefaultRequestHeaders.Authorization = authHeader;
-
-                // Set custom headers
-                //request.Headers.Add("x-csfr-token", _config.GetValue<string>(Constants.CONF_SAP_TOKEN));
 
                 try
                 {
@@ -151,6 +159,13 @@ namespace AESMovilAPI.Controllers
                     try
                     {
                         dynamic responseObject = JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
+
+                        if (tokenRequest && response.Headers.TryGetValues(Constants.HEADER_CSFR, out var tokenValue))
+                        {
+                            string result = tokenValue.ElementAt(0);
+                            SaveToken(Constants.RP_TOKEN, result);
+                            return result;
+                        }
 
                         try
                         {
@@ -196,54 +211,7 @@ namespace AESMovilAPI.Controllers
 
             return null;
         }
-        protected async Task<object?> ExecuteGetRequestRPToken(string endpoint)
-        {
-            string result = string.Empty;
-
-            if (_client != null)
-            {
-                string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
-                string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
-                string link = baseUrl + "/http/" + mandante.TrimStart('_') + endpoint;
-
-                // Define the username and password for Basic Authentication
-                var username = _config.GetValue<string>(Constants.CONF_SAP_USER);
-                var password = _config.GetValue<string>(Constants.CONF_SAP_PASSWORD);
-
-                // Create HttpRequestMessage
-                var request = new HttpRequestMessage(HttpMethod.Get, new Uri(link));
-                // Create the authentication header value
-                var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
-                var authHeader = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
-
-                // Set the authorization header
-                _client.DefaultRequestHeaders.Authorization = authHeader;
-
-                // Set custom headers
-                request.Headers.Add("x-csrf-token", "fetch");
-                try
-                {
-                    // Send the GET request
-                    var response = await _client.SendAsync(request);
-
-                    // Ensure the request was successful
-                    response.EnsureSuccessStatusCode();
-
-                    if (response.Headers.TryGetValues("x-csrf-token", out var token))
-                    {
-                        result = token.ElementAt(0);
-                        SaveToken(Constants.RP_TOKEN, result);
-                    }
-                }
-                catch (HttpRequestException e)
-                {
-                    _log.Err(e);
-                }
-            }
-
-            return result;
-        }
-        protected async Task<object?> ExecutePostRequestRP(object postData, string endpoint)
+        protected async Task<object?> ExecutePostRequestSAP(object postData, string endpoint)
         {
             if (_client != null)
             {
@@ -273,11 +241,11 @@ namespace AESMovilAPI.Controllers
                 string? token = GetToken(Constants.RP_TOKEN);
                 if (string.IsNullOrEmpty(token))
                 {
-                    token = (string?)await ExecuteGetRequestRPToken(endpoint);
+                    token = (string?)await ExecuteGetRequestSAP(link, null, true, true);
                 }
 
                 // Set custom headers
-                request.Headers.Add("x-csrf-token", token);
+                request.Headers.Add(Constants.HEADER_CSFR, token);
 
                 try
                 {
@@ -288,16 +256,22 @@ namespace AESMovilAPI.Controllers
                         // Ensure the request was successful
                         response.EnsureSuccessStatusCode();
                     }
-                    catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                    catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)     //Falta header token
                     {
                         token = GetToken(Constants.RP_TOKEN);
                         if (string.IsNullOrEmpty(token))
                         {
-                            token = (string?)await ExecuteGetRequestRPToken(endpoint);
+                            token = (string?)await ExecuteGetRequestSAP(link, null, true, true);
                         }
 
-                        // Set custom headers
-                        request.Headers.Add("x-csrf-token", token);
+                        // Set headers token
+                        if (response.Headers.Contains(Constants.HEADER_CSFR))
+                        {
+                            response.Headers.Remove(Constants.HEADER_CSFR);
+                        }
+
+                        request.Headers.Add(Constants.HEADER_CSFR, token);
+
                         response = await _client.SendAsync(request);
 
                         // Ensure the request was successful
@@ -334,7 +308,7 @@ namespace AESMovilAPI.Controllers
                 {
                     if (string.IsNullOrEmpty(token))
                     {
-                        byte[] textoBytes = Encoding.UTF8.GetBytes(_config.GetValue<string>("SAP:Usr") + ":" + _config.GetValue<string>("SAP:Pwd"));
+                        byte[] textoBytes = Encoding.UTF8.GetBytes($"{_config.GetValue<string>(Constants.CONF_SAP_USER)}:{_config.GetValue<string>(Constants.CONF_SAP_PASSWORD)}");
                         token = Convert.ToBase64String(textoBytes);
                     }
                 }
@@ -540,7 +514,7 @@ namespace AESMovilAPI.Controllers
 
             try
             {
-                CashPointOpenItemSummaryByElementsResponseMessage values = (CashPointOpenItemSummaryByElementsResponseMessage)await ExecutePostRequestRP(data, "OpenItemSummaryByElements");
+                CashPointOpenItemSummaryByElementsResponseMessage values = (CashPointOpenItemSummaryByElementsResponseMessage)await ExecutePostRequestSAP(data, "OpenItemSummaryByElements");
 
                 if (values != null)
                 {

@@ -13,6 +13,8 @@ $gitOutput = & $gitPath for-each-ref refs/tags --sort=-creatordate --count=1 --f
 $parts = $gitOutput -split '\|'
 $tag = $parts[0] -replace '^v', ''  # Elimina el prefijo "v" de la versión
 $message = $parts[1]
+$parts = $tag -split '\s+'          # Divide por espacio
+$tag = $parts[0]
 
 # Guarda los valores en un archivo temporal
 $content = @"
