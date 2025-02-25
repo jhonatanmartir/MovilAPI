@@ -47,8 +47,6 @@ namespace AESMovilAPI.Controllers
 
                 if (authKey.Scheme == "Basic")
                 {
-                    _statusCode = UNAUTHORIZED_401;
-
                     try
                     {
                         var credentials = Encoding.UTF8.GetString(Convert.FromBase64String(authKey.Parameter)).Split(':');
@@ -73,8 +71,12 @@ namespace AESMovilAPI.Controllers
                             response.Data = token;
                             _log.Info("Correcto");
                         }
+                        else
+                        {
+                            _statusCode = UNAUTHORIZED_401;
+                        }
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         _statusCode = INTERNAL_ERROR_500;
                         _log.Err(ex);

@@ -37,7 +37,7 @@ namespace AESMovilAPI.Controllers
             {
                 string fromDate = DateTime.Now.AddMonths(-6).ToString("yyyyMMdd");
                 string toDate = DateTime.Now.ToString("yyyyMMdd");
-                string endpoint = "BIL_BILLIMAGEPREVIEWES_AZUREAPPSERVICES_TO_SAPCIS;v=1/InvHistSummarySet(Nic='" + id + "',Ab='" + fromDate + "',Bis='" + toDate + "')";
+                string endpoint = ApiEndpoint.GetSAPBillHistory(id, fromDate, toDate);
                 dynamic? result = await ExecuteGetRequestSAP(endpoint);
 
                 if (result != null)
@@ -71,11 +71,9 @@ namespace AESMovilAPI.Controllers
                         string url = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/v1/file/";
                         string documentNumber = sortedList.ElementAt(0).NumRecibo;
 
-                        string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
-                        string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
-                        endpoint = baseUrl + "/gw/odata/SAP/CIS" + mandante + $"_ACC_GETINVOICEFORMJSON_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetInvoiceToJsonSet('{documentNumber}')";
+                        endpoint = ApiEndpoint.GetSAPJson(documentNumber);
 
-                        result = await ExecuteGetRequest(endpoint, true, null, false, false);
+                        result = await ExecuteGetRequestSAP(endpoint, false, false, true);
                         string xmlString = Helper.CleanXml(result, "http://www.w3.org/2005/Atom");
                         var entry = Helper.DeserializeXml<Entry>(xmlString)!;
 
@@ -170,12 +168,9 @@ namespace AESMovilAPI.Controllers
             if (!string.IsNullOrEmpty(id))
             {
                 string url = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/v1/file/";
+                string endpoint = ApiEndpoint.GetSAPJson(id);
 
-                string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
-                string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
-                string endpoint = baseUrl + "/gw/odata/SAP/CIS" + mandante + $"_ACC_GETINVOICEFORMJSON_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetInvoiceToJsonSet('{id}')";
-
-                dynamic? result = await ExecuteGetRequest(endpoint, true, null, false, false);
+                dynamic? result = await ExecuteGetRequestSAP(endpoint, false, false, true);
                 string xmlString = Helper.CleanXml(result, "http://www.w3.org/2005/Atom");
                 var entry = Helper.DeserializeXml<Entry>(xmlString)!;
 
@@ -204,7 +199,7 @@ namespace AESMovilAPI.Controllers
                     _statusCode = NOT_FOUND_404;
                 }
 
-                if (!response.Success)
+                /*if (!response.Success)
                 {
                     url = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/v1/search/{id}";
                     string? token = GetToken(Constants.AESMOVIL_BEARER);
@@ -246,7 +241,7 @@ namespace AESMovilAPI.Controllers
                     {
                         _statusCode = NOT_FOUND_404;
                     }
-                }
+                }*/
             }
             else
             {

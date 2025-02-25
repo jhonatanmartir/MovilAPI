@@ -15,7 +15,7 @@ using System.Text;
 
 namespace AESMovilAPI.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [RequireHttps]
     [ServiceFilter(typeof(ActionExecutionFilter))]
@@ -79,6 +79,8 @@ namespace AESMovilAPI.Controllers
                     return StatusCode(_statusCode, response);
                 case NOT_FOUND_404:     //GET
                     return NotFound(response);
+                case INTERNAL_ERROR_500:
+                    return StatusCode(_statusCode, response);
                 case BAD_GATEWAY_502:
                     return StatusCode(_statusCode, response);
                 case SERVICE_UNAVAILABLE_503:
@@ -98,20 +100,13 @@ namespace AESMovilAPI.Controllers
         }
 
         #region "Client"
-        protected async Task<object?> ExecuteGetRequestSAP(string endpoint, Dictionary<string, string>? queryParams = null, bool overrideUrl = false, bool tokenRequest = false)
+        protected async Task<object?> ExecuteGetRequestSAP(string link, bool tokenRequest = false, bool defaultParams = true, bool returnString = false)
         {
             if (_client != null)
             {
-                string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
-                string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
-                string link = baseUrl + "/gw/odata/SAP/CIS" + mandante + "_" + endpoint;
+                Dictionary<string, string>? queryParams = null;
 
-                if (overrideUrl)
-                {
-                    link = endpoint;
-                }
-
-                if (!tokenRequest && queryParams == null)
+                if (!tokenRequest && defaultParams)
                 {
                     queryParams = new Dictionary<string, string>
                     {
@@ -121,7 +116,7 @@ namespace AESMovilAPI.Controllers
                 }
 
                 HttpRequestMessage request;
-                if (tokenRequest)
+                if (tokenRequest || !defaultParams)
                 {
                     // Create HttpRequestMessage
                     request = new HttpRequestMessage(HttpMethod.Get, new Uri(link));
@@ -158,53 +153,60 @@ namespace AESMovilAPI.Controllers
 
                     // Read the response content as a string
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    try
+
+                    if (returnString)
                     {
-                        dynamic responseObject = JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
-
-                        if (tokenRequest && response.Headers.TryGetValues(Constants.HEADER_CSFR, out var tokenValue))
-                        {
-                            string result = tokenValue.ElementAt(0);
-                            SaveToken(Constants.RP_TOKEN, result);
-                            return result;
-                        }
-
-                        try
-                        {
-                            if (string.IsNullOrEmpty(responseObject.d.Errorcode) || responseObject.d.Errorcode == "0")
-                            {
-                                return new
-                                {
-                                    data = responseObject.d
-                                };
-                            }
-                        }
-                        catch (RuntimeBinderException ex)
-                        {
-                            if (responseObject.d.MessageType == "0")
-                            {
-                                return new
-                                {
-                                    data = responseObject.d
-                                };
-                            }
-                        }
+                        return responseContent;
                     }
-                    catch (Exception ex)
+                    else
                     {
                         try
                         {
-                            // Leer el contenido como un array de bytes
-                            var pdfBytes = await response.Content.ReadAsByteArrayAsync();
-                            return pdfBytes;
+                            dynamic responseObject = JsonConvert.DeserializeObject<ExpandoObject>(responseContent)!;
+
+                            if (tokenRequest && response.Headers.TryGetValues(Constants.HEADER_CSFR, out var tokenValue))
+                            {
+                                string result = tokenValue.ElementAt(0);
+                                SaveToken(Constants.RP_TOKEN, result);
+                                return result;
+                            }
+
+                            try
+                            {
+                                if (string.IsNullOrEmpty(responseObject.d.Errorcode) || responseObject.d.Errorcode == "0")
+                                {
+                                    return new
+                                    {
+                                        data = responseObject.d
+                                    };
+                                }
+                            }
+                            catch (RuntimeBinderException ex)
+                            {
+                                if (responseObject.d.MessageType == "0")
+                                {
+                                    return new
+                                    {
+                                        data = responseObject.d
+                                    };
+                                }
+                            }
                         }
-                        catch (Exception e)
+                        catch (Exception ex)
                         {
-                            _log.Err(e);
+                            try
+                            {
+                                // Leer el contenido como un array de bytes
+                                var pdfBytes = await response.Content.ReadAsByteArrayAsync();
+                                return pdfBytes;
+                            }
+                            catch (Exception e)
+                            {
+                                _log.Err(e);
+                            }
+                            _log.Err(ex);
                         }
-                        _log.Err(ex);
-                    }
-                }
+                    }                }
                 catch (HttpRequestException e)
                 {
                     _log.Err(e);
@@ -213,13 +215,10 @@ namespace AESMovilAPI.Controllers
 
             return null;
         }
-        protected async Task<object?> ExecutePostRequestSAP(object postData, string endpoint)
+        protected async Task<object?> ExecutePostRequestSAP(object postData, string link)
         {
             if (_client != null)
             {
-                string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
-                string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
-                string link = baseUrl + "/http/" + mandante.TrimStart('_') + endpoint;
                 var jsonContent = JsonConvert.SerializeObject(postData);
                 var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
@@ -243,7 +242,7 @@ namespace AESMovilAPI.Controllers
                 string? token = GetToken(Constants.RP_TOKEN);
                 if (string.IsNullOrEmpty(token))
                 {
-                    token = (string?)await ExecuteGetRequestSAP(link, null, true, true);
+                    token = (string?)await ExecuteGetRequestSAP(link, true, false);
                 }
 
                 // Set custom headers
@@ -263,7 +262,7 @@ namespace AESMovilAPI.Controllers
                         token = GetToken(Constants.RP_TOKEN);
                         if (string.IsNullOrEmpty(token))
                         {
-                            token = (string?)await ExecuteGetRequestSAP(link, null, true, true);
+                            token = (string?)await ExecuteGetRequestSAP(link, true, false);
                         }
 
                         // Set headers token
@@ -516,7 +515,8 @@ namespace AESMovilAPI.Controllers
 
             try
             {
-                CashPointOpenItemSummaryByElementsResponseMessage values = (CashPointOpenItemSummaryByElementsResponseMessage)await ExecutePostRequestSAP(data, "OpenItemSummaryByElements");
+                string endpoint = ApiEndpoint.GetSAPBalance;
+                CashPointOpenItemSummaryByElementsResponseMessage values = (CashPointOpenItemSummaryByElementsResponseMessage)await ExecutePostRequestSAP(data, endpoint);
 
                 if (values != null)
                 {

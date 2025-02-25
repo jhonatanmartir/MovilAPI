@@ -128,7 +128,7 @@ namespace AESMovilAPI.Controllers
         /// <response code="502">Servicio dependiente no respondió correctamente.</response>
         /// <response code="503">Servicio no disponible en este momento.</response>
         [HttpGet("BillingHistory/{id}/{fromDate=}/{toDate=}")]
-        public async Task<IActionResult> GetBillingHistory                                                                                                                                                (string id, string? fromDate = null, string? toDate = null)
+        public async Task<IActionResult> GetBillingHistory(string id, string? fromDate = null, string? toDate = null)
         {
             var response = new Response<string>();
             if (string.IsNullOrEmpty(fromDate) || string.IsNullOrEmpty(fromDate.Trim(',')))
@@ -143,7 +143,7 @@ namespace AESMovilAPI.Controllers
 
             if (Helper.IsCuentaContrato(id))
             {
-                string endpoint = "BIL_BILLIMAGEPREVIEWES_AZUREAPPSERVICES_TO_SAPCIS;v=1/InvHistSummarySet(Nic='" + id + "',Ab='" + fromDate + "',Bis='" + toDate + "')";
+                string endpoint = ApiEndpoint.GetSAPBillHistory(id, fromDate, toDate);
                 dynamic? result = await ExecuteGetRequestSAP(endpoint);
 
                 if (result != null)
@@ -203,8 +203,7 @@ namespace AESMovilAPI.Controllers
 
             if (Helper.IsCuentaContrato(id))
             {
-                // Ref. NS-12674
-                string endpoint = "ACC_GETHISTORICOCARGOSALCALDIA_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetHistoricoAlcaldiaSet(Nic='" + id + "',Fechainicio='" + fromDate + "',Fechafin='" + toDate + "')";
+                string endpoint = ApiEndpoint.GetSAPMayoralHistory(id, fromDate, toDate);
                 dynamic? result = await ExecuteGetRequestSAP(endpoint);
                 if (result != null)
                 {
@@ -828,13 +827,11 @@ namespace AESMovilAPI.Controllers
         private async Task<FileDataDto> BuildBillFile(string id)
         {
             string rootPath = _webHostEnvironment.ContentRootPath;
-            string baseUrl = _config.GetValue<string>(Constants.CONF_SAP_BASE);
-            string mandante = _config.GetValue<string>(Constants.CONF_SAP_ENVIRONMENT);
-            string endpoint = baseUrl + "/gw/odata/SAP/CIS" + mandante + $"_ACC_GETINVOICEFORMJSON_AZUREAPPSSERVICES_TO_SAPCIS;v=1/GetInvoiceToJsonSet('{id}')";
+            string endpoint = ApiEndpoint.GetSAPJson(id);
 
             // Inicia el temporizador
             var stopwatch = Stopwatch.StartNew();
-            dynamic? response = await ExecuteGetRequest(endpoint, true, null, false, false);
+            dynamic? response = await ExecuteGetRequestSAP(endpoint, false, false, true);
 
             stopwatch.Stop();
 
