@@ -206,7 +206,8 @@ namespace AESMovilAPI.Controllers
                             }
                             _log.Err(ex);
                         }
-                    }                }
+                    }
+                }
                 catch (HttpRequestException e)
                 {
                     _log.Err(e);
@@ -609,6 +610,30 @@ namespace AESMovilAPI.Controllers
                 _memory.TryGetValue(key, out token);
             }
             return token;
+        }
+
+        protected void SaveCache(string key, object value, int life = 2)
+        {
+            if (_memory != null)
+            {
+                // Almacena el token en la caché con una expiración de 60 minutos
+                var cacheOptions = new MemoryCacheEntryOptions()
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(life)
+                };
+
+                _memory.Set(key, value, cacheOptions);
+            }
+        }
+
+        protected object? GetFromCache(string key)
+        {
+            object? result = null;
+            if (_memory != null)
+            {
+                _memory.TryGetValue(key, out result);
+            }
+            return result;
         }
         #endregion
 
