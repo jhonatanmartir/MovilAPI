@@ -15,7 +15,7 @@ using System.Text;
 
 namespace AESMovilAPI.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [ApiController]
     [RequireHttps]
     [ServiceFilter(typeof(ActionExecutionFilter))]
@@ -75,10 +75,12 @@ namespace AESMovilAPI.Controllers
                     return BadRequest(response);
                 case UNAUTHORIZED_401:
                     return Unauthorized(response);
-                case FORBIDDEN_403:    //POST, GET
+                case FORBIDDEN_403:     //POST, GET
                     return StatusCode(_statusCode, response);
                 case NOT_FOUND_404:     //GET
                     return NotFound(response);
+                case BAD_GATEWAY_502:
+                    return StatusCode(_statusCode, response);
                 case SERVICE_UNAVAILABLE_503:
                     return StatusCode(_statusCode, response);
                 default:

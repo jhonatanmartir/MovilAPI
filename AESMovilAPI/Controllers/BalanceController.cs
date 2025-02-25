@@ -26,8 +26,8 @@ namespace AESMovilAPI.Controllers
         /// <response code="500">Error inesperado en el servicio. Intente nuevamente en unos minutos.</response>
         /// <response code="502">Servicio dependiente no respondió correctamente.</response>
         /// <response code="503">Servicio no disponible en este momento.</response>
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(string id)
+        [HttpGet("{id}/{channel?}")]
+        public async Task<IActionResult> Get(string id, string? channel)
         {
             var response = new Response<BalanceResponse>();
 

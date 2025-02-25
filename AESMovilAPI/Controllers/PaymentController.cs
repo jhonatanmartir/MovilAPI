@@ -14,10 +14,9 @@ namespace AESMovilAPI.Controllers
     [Route("api/v1/[controller]")]
     public class PaymentController : BaseController<PaymentController>
     {
-        //private readonly HttpClient _client;
         public PaymentController(IConfiguration config, LoggerService<PaymentController> logger, IHttpClientFactory httpClientFactory) : base(config, logger, httpClientFactory)
         {
-            //_client = httpClientFactory.CreateClient(Constants.HTTP_CLIENT_NAME);
+
         }
 
         /// <summary>

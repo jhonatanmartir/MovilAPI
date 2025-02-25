@@ -33,6 +33,9 @@ try
     builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
     builder.Host.UseNLog();
 
+    // Inicializar ApiEndpoints con la configuración
+    ApiEndpoint.Initialize(builder.Configuration);
+
     // Configurar el pool de DbContext
     builder.Services.AddDbContextPool<SAPSGCDbContext>(options =>
         options.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection"))

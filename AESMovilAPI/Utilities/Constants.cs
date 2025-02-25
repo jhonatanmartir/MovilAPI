@@ -1,6 +1,6 @@
 ﻿namespace AESMovilAPI.Utilities
 {
-    public class Constants
+    public static class Constants
     {
         public const string SV10_CAESS = "2";
         public const string SV20_DEUSEM = "3";

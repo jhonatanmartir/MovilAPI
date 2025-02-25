@@ -48,27 +48,36 @@ namespace AESMovilAPI.Controllers
                 if (authKey.Scheme == "Basic")
                 {
                     _statusCode = UNAUTHORIZED_401;
-                    var credentials = Encoding.UTF8.GetString(Convert.FromBase64String(authKey.Parameter)).Split(':');
-                    var username = credentials[0];
-                    var password = credentials[1];
 
-                    //password = Util.GetSHA1(password);
-                    if (IsAuthorized(username, password))
+                    try
                     {
-                        string token = "";
-                        try
-                        {
-                            token = GenerateJwtToken(username);
-                            _statusCode = CREATED_201;
-                        }
-                        catch (Exception ex)
-                        {
-                            _statusCode = INTERNAL_ERROR_500;
-                            response.Message = ex.Message;
-                        }
+                        var credentials = Encoding.UTF8.GetString(Convert.FromBase64String(authKey.Parameter)).Split(':');
+                        var username = credentials[0];
+                        var password = credentials[1];
 
-                        response.Data = token;
-                        _log.Info("Correcto");
+                        //password = Util.GetSHA1(password);
+                        if (IsAuthorized(username, password))
+                        {
+                            string token = "";
+                            try
+                            {
+                                token = GenerateJwtToken(username);
+                                _statusCode = CREATED_201;
+                            }
+                            catch (Exception ex)
+                            {
+                                _statusCode = INTERNAL_ERROR_500;
+                                response.Message = ex.Message;
+                            }
+
+                            response.Data = token;
+                            _log.Info("Correcto");
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        _statusCode = INTERNAL_ERROR_500;
+                        _log.Err(ex);
                     }
                 }
             }

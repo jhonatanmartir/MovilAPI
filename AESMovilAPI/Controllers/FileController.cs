@@ -128,7 +128,7 @@ namespace AESMovilAPI.Controllers
         /// <response code="502">Servicio dependiente no respondió correctamente.</response>
         /// <response code="503">Servicio no disponible en este momento.</response>
         [HttpGet("BillingHistory/{id}/{fromDate=}/{toDate=}")]
-        public async Task<IActionResult> GetBillingHistory(string id, string? fromDate = null, string? toDate = null)
+        public async Task<IActionResult> GetBillingHistory                                                                                                                                                (string id, string? fromDate = null, string? toDate = null)
         {
             var response = new Response<string>();
             if (string.IsNullOrEmpty(fromDate) || string.IsNullOrEmpty(fromDate.Trim(',')))
